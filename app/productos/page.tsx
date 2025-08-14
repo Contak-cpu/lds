@@ -44,7 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navigation } from "@/components/navigation"
 import { toast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
-import type { ReactComponentType } from "react"
+import type { ComponentType } from "react"
 
 interface Producto {
   id: string
@@ -384,7 +384,7 @@ export default function ProductosPage() {
   })
 
   const getCategoriaIcon = (categoria: string) => {
-    const iconMap: Record<string, ReactComponentType<any>> = {
+    const iconMap: Record<string, ComponentType<any>> = {
       Kits: Package,
       Semillas: Leaf,
       Fertilizantes: Droplets,
