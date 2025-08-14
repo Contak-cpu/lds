@@ -30,6 +30,11 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
 
+interface ConfiguracionData {
+  clave: string
+  valor: any
+}
+
 export default function ConfiguracionPage() {
   const { toast } = useToast()
   const [hasChanges, setHasChanges] = useState(false)
@@ -84,7 +89,7 @@ export default function ConfiguracionPage() {
         if (data && data.length > 0) {
           const configCompleta = { ...configuracion }
 
-          data.forEach((item) => {
+          data.forEach((item: ConfiguracionData) => {
             const valores = item.valor
             Object.assign(configCompleta, valores)
           })
