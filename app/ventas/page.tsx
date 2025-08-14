@@ -71,6 +71,23 @@ interface Venta {
   productos: VentaItem[]
 }
 
+interface VentaSupabase {
+  id: string
+  cliente_nombre: string | null
+  cliente_id: string | null
+  tipo_venta: string
+  estado: string
+  total: number
+  metodo_pago: string | null
+  notas: string | null
+  created_at: string
+  venta_items?: {
+    producto_nombre: string | null
+    cantidad: number
+    precio_unitario: number
+  }[]
+}
+
 export default function VentasPage() {
   const [ventas, setVentas] = useState<Venta[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
@@ -119,9 +136,9 @@ export default function VentasPage() {
       if (clientesResponse.error) throw clientesResponse.error
 
       const ventasTransformadas =
-        ventasResponse.data?.map((venta, index) => {
+        ventasResponse.data?.map((venta: VentaSupabase, index) => {
           const fecha = new Date(venta.created_at)
-          const numeroSecuencial = ventasResponse.data.length - index
+          const numeroSecuencial = ventasResponse.data!.length - index
           const numeroVenta = `V-${fecha.getFullYear()}-${String(numeroSecuencial).padStart(3, "0")}`
 
           return {
