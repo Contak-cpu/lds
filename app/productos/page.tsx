@@ -210,7 +210,7 @@ export default function ProductosPage() {
     }
   }
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -384,7 +384,7 @@ export default function ProductosPage() {
   })
 
   const getCategoriaIcon = (categoria: string) => {
-    const iconMap: Record<string, ComponentType<any>> = {
+    const iconMap: Record<string, ComponentType<{ className?: string }>> = {
       Kits: Package,
       Semillas: Leaf,
       Fertilizantes: Droplets,
@@ -396,11 +396,11 @@ export default function ProductosPage() {
     return <IconComponent className="h-4 w-4" />
   }
 
-  const calcularGanancia = (precio: number, costo: number) => {
+  const calcularGanancia = (precio: number, costo: number): number => {
     return precio - costo
   }
 
-  const calcularMargenGanancia = (precio: number, costo: number) => {
+  const calcularMargenGanancia = (precio: number, costo: number): string => {
     return (((precio - costo) / precio) * 100).toFixed(1)
   }
 

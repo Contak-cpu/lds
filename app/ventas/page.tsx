@@ -41,6 +41,7 @@ interface Cliente {
   id: string
   nombre: string
   email: string
+  telefono: string
 }
 
 interface Producto {
@@ -48,7 +49,6 @@ interface Producto {
   nombre: string
   precio: number
   stock: number
-  esPersonalizado?: boolean
 }
 
 interface VentaItem {
@@ -73,31 +73,33 @@ interface Venta {
 
 interface VentaSupabase {
   id: string
-  cliente_nombre: string | null
   cliente_id: string | null
-  tipo_venta: string
-  estado: string
+  cliente_casual: string | null
   total: number
-  metodo_pago: string | null
+  metodo_pago: string
   notas: string | null
   created_at: string
-  venta_items?: {
-    producto_nombre: string | null
+  venta_items: {
+    producto_nombre: string
     cantidad: number
     precio_unitario: number
   }[]
 }
 
+interface ProductoCarrito {
+  id: string
+  nombre: string
+  precio: number
+  cantidad: number
+  stock: number
+}
+
 export default function VentasPage() {
-  const [ventas, setVentas] = useState<Venta[]>([])
+  const [ventas, setVentas] = useState<any[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
-
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterEstado, setFilterEstado] = useState("todos")
-  const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
-  const [carrito, setCarrito] = useState([])
+  const [carrito, setCarrito] = useState<ProductoCarrito[]>([])
   const [clienteSeleccionado, setClienteSeleccionado] = useState("")
 
   const [searchProducto, setSearchProducto] = useState("")
@@ -128,7 +130,7 @@ export default function VentasPage() {
 
         supabase.from("productos").select("*").order("nombre"),
 
-        supabase.from("clientes").select("id, nombre, email").order("nombre"),
+        supabase.from("clientes").select("id, nombre, email, telefono").order("nombre"),
       ])
 
       if (ventasResponse.error) throw ventasResponse.error
@@ -144,14 +146,16 @@ export default function VentasPage() {
           return {
             id: venta.id,
             numeroVenta: numeroVenta,
-            cliente: venta.cliente_nombre || "Cliente sin nombre",
-            clienteEmail: "", // No existe en el esquema
+            cliente: venta.cliente_id
+              ? clientes.find((c) => c.id === venta.cliente_id)?.nombre || "Cliente sin nombre"
+              : venta.cliente_casual || "Cliente sin nombre",
+            clienteEmail: venta.cliente_id ? clientes.find((c) => c.id === venta.cliente_id)?.email || "" : "",
             fecha: fecha.toISOString().split("T")[0],
             estado: venta.estado || "Pendiente",
             total: venta.total || 0,
             metodoPago: venta.metodo_pago || "No especificado",
             notas: venta.notas || "",
-            esCasual: venta.tipo_venta === "casual",
+            esCasual: venta.cliente_id === null,
             productos:
               venta.venta_items?.map((item) => ({
                 nombre: item.producto_nombre || "Producto sin nombre",
@@ -164,7 +168,7 @@ export default function VentasPage() {
       setVentas(ventasTransformadas)
 
       const productosTransformados =
-        productosResponse.data?.map((producto) => ({
+        productosResponse.data?.map((producto: any) => ({
           id: producto.id,
           nombre: producto.nombre,
           precio: producto.precio,
@@ -282,7 +286,7 @@ export default function VentasPage() {
 
       const ventaData = {
         cliente_id: clienteId,
-        cliente_nombre: clienteNombre,
+        cliente_casual: tipoVenta === "casual" ? clienteCasual.trim() : null,
         total: totalCarrito,
         subtotal: totalCarrito,
         descuento: 0,
@@ -381,7 +385,7 @@ export default function VentasPage() {
     }
   }
 
-  const agregarAlCarrito = (producto) => {
+  const agregarAlCarrito = (producto: Producto): void => {
     if (!producto.nombre || producto.precio <= 0) {
       toast({
         title: "Error",
@@ -391,56 +395,40 @@ export default function VentasPage() {
       return
     }
 
-    // Validar stock disponible para productos no personalizados
-    if (!producto.esPersonalizado && producto.stock <= 0) {
-      toast({
-        title: "Sin stock",
-        description: `${producto.nombre} no tiene stock disponible`,
-        variant: "destructive",
-      })
-      return
-    }
-
-    const existente = carrito.find((item) => item.id === producto.id)
-
-    if (existente) {
-      const nuevaCantidad = existente.cantidad + 1
-
-      // Validar que no exceda el stock disponible
-      if (!producto.esPersonalizado && nuevaCantidad > producto.stock) {
+    const productoExistente = carrito.find((item) => item.id === producto.id)
+    if (productoExistente) {
+      if (productoExistente.cantidad >= producto.stock) {
         toast({
           title: "Stock insuficiente",
-          description: `Solo hay ${producto.stock} unidades disponibles de ${producto.nombre}`,
+          description: `Solo hay ${producto.stock} unidades disponibles`,
           variant: "destructive",
         })
         return
       }
-
-      setCarrito(carrito.map((item) => (item.id === producto.id ? { ...item, cantidad: nuevaCantidad } : item)))
+      actualizarCantidad(producto.id, productoExistente.cantidad + 1)
     } else {
-      setCarrito([...carrito, { ...producto, cantidad: 1 }])
+      const nuevoItem: ProductoCarrito = {
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: 1,
+        stock: producto.stock,
+      }
+      setCarrito([...carrito, nuevoItem])
     }
-
-    toast({
-      title: "Producto agregado",
-      description: `${producto.nombre} agregado al carrito`,
-    })
   }
 
-  const actualizarCantidad = (productoId, nuevaCantidad) => {
+  const actualizarCantidad = (productoId: string, nuevaCantidad: number): void => {
     if (nuevaCantidad <= 0) {
       removerDelCarrito(productoId)
       return
     }
 
-    const item = carrito.find((item) => item.id === productoId)
-    if (!item) return
-
-    // Validar stock para productos no personalizados
-    if (!item.esPersonalizado && nuevaCantidad > item.stock) {
+    const producto = productos.find((p) => p.id === productoId)
+    if (producto && nuevaCantidad > producto.stock) {
       toast({
         title: "Stock insuficiente",
-        description: `Solo hay ${item.stock} unidades disponibles de ${item.nombre}`,
+        description: `Solo hay ${producto.stock} unidades disponibles`,
         variant: "destructive",
       })
       return
@@ -449,7 +437,7 @@ export default function VentasPage() {
     setCarrito(carrito.map((item) => (item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item)))
   }
 
-  const removerDelCarrito = (productoId) => {
+  const removerDelCarrito = (productoId: string): void => {
     setCarrito(carrito.filter((item) => item.id !== productoId))
   }
 
@@ -541,6 +529,10 @@ export default function VentasPage() {
   )
 
   const totalCarrito = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
+
+  const [filterEstado, setFilterEstado] = useState("todos")
+  const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   if (loading) {
     return (

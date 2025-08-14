@@ -26,6 +26,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
+import type { JSX } from "react/jsx-runtime" // Import JSX to fix the undeclared variable error
 
 const dataPorPeriodo = {
   dia: {
@@ -134,7 +135,7 @@ export default function ReportesPage() {
 
   const datosActuales = dataPorPeriodo[periodoSeleccionado as keyof typeof dataPorPeriodo]
 
-  const getTrendIcon = (tipo: string) => {
+  const getTrendIcon = (tipo: string): JSX.Element => {
     return tipo === "aumento" ? (
       <TrendingUp className="h-4 w-4 text-green-600" />
     ) : (
@@ -142,11 +143,11 @@ export default function ReportesPage() {
     )
   }
 
-  const getTrendColor = (tipo: string) => {
+  const getTrendColor = (tipo: string): string => {
     return tipo === "aumento" ? "text-green-600" : "text-red-600"
   }
 
-  const exportarReporte = () => {
+  const exportarReporte = (): void => {
     const reporteData = {
       periodo: usarFechaPersonalizada ? "personalizado" : periodoSeleccionado,
       fechaInicio: fechaPersonalizada?.from ? format(fechaPersonalizada.from, "yyyy-MM-dd") : null,
@@ -264,13 +265,13 @@ export default function ReportesPage() {
           }
 
           // Función auxiliar para codificar celdas
-          const encodeCell = (cell: { c: number; r: number }) => {
+          const encodeCell = (cell: { c: number; r: number }): string => {
             const col = String.fromCharCode(65 + cell.c)
             return col + (cell.r + 1)
           }
 
           // Función auxiliar para codificar rangos
-          const encodeRange = (range: { s: { c: number; r: number }; e: { c: number; r: number } }) => {
+          const encodeRange = (range: { s: { c: number; r: number }; e: { c: number; r: number } }): string => {
             return encodeCell(range.s) + ":" + encodeCell(range.e)
           }
 
@@ -464,7 +465,7 @@ export default function ReportesPage() {
   }
 
   // Función auxiliar para escribir workbook XLSX
-  const writeWorkbook = (wb: any) => {
+  const writeWorkbook = (wb: any): ArrayBuffer => {
     const buf = new ArrayBuffer(1000000)
     const view = new Uint8Array(buf)
     // Implementación simplificada - en producción usar librería xlsx

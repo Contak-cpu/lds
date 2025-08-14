@@ -112,11 +112,11 @@ export default function EgresosPage() {
   const totalMesActual = egresosMesActual.reduce((sum, egreso) => sum + egreso.monto, 0)
 
   // Manejar cambios en el formulario
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 
-  const agregarEgreso = async () => {
+  const agregarEgreso = async (): Promise<void> => {
     if (
       !formData.descripcion ||
       !formData.categoria ||
@@ -181,7 +181,7 @@ export default function EgresosPage() {
     }
   }
 
-  const editarEgreso = async () => {
+  const editarEgreso = async (): Promise<void> => {
     if (!editandoEgreso) return
 
     try {
@@ -223,7 +223,7 @@ export default function EgresosPage() {
   }
 
   // Abrir diálogo de edición
-  const abrirEdicion = (egreso: Egreso) => {
+  const abrirEdicion = (egreso: Egreso): void => {
     setEditandoEgreso(egreso)
     setFormData({
       descripcion: egreso.descripcion,
@@ -236,7 +236,7 @@ export default function EgresosPage() {
     setDialogAbierto(true)
   }
 
-  const eliminarEgreso = async (id: string) => {
+  const eliminarEgreso = async (id: string): Promise<void> => {
     try {
       const supabase = createClient()
       const { error } = await supabase.from("egresos").delete().eq("id", id)

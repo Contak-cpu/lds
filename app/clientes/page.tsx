@@ -151,6 +151,20 @@ export default function ClientesPage() {
     )
   }
 
+  const handleEditFormChange = (field: string, value: string): void => {
+    setEditForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
+  const handleNewClienteFormChange = (field: string, value: string): void => {
+    setNewClienteForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+  }
+
   const handleEditCliente = (cliente: Cliente) => {
     setEditingCliente(cliente)
     setEditForm({
@@ -191,20 +205,6 @@ export default function ClientesPage() {
         variant: "destructive",
       })
     }
-  }
-
-  const handleEditFormChange = (field: string, value: string) => {
-    setEditForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-  }
-
-  const handleNewClienteFormChange = (field: string, value: string) => {
-    setNewClienteForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
   }
 
   if (loading) {
