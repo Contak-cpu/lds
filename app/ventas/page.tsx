@@ -136,7 +136,7 @@ export default function VentasPage() {
       if (clientesResponse.error) throw clientesResponse.error
 
       const ventasTransformadas =
-        ventasResponse.data?.map((venta: VentaSupabase, index) => {
+        ventasResponse.data?.map((venta: VentaSupabase, index: number) => {
           const fecha = new Date(venta.created_at)
           const numeroSecuencial = ventasResponse.data!.length - index
           const numeroVenta = `V-${fecha.getFullYear()}-${String(numeroSecuencial).padStart(3, "0")}`
