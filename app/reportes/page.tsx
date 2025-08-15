@@ -191,7 +191,7 @@ export default function ReportesPage() {
 
   const datosActuales = dataPorPeriodo[periodoSeleccionado as keyof typeof dataPorPeriodo]
 
-  const getTrendIcon = (tipo: string): JSX.Element => {
+  const getTrendIcon = (tipo: "aumento" | "disminucion"): JSX.Element => {
     return tipo === "aumento" ? (
       <TrendingUp className="h-4 w-4 text-green-600" />
     ) : (
@@ -199,7 +199,7 @@ export default function ReportesPage() {
     )
   }
 
-  const getTrendColor = (tipo: string): string => {
+  const getTrendColor = (tipo: "aumento" | "disminucion"): string => {
     return tipo === "aumento" ? "text-green-600" : "text-red-600"
   }
 
