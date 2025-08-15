@@ -50,7 +50,7 @@ interface VentaPorPeriodo {
 }
 
 interface DatosPorPeriodo {
-  ventasPorPeriodo: VentaPorPeriodo[]
+  ventasPorPeriodo: readonly VentaPorPeriodo[]
   metricas: MetricasReporte
 }
 
@@ -79,9 +79,9 @@ interface ReporteExportData {
   fechaFin: string | null
   fecha: string
   metricas: MetricasReporte
-  ventas: VentaPorPeriodo[]
-  productos: ProductoMasVendido[]
-  categorias: CategoriaVenta[]
+  ventas: readonly VentaPorPeriodo[]
+  productos: readonly ProductoMasVendido[]
+  categorias: readonly CategoriaVenta[]
 }
 
 const dataPorPeriodo = {
@@ -94,7 +94,7 @@ const dataPorPeriodo = {
       { periodo: "17:00", ventas: 156000, pedidos: 6 },
       { periodo: "19:00", ventas: 89000, pedidos: 3 },
       { periodo: "21:00", ventas: 67000, pedidos: 2 },
-    ],
+    ] as const,
     metricas: {
       ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" as const },
       ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" as const },
@@ -113,7 +113,7 @@ const dataPorPeriodo = {
       { periodo: "Vie", ventas: 840000, pedidos: 18 },
       { periodo: "Sáb", ventas: 960000, pedidos: 22 },
       { periodo: "Dom", ventas: 720000, pedidos: 16 },
-    ],
+    ] as const,
     metricas: {
       ventasHoy: { valor: 1200000, cambio: 18, tipo: "aumento" as const },
       ventasSemana: { valor: 7800000, cambio: 12, tipo: "aumento" as const },
@@ -129,7 +129,7 @@ const dataPorPeriodo = {
       { periodo: "Sem 2", ventas: 3120000, pedidos: 58 },
       { periodo: "Sem 3", ventas: 2890000, pedidos: 52 },
       { periodo: "Sem 4", ventas: 3540000, pedidos: 67 },
-    ],
+    ] as const,
     metricas: {
       ventasHoy: { valor: 980000, cambio: -8, tipo: "disminucion" as const },
       ventasSemana: { valor: 6200000, cambio: -3, tipo: "disminucion" as const },
@@ -144,7 +144,7 @@ const dataPorPeriodo = {
       { periodo: "Ene", ventas: 4620000, pedidos: 145 },
       { periodo: "Feb", ventas: 5460000, pedidos: 152 },
       { periodo: "Mar", ventas: 6840000, pedidos: 168 },
-    ],
+    ] as const,
     metricas: {
       ventasHoy: { valor: 1100000, cambio: 25, tipo: "aumento" as const },
       ventasSemana: { valor: 8500000, cambio: 30, tipo: "aumento" as const },
@@ -163,7 +163,7 @@ const ventasPorMes = [
   { mes: "Abr", ventas: 5880000, clientes: 58 },
   { mes: "May", ventas: 7560000, clientes: 74 },
   { mes: "Jun", ventas: 8520000, clientes: 82 },
-]
+] as const
 
 const productosMasVendidos = [
   { nombre: "Kit Cultivo Indoor", ventas: 47, ingresos: 4230900, color: "#10b981" },
@@ -171,7 +171,7 @@ const productosMasVendidos = [
   { nombre: "Lámpara LED 600W", ventas: 28, ingresos: 1595972, color: "#f59e0b" },
   { nombre: "Sistema Hidropónico", ventas: 24, ingresos: 1079976, color: "#8b5cf6" },
   { nombre: "Semillas Auto", ventas: 18, ingresos: 243000, color: "#ef4444" },
-]
+] as const
 
 const categoriaVentas = [
   { categoria: "Kits", valor: 35, color: "#10b981" },
@@ -179,7 +179,7 @@ const categoriaVentas = [
   { categoria: "Fertilizantes", valor: 20, color: "#f59e0b" },
   { categoria: "Hidroponía", valor: 15, color: "#8b5cf6" },
   { categoria: "Herramientas", valor: 5, color: "#ef4444" },
-]
+] as const
 
 export default function ReportesPage() {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("semana")
