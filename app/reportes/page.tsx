@@ -808,7 +808,7 @@ export default function ReportesPage() {
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                      data={datosActuales.ventasPorPeriodo}
+                      data={[...datosActuales.ventasPorPeriodo]}
                       margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                     >
                       <XAxis dataKey="periodo" fontSize={12} tickMargin={10} />
