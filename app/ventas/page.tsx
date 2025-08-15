@@ -74,11 +74,18 @@ interface Venta {
 interface VentaSupabase {
   id: string
   cliente_id: string | null
+  cliente_nombre: string | null
   cliente_casual: string | null
+  tipo_venta: string
+  estado: string // agregando propiedad estado faltante
+  subtotal: number // agregando propiedad subtotal faltante
+  descuento: number // agregando propiedad descuento faltante
   total: number
   metodo_pago: string
   notas: string | null
+  fecha_venta: string // agregando propiedad fecha_venta faltante
   created_at: string
+  updated_at: string // agregando propiedad updated_at faltante
   venta_items: {
     producto_nombre: string
     cantidad: number
@@ -86,12 +93,8 @@ interface VentaSupabase {
   }[]
 }
 
-interface ProductoCarrito {
-  id: string
-  nombre: string
-  precio: number
-  cantidad: number
-  stock: number
+interface ProductoCarrito extends Producto {
+  esPersonalizado?: boolean
 }
 
 export default function VentasPage() {
@@ -101,7 +104,6 @@ export default function VentasPage() {
   const [loading, setLoading] = useState(true)
   const [carrito, setCarrito] = useState<ProductoCarrito[]>([])
   const [clienteSeleccionado, setClienteSeleccionado] = useState("")
-
   const [searchProducto, setSearchProducto] = useState("")
   const [tipoVenta, setTipoVenta] = useState("registrada")
   const [clienteCasual, setClienteCasual] = useState("")
@@ -147,7 +149,7 @@ export default function VentasPage() {
             id: venta.id,
             numeroVenta: numeroVenta,
             cliente: venta.cliente_id
-              ? clientes.find((c) => c.id === venta.cliente_id)?.nombre || "Cliente sin nombre"
+              ? clientes.find((c) => c.id === venta.cliente_id)?.nombre || venta.cliente_nombre || "Cliente sin nombre"
               : venta.cliente_casual || "Cliente sin nombre",
             clienteEmail: venta.cliente_id ? clientes.find((c) => c.id === venta.cliente_id)?.email || "" : "",
             fecha: fecha.toISOString().split("T")[0],
