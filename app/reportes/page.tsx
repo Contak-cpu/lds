@@ -85,7 +85,7 @@ interface ReporteExportData {
 }
 
 const dataPorPeriodo = {
-  dia: {
+  hoy: {
     ventasPorPeriodo: [
       { periodo: "9:00", ventas: 45000, pedidos: 2 },
       { periodo: "11:00", ventas: 78000, pedidos: 3 },
@@ -96,12 +96,12 @@ const dataPorPeriodo = {
       { periodo: "21:00", ventas: 67000, pedidos: 2 },
     ],
     metricas: {
-      ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" },
-      ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" },
-      ventasMes: { valor: 23595000, cambio: 15, tipo: "aumento" },
-      clientesNuevos: { valor: 8, cambio: -5, tipo: "disminucion" },
-      ticketPromedio: { valor: 47040, cambio: 7, tipo: "aumento" },
-      tasaConversion: { valor: 3.2, cambio: 2, tipo: "aumento" },
+      ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" as const },
+      ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" as const },
+      ventasMes: { valor: 23595000, cambio: 15, tipo: "aumento" as const },
+      clientesNuevos: { valor: 8, cambio: -5, tipo: "disminucion" as const },
+      ticketPromedio: { valor: 47040, cambio: 7, tipo: "aumento" as const },
+      tasaConversion: { valor: 3.2, cambio: 2, tipo: "aumento" as const },
     },
   },
   semana: {
@@ -115,12 +115,12 @@ const dataPorPeriodo = {
       { periodo: "Dom", ventas: 720000, pedidos: 16 },
     ],
     metricas: {
-      ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" },
-      ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" },
-      ventasMes: { valor: 23595000, cambio: 15, tipo: "aumento" },
-      clientesNuevos: { valor: 23, cambio: -5, tipo: "disminucion" },
-      ticketPromedio: { valor: 47040, cambio: 7, tipo: "aumento" },
-      tasaConversion: { valor: 3.2, cambio: 2, tipo: "aumento" },
+      ventasHoy: { valor: 1200000, cambio: 18, tipo: "aumento" as const },
+      ventasSemana: { valor: 7800000, cambio: 12, tipo: "aumento" as const },
+      ventasMes: { valor: 31200000, cambio: 22, tipo: "aumento" as const },
+      clientesNuevos: { valor: 15, cambio: 8, tipo: "aumento" as const },
+      ticketPromedio: { valor: 52000, cambio: 10, tipo: "aumento" as const },
+      tasaConversion: { valor: 4.1, cambio: 15, tipo: "aumento" as const },
     },
   },
   mes: {
@@ -131,30 +131,30 @@ const dataPorPeriodo = {
       { periodo: "Sem 4", ventas: 3540000, pedidos: 67 },
     ],
     metricas: {
-      ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" },
-      ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" },
-      ventasMes: { valor: 23595000, cambio: 15, tipo: "aumento" },
-      clientesNuevos: { valor: 89, cambio: 18, tipo: "aumento" },
-      ticketPromedio: { valor: 47040, cambio: 7, tipo: "aumento" },
-      tasaConversion: { valor: 3.2, cambio: 2, tipo: "aumento" },
+      ventasHoy: { valor: 980000, cambio: -8, tipo: "disminucion" as const },
+      ventasSemana: { valor: 6200000, cambio: -3, tipo: "disminucion" as const },
+      ventasMes: { valor: 28900000, cambio: 5, tipo: "aumento" as const },
+      clientesNuevos: { valor: 12, cambio: -2, tipo: "disminucion" as const },
+      ticketPromedio: { valor: 45500, cambio: -5, tipo: "disminucion" as const },
+      tasaConversion: { valor: 2.8, cambio: -12, tipo: "disminucion" as const },
     },
   },
-  trimestre: {
+  año: {
     ventasPorPeriodo: [
       { periodo: "Ene", ventas: 4620000, pedidos: 145 },
       { periodo: "Feb", ventas: 5460000, pedidos: 152 },
       { periodo: "Mar", ventas: 6840000, pedidos: 168 },
     ],
     metricas: {
-      ventasHoy: { valor: 854100, cambio: 12, tipo: "aumento" },
-      ventasSemana: { valor: 5526000, cambio: 8, tipo: "aumento" },
-      ventasMes: { valor: 23595000, cambio: 15, tipo: "aumento" },
-      clientesNuevos: { valor: 267, cambio: 22, tipo: "aumento" },
-      ticketPromedio: { valor: 47040, cambio: 7, tipo: "aumento" },
-      tasaConversion: { valor: 3.2, cambio: 2, tipo: "aumento" },
+      ventasHoy: { valor: 1100000, cambio: 25, tipo: "aumento" as const },
+      ventasSemana: { valor: 8500000, cambio: 30, tipo: "aumento" as const },
+      ventasMes: { valor: 35600000, cambio: 28, tipo: "aumento" as const },
+      clientesNuevos: { valor: 25, cambio: 20, tipo: "aumento" as const },
+      ticketPromedio: { valor: 58000, cambio: 18, tipo: "aumento" as const },
+      tasaConversion: { valor: 5.2, cambio: 25, tipo: "aumento" as const },
     },
   },
-}
+} as const
 
 const ventasPorMes = [
   { mes: "Ene", ventas: 4620000, clientes: 45 },
@@ -574,10 +574,10 @@ export default function ReportesPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="dia">Hoy</SelectItem>
+                      <SelectItem value="hoy">Hoy</SelectItem>
                       <SelectItem value="semana">Semana</SelectItem>
                       <SelectItem value="mes">Mes</SelectItem>
-                      <SelectItem value="trimestre">Trimestre</SelectItem>
+                      <SelectItem value="año">Año</SelectItem>
                       <SelectItem value="personalizado">Fecha personalizada</SelectItem>
                     </SelectContent>
                   </Select>
@@ -791,7 +791,7 @@ export default function ReportesPage() {
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-gray-900">
                   Ventas por{" "}
-                  {periodoSeleccionado === "dia"
+                  {periodoSeleccionado === "hoy"
                     ? "Hora"
                     : periodoSeleccionado === "semana"
                       ? "Día"
@@ -801,7 +801,7 @@ export default function ReportesPage() {
                 </CardTitle>
                 <CardDescription>
                   Rendimiento de ventas en el{" "}
-                  {periodoSeleccionado === "dia" ? "día actual" : `último ${periodoSeleccionado}`}
+                  {periodoSeleccionado === "hoy" ? "día actual" : `último ${periodoSeleccionado}`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
