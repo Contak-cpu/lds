@@ -36,6 +36,15 @@ interface Egreso {
   updated_at?: string
 }
 
+interface EgresoFormData {
+  descripcion: string
+  categoria: string
+  monto: string
+  proveedor: string
+  metodo_pago: string
+  notas: string
+}
+
 const categorias = [
   "Proveedores",
   "Alquiler",
@@ -60,7 +69,7 @@ export default function EgresosPage() {
   const { toast } = useToast()
 
   // Estado del formulario
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EgresoFormData>({
     descripcion: "",
     categoria: "",
     monto: "",
@@ -112,7 +121,7 @@ export default function EgresosPage() {
   const totalMesActual = egresosMesActual.reduce((sum, egreso) => sum + egreso.monto, 0)
 
   // Manejar cambios en el formulario
-  const handleInputChange = (field: string, value: string): void => {
+  const handleInputChange = (field: keyof EgresoFormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
 

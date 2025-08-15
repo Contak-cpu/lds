@@ -20,7 +20,7 @@ import { Navigation } from "@/components/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 
-type Cliente = {
+interface Cliente {
   id: string
   nombre: string
   email: string
@@ -35,6 +35,17 @@ type Cliente = {
   updated_at: string
 }
 
+interface ClienteFormData {
+  nombre: string
+  email: string
+  telefono: string
+  direccion: string
+  ciudad: string
+  provincia: string
+  codigo_postal: string
+  notas: string
+}
+
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
@@ -46,7 +57,7 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null)
   const { toast } = useToast()
 
-  const [newClienteForm, setNewClienteForm] = useState({
+  const [newClienteForm, setNewClienteForm] = useState<ClienteFormData>({
     nombre: "",
     email: "",
     telefono: "",
@@ -57,7 +68,7 @@ export default function ClientesPage() {
     notas: "",
   })
 
-  const [editForm, setEditForm] = useState({
+  const [editForm, setEditForm] = useState<ClienteFormData>({
     nombre: "",
     email: "",
     telefono: "",
@@ -292,7 +303,7 @@ export default function ClientesPage() {
             </Card>
 
             <Card className="bg-white border-green-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-600">Registrados Hoy</CardTitle>
                 <ShoppingBag className="h-4 w-4 text-amber-600" />
               </CardHeader>

@@ -28,42 +28,42 @@ export type Database = {
         Row: {
           id: string
           nombre: string
-          email: string | null
-          telefono: string | null
-          direccion: string | null
-          ciudad: string | null
-          provincia: string | null
-          codigo_postal: string | null
+          email: string
+          telefono: string
+          direccion: string
+          ciudad: string
+          provincia: string
+          codigo_postal: string
           fecha_registro: string
-          notas: string | null
+          notas: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           nombre: string
-          email?: string | null
-          telefono?: string | null
-          direccion?: string | null
-          ciudad?: string | null
-          provincia?: string | null
-          codigo_postal?: string | null
+          email?: string
+          telefono?: string
+          direccion?: string
+          ciudad?: string
+          provincia?: string
+          codigo_postal?: string
           fecha_registro?: string
-          notas?: string | null
+          notas?: string
           created_at?: string
           updated_at?: string
         }
         Update: {
           id?: string
           nombre?: string
-          email?: string | null
-          telefono?: string | null
-          direccion?: string | null
-          ciudad?: string | null
-          provincia?: string | null
-          codigo_postal?: string | null
+          email?: string
+          telefono?: string
+          direccion?: string
+          ciudad?: string
+          provincia?: string
+          codigo_postal?: string
           fecha_registro?: string
-          notas?: string | null
+          notas?: string
           created_at?: string
           updated_at?: string
         }
@@ -117,12 +117,13 @@ export type Database = {
           id: string
           cliente_id: string | null
           cliente_nombre: string | null
+          cliente_casual: string | null
           tipo_venta: string
           subtotal: number
           descuento: number
           total: number
           estado: string
-          metodo_pago: string | null
+          metodo_pago: string
           notas: string | null
           fecha_venta: string
           created_at: string
@@ -132,12 +133,13 @@ export type Database = {
           id?: string
           cliente_id?: string | null
           cliente_nombre?: string | null
+          cliente_casual?: string | null
           tipo_venta?: string
           subtotal: number
           descuento?: number
           total: number
           estado?: string
-          metodo_pago?: string | null
+          metodo_pago: string
           notas?: string | null
           fecha_venta?: string
           created_at?: string
@@ -147,12 +149,13 @@ export type Database = {
           id?: string
           cliente_id?: string | null
           cliente_nombre?: string | null
+          cliente_casual?: string | null
           tipo_venta?: string
           subtotal?: number
           descuento?: number
           total?: number
           estado?: string
-          metodo_pago?: string | null
+          metodo_pago?: string
           notas?: string | null
           fecha_venta?: string
           created_at?: string
@@ -169,6 +172,7 @@ export type Database = {
           precio_unitario: number
           subtotal: number
           created_at: string
+          updated_at: string
         }
         Insert: {
           id?: string
@@ -179,6 +183,7 @@ export type Database = {
           precio_unitario: number
           subtotal: number
           created_at?: string
+          updated_at?: string
         }
         Update: {
           id?: string
@@ -189,6 +194,7 @@ export type Database = {
           precio_unitario?: number
           subtotal?: number
           created_at?: string
+          updated_at?: string
         }
       }
       egresos: {
@@ -197,10 +203,10 @@ export type Database = {
           descripcion: string
           categoria: string
           monto: number
-          proveedor: string | null
-          metodo_pago: string | null
+          proveedor: string
+          metodo_pago: string
           fecha_egreso: string
-          notas: string | null
+          notas: string
           comprobante_url: string | null
           created_at: string
           updated_at: string
@@ -210,10 +216,10 @@ export type Database = {
           descripcion: string
           categoria: string
           monto: number
-          proveedor?: string | null
-          metodo_pago?: string | null
-          fecha_egreso: string
-          notas?: string | null
+          proveedor: string
+          metodo_pago: string
+          fecha_egreso?: string
+          notas?: string
           comprobante_url?: string | null
           created_at?: string
           updated_at?: string
@@ -223,11 +229,34 @@ export type Database = {
           descripcion?: string
           categoria?: string
           monto?: number
-          proveedor?: string | null
-          metodo_pago?: string | null
+          proveedor?: string
+          metodo_pago?: string
           fecha_egreso?: string
-          notas?: string | null
+          notas?: string
           comprobante_url?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      configuracion: {
+        Row: {
+          id: string
+          clave: string
+          valor: any
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          clave: string
+          valor: any
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          clave?: string
+          valor?: any
           created_at?: string
           updated_at?: string
         }

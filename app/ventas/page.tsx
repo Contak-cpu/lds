@@ -42,19 +42,41 @@ interface Cliente {
   nombre: string
   email: string
   telefono: string
+  direccion: string
+  ciudad: string
+  provincia: string
+  codigo_postal: string
+  fecha_registro: string
+  notas: string
+  created_at: string
+  updated_at: string
 }
 
 interface Producto {
   id: string
   nombre: string
+  descripcion: string | null
+  categoria: string
   precio: number
+  costo: number
   stock: number
+  stock_minimo: number
+  imagen_url: string | null
+  activo: boolean
+  created_at: string
+  updated_at: string
 }
 
 interface VentaItem {
-  nombre: string
+  id?: string
+  venta_id?: string
+  producto_id?: string
+  producto_nombre: string
   cantidad: number
-  precio: number
+  precio_unitario: number
+  subtotal?: number
+  created_at?: string
+  updated_at?: string
 }
 
 interface Venta {
@@ -77,24 +99,36 @@ interface VentaSupabase {
   cliente_nombre: string | null
   cliente_casual: string | null
   tipo_venta: string
-  estado: string // agregando propiedad estado faltante
-  subtotal: number // agregando propiedad subtotal faltante
-  descuento: number // agregando propiedad descuento faltante
+  estado: string
+  subtotal: number
+  descuento: number
   total: number
   metodo_pago: string
   notas: string | null
-  fecha_venta: string // agregando propiedad fecha_venta faltante
+  fecha_venta: string
   created_at: string
-  updated_at: string // agregando propiedad updated_at faltante
-  venta_items: {
-    producto_nombre: string
-    cantidad: number
-    precio_unitario: number
-  }[]
+  updated_at: string
+  venta_items: VentaItem[]
 }
 
 interface ProductoCarrito extends Producto {
+  cantidad: number
   esPersonalizado?: boolean
+}
+
+interface ProductoSupabase {
+  id: string
+  nombre: string
+  descripcion: string | null
+  categoria: string
+  precio: number
+  costo: number
+  stock: number
+  stock_minimo: number
+  imagen_url: string | null
+  activo: boolean
+  created_at: string
+  updated_at: string
 }
 
 export default function VentasPage() {
@@ -175,6 +209,14 @@ export default function VentasPage() {
           nombre: producto.nombre,
           precio: producto.precio,
           stock: producto.stock,
+          descripcion: producto.descripcion,
+          categoria: producto.categoria,
+          costo: producto.costo,
+          stock_minimo: producto.stock_minimo,
+          imagen_url: producto.imagen_url,
+          activo: producto.activo,
+          created_at: producto.created_at,
+          updated_at: producto.updated_at,
         })) || []
 
       setProductos(productosTransformados)
@@ -415,6 +457,14 @@ export default function VentasPage() {
         precio: producto.precio,
         cantidad: 1,
         stock: producto.stock,
+        descripcion: producto.descripcion,
+        categoria: producto.categoria,
+        costo: producto.costo,
+        stock_minimo: producto.stock_minimo,
+        imagen_url: producto.imagen_url,
+        activo: producto.activo,
+        created_at: producto.created_at,
+        updated_at: producto.updated_at,
       }
       setCarrito([...carrito, nuevoItem])
     }

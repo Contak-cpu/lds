@@ -61,101 +61,24 @@ interface Producto {
   updated_at: string
 }
 
-// Mock data para productos
-// const mockProductos = [
-//   {
-//     id: 1,
-//     nombre: "Kit Cultivo Indoor Completo",
-//     categoria: "Kits",
-//     precio: 85000, // precio base en pesos argentinos
-//     costo: 55000, // agregado campo costo
-//     stock: 15,
-//     stockMinimo: 5,
-//     descripcion: "Kit completo para cultivo interior con todo lo necesario para empezar",
-//     imagen: "/placeholder-ivbba.png",
-//     sku: "KIT-001",
-//     estado: "Activo",
-//     proveedor: "GrowTech Solutions",
-//     fechaCreacion: "2024-01-15",
-//   },
-//   {
-//     id: 2,
-//     nombre: "Fertilizante Orgánico NPK",
-//     categoria: "Fertilizantes",
-//     precio: 7500, // precio base en pesos argentinos
-//     costo: 4800, // agregado campo costo
-//     stock: 3,
-//     stockMinimo: 10,
-//     descripcion: "Fertilizante orgánico balanceado para todas las fases de crecimiento",
-//     imagen: "/placeholder-s06h6.png",
-//     sku: "FERT-002",
-//     estado: "Activo",
-//     proveedor: "BioNutrients",
-//     fechaCreacion: "2024-02-01",
-//   },
-//   {
-//     id: 3,
-//     nombre: "Lámpara LED Full Spectrum 600W",
-//     categoria: "Iluminación",
-//     precio: 55000, // precio base en pesos argentinos
-//     costo: 38000, // agregado campo costo
-//     stock: 8,
-//     stockMinimo: 3,
-//     descripcion: "Lámpara LED de espectro completo para crecimiento y floración",
-//     imagen: "/placeholder-zv842.png",
-//     sku: "LED-003",
-//     estado: "Activo",
-//     proveedor: "LightMax Pro",
-//     fechaCreacion: "2024-01-20",
-//   },
-//   {
-//     id: 4,
-//     nombre: "Sistema Hidropónico DWC",
-//     categoria: "Hidroponía",
-//     precio: 42000, // precio base en pesos argentinos
-//     costo: 28000, // agregado campo costo
-//     stock: 12,
-//     stockMinimo: 4,
-//     descripcion: "Sistema de cultivo hidropónico de agua profunda para 6 plantas",
-//     imagen: "/hydroponic-dwc-system.png",
-//     sku: "HYDRO-004",
-//     estado: "Activo",
-//     proveedor: "AquaGrow Systems",
-//     fechaCreacion: "2024-02-10",
-//   },
-//   {
-//     id: 5,
-//     nombre: "Semillas Autoflorecientes Mix",
-//     categoria: "Semillas",
-//     precio: 12500, // precio base en pesos argentinos
-//     costo: 8000, // agregado campo costo
-//     stock: 25,
-//     stockMinimo: 15,
-//     descripcion: "Pack de semillas autoflorecientes de variedades premium",
-//     imagen: "/cannabis-seeds-pack.png",
-//     sku: "SEED-005",
-//     estado: "Activo",
-//     proveedor: "Premium Seeds Co",
-//     fechaCreacion: "2024-01-30",
-//   },
-//   {
-//     id: 6,
-//     nombre: "Tijeras de Poda Profesionales",
-//     categoria: "Herramientas",
-//     precio: 8500, // precio base en pesos argentinos
-//     costo: 5200, // agregado campo costo
-//     stock: 0,
-//     stockMinimo: 8,
-//     descripcion: "Tijeras de precisión para poda y manicurado",
-//     imagen: "/professional-pruning-scissors.png",
-//     sku: "TOOL-006",
-//     estado: "Agotado",
-//     proveedor: "GrowTools Pro",
-//     fechaCreacion: "2024-02-15",
-//   },
-// ]
+interface ProductoFormData {
+  nombre: string
+  categoria: string
+  precio: string
+  costo: string
+  stock: string
+  stock_minimo: string
+  descripcion: string
+  imagen_url: string
+}
 
-const categorias = [
+interface CategoriaInfo {
+  value: string
+  label: string
+  icon: ComponentType<{ className?: string }>
+}
+
+const categorias: CategoriaInfo[] = [
   { value: "todas", label: "Todas las categorías", icon: Package },
   { value: "Kits", label: "Kits", icon: Package },
   { value: "Semillas", label: "Semillas", icon: Leaf },
@@ -175,7 +98,7 @@ export default function ProductosPage() {
   const [editingProduct, setEditingProduct] = useState<Producto | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProductoFormData>({
     nombre: "",
     categoria: "",
     precio: "",
@@ -210,7 +133,7 @@ export default function ProductosPage() {
     }
   }
 
-  const handleInputChange = (field: string, value: string): void => {
+  const handleInputChange = (field: keyof ProductoFormData, value: string): void => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,

@@ -28,6 +28,62 @@ import { es } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
 import type { JSX } from "react/jsx-runtime" // Import JSX to fix the undeclared variable error
 
+interface MetricaData {
+  valor: number
+  cambio: number
+  tipo: "aumento" | "disminucion"
+}
+
+interface MetricasReporte {
+  ventasHoy: MetricaData
+  ventasSemana: MetricaData
+  ventasMes: MetricaData
+  clientesNuevos: MetricaData
+  ticketPromedio: MetricaData
+  tasaConversion: MetricaData
+}
+
+interface VentaPorPeriodo {
+  periodo: string
+  ventas: number
+  pedidos: number
+}
+
+interface DatosPorPeriodo {
+  ventasPorPeriodo: VentaPorPeriodo[]
+  metricas: MetricasReporte
+}
+
+interface VentaPorMes {
+  mes: string
+  ventas: number
+  clientes: number
+}
+
+interface ProductoMasVendido {
+  nombre: string
+  ventas: number
+  ingresos: number
+  color: string
+}
+
+interface CategoriaVenta {
+  categoria: string
+  valor: number
+  color: string
+}
+
+interface ReporteExportData {
+  periodo: string
+  fechaInicio: string | null
+  fechaFin: string | null
+  fecha: string
+  metricas: MetricasReporte
+  ventas: VentaPorPeriodo[]
+  productos: ProductoMasVendido[]
+  categorias: CategoriaVenta[]
+}
+
 const dataPorPeriodo = {
   dia: {
     ventasPorPeriodo: [
@@ -148,7 +204,7 @@ export default function ReportesPage() {
   }
 
   const exportarReporte = (): void => {
-    const reporteData = {
+    const reporteData: ReporteExportData = {
       periodo: usarFechaPersonalizada ? "personalizado" : periodoSeleccionado,
       fechaInicio: fechaPersonalizada?.from ? format(fechaPersonalizada.from, "yyyy-MM-dd") : null,
       fechaFin: fechaPersonalizada?.to ? format(fechaPersonalizada.to, "yyyy-MM-dd") : null,
@@ -343,7 +399,7 @@ export default function ReportesPage() {
                 <div class="metric-card">
                   <div class="metric-title">Ventas Hoy</div>
                   <div class="metric-value">$${datosActuales.metricas.ventasHoy.valor.toLocaleString()}</div>
-                  <div class="metric-change">+${datosActuales.metricas.ventasHoy.cambio}% vs anterior</div>
+                  <div class="metric-change">+${datosActuales.metricas.ventasHoy.cambio}% vs ayer</div>
                 </div>
                 <div class="metric-card">
                   <div class="metric-title">Ventas Semana</div>
