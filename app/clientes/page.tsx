@@ -475,7 +475,7 @@ export default function ClientesPage() {
                     <Label htmlFor="nombre">Nombre completo</Label>
                     <Input
                       id="nombre"
-                      placeholder="Ej: María González"
+                                              placeholder="Nombre completo"
                       value={newClienteForm.nombre}
                       onChange={(e) => handleNewClienteFormChange("nombre", e.target.value)}
                     />
@@ -485,7 +485,7 @@ export default function ClientesPage() {
                     <Input
                       id="email"
                       type="email"
-                      placeholder="cliente@email.com"
+                                              placeholder="Email del cliente"
                       value={newClienteForm.email}
                       onChange={(e) => handleNewClienteFormChange("email", e.target.value)}
                     />
@@ -503,7 +503,7 @@ export default function ClientesPage() {
                     <Label htmlFor="ciudad">Ciudad</Label>
                     <Input
                       id="ciudad"
-                      placeholder="Buenos Aires"
+                      placeholder="Ciudad"
                       value={newClienteForm.ciudad}
                       onChange={(e) => handleNewClienteFormChange("ciudad", e.target.value)}
                     />
@@ -514,7 +514,7 @@ export default function ClientesPage() {
                     <Label htmlFor="direccion">Dirección</Label>
                     <Textarea
                       id="direccion"
-                      placeholder="Ej: Av. Corrientes 1234"
+                                              placeholder="Dirección completa"
                       value={newClienteForm.direccion}
                       onChange={(e) => handleNewClienteFormChange("direccion", e.target.value)}
                     />
@@ -523,7 +523,7 @@ export default function ClientesPage() {
                     <Label htmlFor="provincia">Provincia</Label>
                     <Input
                       id="provincia"
-                      placeholder="Buenos Aires"
+                      placeholder="Provincia"
                       value={newClienteForm.provincia}
                       onChange={(e) => handleNewClienteFormChange("provincia", e.target.value)}
                     />

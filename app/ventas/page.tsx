@@ -939,7 +939,7 @@ export default function VentasPage() {
                         </Select>
                       ) : (
                         <Input
-                          placeholder="Ej: Juan Pérez, Cliente mostrador, etc."
+                          placeholder="Nombre del cliente"
                           value={clienteCasual}
                           onChange={(e) => setClienteCasual(e.target.value)}
                         />
@@ -1085,7 +1085,7 @@ export default function VentasPage() {
                           </Label>
                           <Input
                             id="nombrePersonalizado"
-                            placeholder="Ej: 3 cedas + 2 filtros + tabaco"
+                            placeholder="Descripción del producto personalizado"
                             value={productoPersonalizado.nombre}
                             onChange={(e) =>
                               setProductoPersonalizado({ ...productoPersonalizado, nombre: e.target.value })

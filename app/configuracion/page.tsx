@@ -227,12 +227,12 @@ export default function ConfiguracionPage() {
 
   const resetearConfiguracion = () => {
     const configDefault = {
-      nombreNegocio: "GrowShop Buenos Aires",
-      direccion: "Av. Corrientes 1234, CABA",
-      telefono: "+54 11 4567-8900",
-      email: "info@growshopba.com.ar",
-      cuit: "20-12345678-9",
-      descripcion: "Especialistas en cultivo indoor y outdoor. Productos de calidad para cultivadores.",
+          nombreNegocio: "",
+    direccion: "",
+              telefono: "",
+        email: "",
+              cuit: "",
+        descripcion: "",
       moneda: "ARS",
       iva: "21",
       descuentoMaximo: "15",

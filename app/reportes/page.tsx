@@ -166,7 +166,7 @@ const ventasPorMes = [
 ] as const
 
 const productosMasVendidos = [
-  { nombre: "Kit Cultivo Indoor", ventas: 47, ingresos: 4230900, color: "#10b981" },
+          { nombre: "Producto Destacado", ventas: 47, ingresos: 4230900, color: "#10b981" },
   { nombre: "Fertilizante NPK", ventas: 32, ingresos: 239968, color: "#3b82f6" },
   { nombre: "Lámpara LED 600W", ventas: 28, ingresos: 1595972, color: "#f59e0b" },
   { nombre: "Sistema Hidropónico", ventas: 24, ingresos: 1079976, color: "#8b5cf6" },
@@ -980,7 +980,7 @@ export default function ReportesPage() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="text-lg font-bold truncate">Kit Cultivo Indoor</div>
+                    <div className="text-lg font-bold truncate">Producto Destacado</div>
                     <div className="text-sm text-blue-100">47 unidades vendidas</div>
                   </div>
                   <Package className="h-12 w-12 text-blue-200 flex-shrink-0 ml-4" />

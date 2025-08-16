@@ -470,7 +470,7 @@ export default function ProductosPage() {
               <Card key={producto.id} className="bg-white border-green-200 hover:shadow-lg transition-shadow">
                 <div className="aspect-square relative overflow-hidden rounded-t-lg">
                   <img
-                    src={producto.imagen_url || "/placeholder.svg"}
+                    src={producto.imagen_url || "/professional-pruning-scissors.png"}
                     alt={producto.nombre}
                     className="w-full h-full object-cover"
                   />
@@ -511,7 +511,7 @@ export default function ProductosPage() {
                         <div className="grid grid-cols-2 gap-6 py-4">
                           <div className="space-y-4">
                             <img
-                              src={producto.imagen_url || "/placeholder.svg"}
+                              src={producto.imagen_url || "/professional-pruning-scissors.png"}
                               alt={producto.nombre}
                               className="w-full aspect-square object-cover rounded-lg"
                             />
@@ -637,7 +637,7 @@ export default function ProductosPage() {
                     <Label htmlFor="nombre">Nombre del producto *</Label>
                     <Input
                       id="nombre"
-                      placeholder="Ej: Kit Cultivo Indoor Básico"
+                      placeholder="Nombre del producto"
                       value={formData.nombre}
                       onChange={(e) => handleInputChange("nombre", e.target.value)}
                     />
@@ -719,7 +719,7 @@ export default function ProductosPage() {
                     <Label htmlFor="imagen_url">URL de imagen</Label>
                     <Input
                       id="imagen_url"
-                      placeholder="https://ejemplo.com/imagen.jpg"
+                      placeholder="URL de la imagen"
                       value={formData.imagen_url}
                       onChange={(e) => handleInputChange("imagen_url", e.target.value)}
                     />
@@ -755,7 +755,7 @@ export default function ProductosPage() {
                     <Label htmlFor="edit-nombre">Nombre del producto *</Label>
                     <Input
                       id="edit-nombre"
-                      placeholder="Ej: Kit Cultivo Indoor Básico"
+                      placeholder="Nombre del producto"
                       value={formData.nombre}
                       onChange={(e) => handleInputChange("nombre", e.target.value)}
                     />
@@ -837,7 +837,7 @@ export default function ProductosPage() {
                     <Label htmlFor="edit-imagen_url">URL de imagen</Label>
                     <Input
                       id="edit-imagen_url"
-                      placeholder="https://ejemplo.com/imagen.jpg"
+                      placeholder="URL de la imagen"
                       value={formData.imagen_url}
                       onChange={(e) => handleInputChange("imagen_url", e.target.value)}
                     />

@@ -132,7 +132,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">Nueva venta - Kit de Cultivo Básico</p>
-                      <p className="text-xs text-gray-500">Cliente: María González - $24.500 ARS</p>
+                      <p className="text-xs text-gray-500">Cliente: Cliente Frecuente - $24.500 ARS</p>
                     </div>
                     <span className="text-xs text-gray-400">Hace 5 min</span>
                   </div>
@@ -176,7 +176,7 @@ export default function Dashboard() {
                     <Leaf className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Kit Cultivo Indoor</h4>
+                    <h4 className="font-semibold text-gray-900">Producto Destacado</h4>
                     <p className="text-sm text-gray-600">47 ventas - $1.235.000 ARS</p>
                   </div>
                 </div>

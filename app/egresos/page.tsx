@@ -330,7 +330,7 @@ export default function EgresosPage() {
                       id="descripcion"
                       value={formData.descripcion}
                       onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                      placeholder="Ej: Compra de productos"
+                                              placeholder="Concepto del egreso"
                     />
                   </div>
 
