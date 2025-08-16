@@ -918,7 +918,7 @@ export default function ReportesPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={categoriaVentas}
+                        data={[...categoriaVentas]}
                         dataKey="valor"
                         nameKey="categoria"
                         cx="50%"
