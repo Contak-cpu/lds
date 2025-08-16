@@ -161,17 +161,20 @@ const validateVentaForm = (
     }
   }
 
-  // Validar producto personalizado si existe
-  if (carrito.some(item => item.esPersonalizado)) {
-    if (!productoPersonalizado.nombre.trim()) {
-      errors.productoPersonalizado = { ...errors.productoPersonalizado, nombre: "El nombre del producto personalizado es obligatorio" }
-    }
-    if (!productoPersonalizado.precio.trim()) {
-      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio del producto personalizado es obligatorio" }
-    } else if (!/^\d+(\.\d{1,2})?$/.test(productoPersonalizado.precio.trim())) {
-      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio debe ser un número válido (máximo 2 decimales)" }
-    } else if (parseFloat(productoPersonalizado.precio) < 0) {
-      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio no puede ser negativo" }
+  // Validar producto personalizado solo si está en el carrito Y no tiene datos válidos
+  // Los productos personalizados ya en el carrito no necesitan validación adicional
+  const productosPersonalizadosEnCarrito = carrito.filter(item => item.esPersonalizado)
+  if (productosPersonalizadosEnCarrito.length > 0) {
+    // Verificar que todos los productos personalizados en el carrito tengan datos válidos
+    for (const item of productosPersonalizadosEnCarrito) {
+      if (!item.nombre || !item.nombre.trim()) {
+        errors.productoPersonalizado = { ...errors.productoPersonalizado, nombre: "Todos los productos personalizados deben tener un nombre válido" }
+        break
+      }
+      if (item.precio <= 0) {
+        errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "Todos los productos personalizados deben tener un precio válido" }
+        break
+      }
     }
   }
 
@@ -463,6 +466,12 @@ export default function VentasPage() {
 
     setCarrito([...carrito, nuevoItemPersonalizado])
     setProductoPersonalizado({ nombre: "", precio: "" })
+    
+    // Mostrar notificación de éxito
+    toast({
+      title: "Producto personalizado agregado",
+      description: `${nombre} ha sido agregado al carrito por $${precio.toFixed(2)}`,
+    })
   }
 
   const eliminarVenta = async (ventaId: string): Promise<void> => {
@@ -550,6 +559,10 @@ export default function VentasPage() {
 
   const crearVenta = async () => {
     try {
+      // Debug: Mostrar información del carrito
+      console.log("Carrito actual:", carrito)
+      console.log("Productos personalizados en carrito:", carrito.filter(item => item.esPersonalizado))
+      
       // Validar formulario
       const errors = validateVentaForm(
         carrito,
@@ -559,6 +572,8 @@ export default function VentasPage() {
         metodoPago,
         tipoVenta
       )
+      
+      console.log("Errores de validación:", errors)
       
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors)
