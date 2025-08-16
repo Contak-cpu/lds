@@ -46,12 +46,21 @@ export class MetricsService {
       const ayer = new Date(inicioHoy.getTime() - 24 * 60 * 60 * 1000)
       const inicioSemana = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
 
+      console.log("🔍 Dashboard Debug - Fechas:", {
+        hoy: hoy.toISOString(),
+        inicioHoy: inicioHoy.toISOString(),
+        ayer: ayer.toISOString(),
+        inicioSemana: inicioSemana.toISOString()
+      })
+
       // Ventas de hoy
       const { data: ventasHoy, error: errorVentasHoy } = await this.supabase
         .from("ventas")
         .select("total")
         .gte("fecha_venta", inicioHoy.toISOString())
         .lt("fecha_venta", new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000).toISOString())
+
+      console.log("🔍 Ventas Hoy:", { data: ventasHoy, error: errorVentasHoy })
 
       // Ventas de ayer
       const { data: ventasAyer, error: errorVentasAyer } = await this.supabase
@@ -60,6 +69,8 @@ export class MetricsService {
         .gte("fecha_venta", ayer.toISOString())
         .lt("fecha_venta", inicioHoy.toISOString())
 
+      console.log("🔍 Ventas Ayer:", { data: ventasAyer, error: errorVentasAyer })
+
       // Clientes activos (con ventas en los últimos 30 días)
       const { data: clientesActivos, error: errorClientes } = await this.supabase
         .from("ventas")
@@ -67,11 +78,15 @@ export class MetricsService {
         .gte("fecha_venta", new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
         .not("cliente_id", "is", null)
 
+      console.log("🔍 Clientes Activos:", { data: clientesActivos, error: errorClientes })
+
       // Productos en stock
       const { data: productosStock, error: errorProductos } = await this.supabase
         .from("productos")
         .select("stock")
         .eq("activo", true)
+
+      console.log("🔍 Productos Stock:", { data: productosStock, error: errorProductos })
 
       // Productos con stock bajo
       const { data: productosStockBajo, error: errorStockBajo } = await this.supabase
@@ -80,13 +95,25 @@ export class MetricsService {
         .eq("activo", true)
         .lt("stock", "stock_minimo")
 
+      console.log("🔍 Productos Stock Bajo:", { data: productosStockBajo, error: errorStockBajo })
+
       // Nuevos clientes esta semana
       const { data: nuevosClientes, error: errorNuevosClientes } = await this.supabase
         .from("clientes")
         .select("id")
         .gte("fecha_registro", inicioSemana.toISOString())
 
+      console.log("🔍 Nuevos Clientes:", { data: nuevosClientes, error: errorNuevosClientes })
+
       if (errorVentasHoy || errorVentasAyer || errorClientes || errorProductos || errorStockBajo || errorNuevosClientes) {
+        console.error("❌ Errores en consultas:", {
+          errorVentasHoy,
+          errorVentasAyer,
+          errorClientes,
+          errorProductos,
+          errorStockBajo,
+          errorNuevosClientes
+        })
         throw new Error("Error al obtener métricas")
       }
 
@@ -97,7 +124,7 @@ export class MetricsService {
       const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string | null }) => v.cliente_id).filter((id: string | null): id is string => Boolean(id)))
       const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
 
-      return {
+      const resultado = {
         ventasHoy: totalVentasHoy,
         clientesActivos: clientesUnicos.size,
         productosEnStock: totalProductosStock,
@@ -107,8 +134,11 @@ export class MetricsService {
         productosStockBajo: productosStockBajo?.length || 0,
         pedidosRequierenAtencion: 0, // Por implementar
       }
+
+      console.log("✅ Dashboard Resultado:", resultado)
+      return resultado
     } catch (error) {
-      console.error("Error obteniendo métricas del dashboard:", error)
+      console.error("❌ Error obteniendo métricas del dashboard:", error)
       return {
         ventasHoy: 0,
         clientesActivos: 0,
