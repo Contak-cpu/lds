@@ -493,23 +493,13 @@ export default function VentasPage() {
     setCarrito(carrito.filter((item) => item.id !== productoId))
   }
 
-  const agregarProductoPersonalizado = () => {
-    const nombre = productoPersonalizado.nombre.trim()
-    const precioStr = productoPersonalizado.precio.trim()
+  const agregarProductoPersonalizado = (): void => {
+    const { nombre, precio: precioStr } = productoPersonalizado
 
-    if (!nombre) {
+    if (!nombre.trim()) {
       toast({
         title: "Error",
-        description: "Ingresa una descripción para el producto",
-        variant: "destructive",
-      })
-      return
-    }
-
-    if (!precioStr) {
-      toast({
-        title: "Error",
-        description: "Ingresa un precio para el producto",
+        description: "El nombre del producto es requerido",
         variant: "destructive",
       })
       return
@@ -525,13 +515,19 @@ export default function VentasPage() {
       return
     }
 
-    // Generar ID único más robusto para productos personalizados
-    const nuevoProducto = {
+    const nuevoProducto: Producto = {
       id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       nombre: nombre,
+      descripcion: "Producto personalizado",
+      categoria: "Personalizado",
       precio: precio,
+      costo: precio * 0.7, // Asumir 30% de margen
       stock: 999,
-      esPersonalizado: true,
+      stock_minimo: 0,
+      imagen_url: null,
+      activo: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     }
 
     agregarAlCarrito(nuevoProducto)
