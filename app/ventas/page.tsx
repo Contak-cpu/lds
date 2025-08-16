@@ -132,7 +132,7 @@ interface ProductoSupabase {
 }
 
 export default function VentasPage() {
-  const [ventas, setVentas] = useState<any[]>([])
+  const [ventas, setVentas] = useState<Venta[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
@@ -157,23 +157,29 @@ export default function VentasPage() {
           .select(`
             *,
             venta_items (
+              id,
+              venta_id,
+              producto_id,
               producto_nombre,
               cantidad,
-              precio_unitario
+              precio_unitario,
+              subtotal,
+              created_at,
+              updated_at
             )
           `)
           .order("created_at", { ascending: false }),
 
         supabase.from("productos").select("*").order("nombre"),
 
-        supabase.from("clientes").select("id, nombre, email, telefono").order("nombre"),
+        supabase.from("clientes").select("*").order("nombre"),
       ])
 
       if (ventasResponse.error) throw ventasResponse.error
       if (productosResponse.error) throw productosResponse.error
       if (clientesResponse.error) throw clientesResponse.error
 
-      const ventasTransformadas =
+      const ventasTransformadas: Venta[] =
         ventasResponse.data?.map((venta: VentaSupabase, index: number) => {
           const fecha = new Date(venta.created_at)
           const numeroSecuencial = ventasResponse.data!.length - index
@@ -183,9 +189,13 @@ export default function VentasPage() {
             id: venta.id,
             numeroVenta: numeroVenta,
             cliente: venta.cliente_id
-              ? clientes.find((c) => c.id === venta.cliente_id)?.nombre || venta.cliente_nombre || "Cliente sin nombre"
+              ? clientesResponse.data?.find((c) => c.id === venta.cliente_id)?.nombre ||
+                venta.cliente_nombre ||
+                "Cliente sin nombre"
               : venta.cliente_casual || "Cliente sin nombre",
-            clienteEmail: venta.cliente_id ? clientes.find((c) => c.id === venta.cliente_id)?.email || "" : "",
+            clienteEmail: venta.cliente_id
+              ? clientesResponse.data?.find((c) => c.id === venta.cliente_id)?.email || ""
+              : "",
             fecha: fecha.toISOString().split("T")[0],
             estado: venta.estado || "Pendiente",
             total: venta.total || 0,
@@ -193,18 +203,26 @@ export default function VentasPage() {
             notas: venta.notas || "",
             esCasual: venta.cliente_id === null,
             productos:
-              venta.venta_items?.map((item) => ({
-                nombre: item.producto_nombre || "Producto sin nombre",
-                cantidad: item.cantidad || 0,
-                precio: item.precio_unitario || 0,
-              })) || [],
+              venta.venta_items?.map(
+                (item): VentaItem => ({
+                  id: item.id || undefined,
+                  venta_id: item.venta_id || undefined,
+                  producto_id: item.producto_id || undefined,
+                  producto_nombre: item.producto_nombre || "Producto sin nombre",
+                  cantidad: item.cantidad || 0,
+                  precio_unitario: item.precio_unitario || 0,
+                  subtotal: item.subtotal || (item.cantidad || 0) * (item.precio_unitario || 0),
+                  created_at: item.created_at || undefined,
+                  updated_at: item.updated_at || undefined,
+                }),
+              ) || [],
           }
         }) || []
 
       setVentas(ventasTransformadas)
 
-      const productosTransformados =
-        productosResponse.data?.map((producto: any) => ({
+      const productosTransformados: Producto[] =
+        productosResponse.data?.map((producto: ProductoSupabase) => ({
           id: producto.id,
           nombre: producto.nombre,
           precio: producto.precio,
@@ -534,7 +552,7 @@ export default function VentasPage() {
     setProductoPersonalizado({ nombre: "", precio: "" })
   }
 
-  const getEstadoBadge = (estado: string) => {
+  const getEstadoBadge = (estado: "Completado" | "Procesando" | "Pendiente" | "Cancelado" | string) => {
     const badges = {
       Completado: (
         <Badge className="bg-green-100 text-green-800 border-green-300">
@@ -561,7 +579,7 @@ export default function VentasPage() {
         </Badge>
       ),
     }
-    return badges[estado] || badges.Pendiente
+    return badges[estado as keyof typeof badges] || badges.Pendiente
   }
 
   const filteredVentas = ventas.filter((venta) => {
