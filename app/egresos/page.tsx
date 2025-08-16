@@ -418,62 +418,62 @@ export default function EgresosPage() {
         <main className="flex-1 overflow-auto p-6">
           {/* Estadísticas */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Egresos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Egresos</CardTitle>
                 <TrendingDown className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-600">${totalEgresos.toLocaleString("es-AR")}</div>
-                <p className="text-xs text-gray-600">{egresos.length} registros</p>
+                <p className="text-xs text-muted-foreground">{egresos.length} registros</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Este Mes</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Este Mes</CardTitle>
                 <Calendar className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">${totalMesActual.toLocaleString("es-AR")}</div>
-                <p className="text-xs text-gray-600">{egresosMesActual.length} egresos</p>
+                <p className="text-xs text-muted-foreground">{egresosMesActual.length} egresos</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Promedio Diario</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Promedio Diario</CardTitle>
                 <DollarSign className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
                   ${Math.round(totalMesActual / new Date().getDate()).toLocaleString("es-AR")}
                 </div>
-                <p className="text-xs text-gray-600">Basado en el mes actual</p>
+                <p className="text-xs text-muted-foreground">Basado en el mes actual</p>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Mayor Egreso</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Mayor Egreso</CardTitle>
                 <Receipt className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
                   ${Math.max(...egresos.map((e: Egreso) => e.monto), 0).toLocaleString("es-AR")}
                 </div>
-                <p className="text-xs text-gray-600">Registro más alto</p>
+                <p className="text-xs text-muted-foreground">Registro más alto</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Filtros */}
-          <Card className="mb-6">
+          <Card className="mb-6 bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Buscar por concepto o proveedor..."
                       value={busqueda}

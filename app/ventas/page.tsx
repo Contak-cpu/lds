@@ -693,12 +693,12 @@ export default function VentasPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="flex min-h-screen bg-background">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando ventas...</p>
+            <p className="text-lg text-muted-foreground">Cargando ventas...</p>
           </div>
         </div>
       </div>
@@ -706,12 +706,12 @@ export default function VentasPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -719,8 +719,8 @@ export default function VentasPage() {
                   <ShoppingCart className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Ventas y Pedidos</h1>
-                  <p className="text-sm text-purple-600">Gestiona las transacciones de tu negocio</p>
+                  <h1 className="text-xl font-bold text-card-foreground">Gestión de Ventas</h1>
+                  <p className="text-sm text-purple-600">Administra las transacciones de tu negocio</p>
                 </div>
               </div>
               <Button onClick={() => setIsNewSaleDialogOpen(true)} className="bg-green-600 hover:bg-green-700">

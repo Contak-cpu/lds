@@ -15,6 +15,7 @@ import {
   FileText,
   FileSpreadsheet,
   FileImage,
+  ShoppingCart,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
@@ -36,9 +37,8 @@ interface MetricaData {
 }
 
 interface MetricasReporte {
-  ventasHoy: MetricaData
-  ventasSemana: MetricaData
-  ventasMes: MetricaData
+  ventasTotales: MetricaData
+  pedidos: MetricaData
   clientesNuevos: MetricaData
   ticketPromedio: MetricaData
   tasaConversion: MetricaData
@@ -67,9 +67,8 @@ export default function ReportesPage() {
   const [productosMasVendidos, setProductosMasVendidos] = useState<ProductoMasVendido[]>([])
   const [categoriaVentas, setCategoriaVentas] = useState<CategoriaVenta[]>([])
   const [metricas, setMetricas] = useState<MetricasReporte>({
-    ventasHoy: { valor: 0, cambio: 0, tipo: "aumento" },
-    ventasSemana: { valor: 0, cambio: 0, tipo: "aumento" },
-    ventasMes: { valor: 0, cambio: 0, tipo: "aumento" },
+    ventasTotales: { valor: 0, cambio: 0, tipo: "aumento" },
+    pedidos: { valor: 0, cambio: 0, tipo: "aumento" },
     clientesNuevos: { valor: 0, cambio: 0, tipo: "aumento" },
     ticketPromedio: { valor: 0, cambio: 0, tipo: "aumento" },
     tasaConversion: { valor: 0, cambio: 0, tipo: "aumento" },
@@ -163,9 +162,9 @@ export default function ReportesPage() {
         dataStr += `Período: ${usarFechaPersonalizada ? "Personalizado" : periodoSeleccionado}\n`
         dataStr += `Fecha: ${new Date().toLocaleDateString("es-AR")}\n\n`
         dataStr += `MÉTRICAS:\n`
-        dataStr += `Ventas Hoy: $${metricas.ventasHoy.valor.toLocaleString()}\n`
-        dataStr += `Ventas Semana: $${metricas.ventasSemana.valor.toLocaleString()}\n`
-        dataStr += `Ventas Mes: $${metricas.ventasMes.valor.toLocaleString()}\n\n`
+        dataStr += `Ventas Totales: $${metricas.ventasTotales.valor.toLocaleString()}\n`
+        dataStr += `Pedidos: ${metricas.pedidos.valor}\n`
+        dataStr += `Clientes Nuevos: ${metricas.clientesNuevos.valor}\n\n`
         dataStr += `VENTAS POR PERÍODO:\n`
         ventasPorPeriodo.forEach((item: VentaPorPeriodo) => {
           dataStr += `${item.periodo}: $${item.ventas.toLocaleString()} (${item.pedidos} pedidos)\n`
@@ -337,68 +336,46 @@ export default function ReportesPage() {
         )}
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <Card className="bg-white border-green-200">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ventas Hoy</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Totales</CardTitle>
                 <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
-                  ${metricas.ventasHoy.valor.toLocaleString()}
-                </div>
+                <div className="text-2xl font-bold text-card-foreground">${metricas.ventasTotales.valor.toLocaleString()}</div>
                 <div
-                  className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.ventasHoy.tipo)}`}
+                  className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.ventasTotales.tipo)}`}
                 >
-                  {getTrendIcon(metricas.ventasHoy.tipo)}
-                  <span className="ml-1">{metricas.ventasHoy.cambio >= 0 ? '+' : ''}{metricas.ventasHoy.cambio}% vs ayer</span>
+                  {getTrendIcon(metricas.ventasTotales.tipo)}
+                  <span className="ml-1">{metricas.ventasTotales.cambio >= 0 ? '+' : ''}{metricas.ventasTotales.cambio}% vs anterior</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ventas Semana</CardTitle>
-                <DollarSign className="h-4 w-4 text-blue-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos</CardTitle>
+                <ShoppingCart className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
-                  ${metricas.ventasSemana.valor.toLocaleString()}
-                </div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.pedidos.valor}</div>
                 <div
-                  className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.ventasSemana.tipo)}`}
+                  className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.pedidos.tipo)}`}
                 >
-                  {getTrendIcon(metricas.ventasSemana.tipo)}
-                  <span className="ml-1">{metricas.ventasSemana.cambio >= 0 ? '+' : ''}{metricas.ventasSemana.cambio}% vs anterior</span>
+                  {getTrendIcon(metricas.pedidos.tipo)}
+                  <span className="ml-1">{metricas.pedidos.cambio >= 0 ? '+' : ''}{metricas.pedidos.cambio}% vs anterior</span>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ventas Mes</CardTitle>
-                <DollarSign className="h-4 w-4 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Clientes Nuevos</CardTitle>
+                <Users className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
-                  ${metricas.ventasMes.valor.toLocaleString()}
-                </div>
-                <div
-                  className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.ventasMes.tipo)}`}
-                >
-                  {getTrendIcon(metricas.ventasMes.tipo)}
-                  <span className="ml-1">{metricas.ventasMes.cambio >= 0 ? '+' : ''}{metricas.ventasMes.cambio}% vs anterior</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-white border-green-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Clientes Nuevos</CardTitle>
-                <Users className="h-4 w-4 text-amber-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metricas.clientesNuevos.valor}</div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.clientesNuevos.valor}</div>
                 <div
                   className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.clientesNuevos.tipo)}`}
                 >
@@ -408,13 +385,13 @@ export default function ReportesPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ticket Promedio</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Ticket Promedio</CardTitle>
                 <Package className="h-4 w-4 text-teal-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   ${metricas.ticketPromedio.valor.toLocaleString()}
                 </div>
                 <div
@@ -426,13 +403,13 @@ export default function ReportesPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Tasa Conversión</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Tasa Conversión</CardTitle>
                 <TrendingUp className="h-4 w-4 text-rose-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metricas.tasaConversion.valor}%</div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.tasaConversion.valor}%</div>
                 <div
                   className={`flex items-center text-xs mt-1 ${getTrendColor(metricas.tasaConversion.tipo)}`}
                 >
@@ -444,9 +421,9 @@ export default function ReportesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">
+                <CardTitle className="text-lg font-semibold text-card-foreground">
                   Ventas por{" "}
                   {periodoSeleccionado === "hoy"
                     ? "Hora"
@@ -474,8 +451,8 @@ export default function ReportesPage() {
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                <p className="font-medium">{`${label}`}</p>
+                              <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
+                                <p className="font-medium text-card-foreground">{`${label}`}</p>
                                 <p className="text-green-600">{`Ventas: $${payload[0]?.value?.toLocaleString()}`}</p>
                                 <p className="text-blue-600">{`Pedidos: ${payload[1]?.value}`}</p>
                               </div>
@@ -492,9 +469,9 @@ export default function ReportesPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Tendencia Mensual</CardTitle>
+                <CardTitle className="text-lg font-semibold text-card-foreground">Tendencia Mensual</CardTitle>
                 <CardDescription>Evolución de ventas y clientes por mes</CardDescription>
               </CardHeader>
               <CardContent>
@@ -507,8 +484,8 @@ export default function ReportesPage() {
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                <p className="font-medium">{`${label}`}</p>
+                              <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
+                                <p className="font-medium text-card-foreground">{`${label}`}</p>
                                 <p className="text-purple-600">{`Ventas: $${payload[0]?.value?.toLocaleString()}`}</p>
                                 <p className="text-orange-600">{`Clientes: ${payload[1]?.value}`}</p>
                               </div>
@@ -527,9 +504,9 @@ export default function ReportesPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Productos Más Vendidos</CardTitle>
+                <CardTitle className="text-lg font-semibold text-card-foreground">Productos Más Vendidos</CardTitle>
                 <CardDescription>Top 5 productos por cantidad vendida</CardDescription>
               </CardHeader>
               <CardContent>
@@ -572,9 +549,9 @@ export default function ReportesPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Ventas por Categoría</CardTitle>
+                <CardTitle className="text-lg font-semibold text-card-foreground">Ventas por Categoría</CardTitle>
                 <CardDescription>Distribución de ventas por tipo de producto</CardDescription>
               </CardHeader>
               <CardContent>
@@ -599,8 +576,8 @@ export default function ReportesPage() {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                <p className="font-medium">{payload[0]?.name}</p>
+                              <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
+                                <p className="font-medium text-card-foreground">{payload[0]?.name}</p>
                                 <p className="text-gray-600">{`${payload[0]?.value}% del total`}</p>
                               </div>
                             )
@@ -624,7 +601,7 @@ export default function ReportesPage() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-3xl font-bold">{metricas.ventasMes.cambio >= 0 ? '+' : ''}{metricas.ventasMes.cambio}%</div>
+                    <div className="text-3xl font-bold">{metricas.ventasTotales.cambio >= 0 ? '+' : ''}{metricas.ventasTotales.cambio}%</div>
                     <div className="text-sm text-green-100">En ventas totales</div>
                   </div>
                   <TrendingUp className="h-12 w-12 text-green-200" />
