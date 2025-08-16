@@ -1,11 +1,59 @@
+"use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Users, Package, TrendingUp, ShoppingCart, Leaf, Droplets, Sun } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
+import { metricsService, type MetricasDashboard, type ProductoMasVendido } from "@/lib/metrics"
 
 export default function Dashboard() {
+  const [metricas, setMetricas] = useState<MetricasDashboard>({
+    ventasHoy: 0,
+    clientesActivos: 0,
+    productosEnStock: 0,
+    pedidosPendientes: 0,
+    cambioVentasHoy: 0,
+    nuevosClientesSemana: 0,
+    productosStockBajo: 0,
+    pedidosRequierenAtencion: 0,
+  })
+  const [productosMasVendidos, setProductosMasVendidos] = useState<ProductoMasVendido[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const cargarMetricas = async () => {
+      try {
+        setLoading(true)
+        const [metricasData, productosData] = await Promise.all([
+          metricsService.getMetricasDashboard(),
+          metricsService.getProductosMasVendidos(),
+        ])
+        setMetricas(metricasData)
+        setProductosMasVendidos(productosData)
+      } catch (error) {
+        console.error("Error cargando métricas:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarMetricas()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-lg text-gray-600">Cargando métricas...</div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
       <Navigation />
@@ -43,8 +91,10 @@ export default function Dashboard() {
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">$284.700 ARS</div>
-                <p className="text-xs text-green-600 mt-1">+12% desde ayer</p>
+                <div className="text-2xl font-bold text-gray-900">${metricas.ventasHoy.toLocaleString()} ARS</div>
+                <p className={`text-xs mt-1 ${metricas.cambioVentasHoy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {metricas.cambioVentasHoy >= 0 ? '+' : ''}{metricas.cambioVentasHoy.toFixed(1)}% desde ayer
+                </p>
               </CardContent>
             </Card>
 
@@ -54,8 +104,8 @@ export default function Dashboard() {
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">156</div>
-                <p className="text-xs text-blue-600 mt-1">+8 nuevos esta semana</p>
+                <div className="text-2xl font-bold text-gray-900">{metricas.clientesActivos}</div>
+                <p className="text-xs text-blue-600 mt-1">+{metricas.nuevosClientesSemana} nuevos esta semana</p>
               </CardContent>
             </Card>
 
@@ -65,8 +115,8 @@ export default function Dashboard() {
                 <Package className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">89</div>
-                <p className="text-xs text-amber-600 mt-1">12 productos con stock bajo</p>
+                <div className="text-2xl font-bold text-gray-900">{metricas.productosEnStock}</div>
+                <p className="text-xs text-amber-600 mt-1">{metricas.productosStockBajo} productos con stock bajo</p>
               </CardContent>
             </Card>
 
@@ -76,8 +126,8 @@ export default function Dashboard() {
                 <ShoppingCart className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">23</div>
-                <p className="text-xs text-purple-600 mt-1">5 requieren atención</p>
+                <div className="text-2xl font-bold text-gray-900">{metricas.pedidosPendientes}</div>
+                <p className="text-xs text-purple-600 mt-1">{metricas.pedidosRequierenAtencion} requieren atención</p>
               </CardContent>
             </Card>
           </div>
@@ -126,38 +176,52 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                    <div className="bg-green-600 p-2 rounded-full">
-                      <ShoppingCart className="h-4 w-4 text-white" />
+                  {metricas.ventasHoy > 0 && (
+                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                      <div className="bg-green-600 p-2 rounded-full">
+                        <ShoppingCart className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">Ventas del día</p>
+                        <p className="text-xs text-gray-500">Total: ${metricas.ventasHoy.toLocaleString()} ARS</p>
+                      </div>
+                      <span className="text-xs text-gray-400">Hoy</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Nueva venta - Producto</p>
-                      <p className="text-xs text-gray-500">Cliente: - $0 ARS</p>
-                    </div>
-                    <span className="text-xs text-gray-400">Reciente</span>
-                  </div>
+                  )}
 
-                  <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="bg-blue-600 p-2 rounded-full">
-                      <Users className="h-4 w-4 text-white" />
+                  {metricas.nuevosClientesSemana > 0 && (
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                      <div className="bg-blue-600 p-2 rounded-full">
+                        <Users className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">Nuevos clientes</p>
+                        <p className="text-xs text-gray-500">{metricas.nuevosClientesSemana} registrados esta semana</p>
+                      </div>
+                      <span className="text-xs text-gray-400">Esta semana</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Nuevo cliente registrado</p>
-                      <p className="text-xs text-gray-500">Carlos Ruiz - Cultivador principiante</p>
-                    </div>
-                    <span className="text-xs text-gray-400">Hace 15 min</span>
-                  </div>
+                  )}
 
-                  <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg">
-                    <div className="bg-amber-600 p-2 rounded-full">
-                      <Package className="h-4 w-4 text-white" />
+                  {metricas.productosStockBajo > 0 && (
+                    <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg">
+                      <div className="bg-amber-600 p-2 rounded-full">
+                        <Package className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">Stock bajo</p>
+                        <p className="text-xs text-gray-500">{metricas.productosStockBajo} productos requieren reposición</p>
+                      </div>
+                      <span className="text-xs text-gray-400">Reciente</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Stock bajo - Fertilizante Orgánico</p>
-                      <p className="text-xs text-gray-500">Quedan 5 unidades</p>
+                  )}
+
+                  {metricas.ventasHoy === 0 && metricas.nuevosClientesSemana === 0 && metricas.productosStockBajo === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <p className="text-sm">No hay actividad reciente</p>
+                      <p className="text-xs">Comienza creando tu primera venta o cliente</p>
                     </div>
-                    <span className="text-xs text-gray-400">Hace 1 hora</span>
-                  </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -171,35 +235,25 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                  <div className="bg-green-600 p-3 rounded-lg">
-                    <Leaf className="h-6 w-6 text-white" />
+                {productosMasVendidos.length > 0 ? (
+                  productosMasVendidos.slice(0, 3).map((producto, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                      <div className="bg-green-600 p-3 rounded-lg">
+                        <Leaf className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{producto.nombre}</h4>
+                        <p className="text-sm text-gray-600">{producto.ventas} ventas - ${producto.ingresos.toLocaleString()} ARS</p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="col-span-3 text-center py-8 text-gray-500">
+                    <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-sm">No hay productos vendidos aún</p>
+                    <p className="text-xs">Las ventas aparecerán aquí</p>
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Producto</h4>
-                    <p className="text-sm text-gray-600">0 ventas - $0 ARS</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
-                  <div className="bg-blue-600 p-3 rounded-lg">
-                    <Droplets className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Producto 4</h4>
-                    <p className="text-sm text-gray-600">0 ventas - $0 ARS</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg border border-amber-200">
-                  <div className="bg-amber-600 p-3 rounded-lg">
-                    <Sun className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900">Lámpara LED Grow</h4>
-                    <p className="text-sm text-gray-600">28 ventas - $784.000 ARS</p>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>
