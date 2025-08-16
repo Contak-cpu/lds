@@ -423,7 +423,7 @@ export default function VentasPage() {
       console.error("Error creando venta:", error)
       toast({
         title: "Error al crear la venta",
-        description: error.message || "Ocurrió un error inesperado",
+        description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
         variant: "destructive",
       })
     }
