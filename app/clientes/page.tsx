@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Users, Search, Plus, Phone, Mail, MapPin, ShoppingBag, Edit, Eye } from "lucide-react"
+import { Users, Search, Plus, Phone, Mail, MapPin, ShoppingBag, Edit, Eye, Trash } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -56,6 +56,8 @@ export default function ClientesPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null)
+  const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const { toast } = useToast()
 
   const [newClienteForm, setNewClienteForm] = useState<ClienteFormData>({
@@ -104,13 +106,33 @@ export default function ClientesPage() {
 
   const handleAddCliente = async () => {
     try {
+      // Validar que el nombre no esté vacío
+      if (!newClienteForm.nombre.trim()) {
+        toast({
+          title: "Error",
+          description: "El nombre del cliente es obligatorio",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Validar formato de email si se proporciona
+      if (newClienteForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newClienteForm.email)) {
+        toast({
+          title: "Error",
+          description: "El formato del email no es válido",
+          variant: "destructive",
+        })
+        return
+      }
+
       const { data, error } = await supabase
         .from("clientes")
         .insert([
           {
             ...newClienteForm,
-            fecha_registro: new Date().toISOString().split("T")[0],
-            estado: "Activo", // Assuming default estado is "Activo"
+            fecha_registro: new Date().toISOString(),
+            estado: "Activo",
           },
         ])
         .select()
@@ -143,6 +165,37 @@ export default function ClientesPage() {
         variant: "destructive",
       })
     }
+  }
+
+  const handleDeleteCliente = async (clienteId: string) => {
+    try {
+      const { error } = await supabase
+        .from("clientes")
+        .delete()
+        .eq("id", clienteId)
+
+      if (error) throw error
+
+      setClientes((prev: Cliente[]) => prev.filter((c: Cliente) => c.id !== clienteId))
+      setIsDeleteDialogOpen(false)
+      setClienteToDelete(null)
+      toast({
+        title: "Cliente eliminado",
+        description: "El cliente se ha eliminado exitosamente",
+      })
+    } catch (error) {
+      console.error("Error deleting cliente:", error)
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el cliente",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const confirmDeleteCliente = (cliente: Cliente) => {
+    setClienteToDelete(cliente)
+    setIsDeleteDialogOpen(true)
   }
 
   useEffect(() => {
@@ -455,6 +508,10 @@ export default function ClientesPage() {
                         <Edit className="h-4 w-4 mr-1" />
                         Editar
                       </Button>
+                      <Button variant="outline" size="sm" onClick={() => confirmDeleteCliente(cliente)}>
+                        <Trash className="h-4 w-4 mr-1" />
+                        Eliminar
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -645,6 +702,30 @@ export default function ClientesPage() {
                 </Button>
                 <Button className="bg-green-600 hover:bg-green-700" onClick={handleSaveEdit}>
                   Guardar Cambios
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Delete Confirmation Dialog */}
+          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Confirmar Eliminación</DialogTitle>
+                <DialogDescription>
+                  ¿Estás seguro de que quieres eliminar al cliente "{clienteToDelete?.nombre}"? 
+                  Esta acción no se puede deshacer.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => clienteToDelete && handleDeleteCliente(clienteToDelete.id)}
+                >
+                  Eliminar
                 </Button>
               </div>
             </DialogContent>

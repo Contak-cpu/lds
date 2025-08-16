@@ -444,66 +444,6 @@ export default function ConfiguracionPage() {
               </CardContent>
             </Card>
 
-            {/* Configuración de Ventas */}
-            <Card className="bg-white border-green-200">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-blue-600" />
-                  <span>Configuración de Ventas</span>
-                </CardTitle>
-                <CardDescription>Parámetros comerciales</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="moneda">Moneda</Label>
-                  <Select value={configuracion.moneda} onValueChange={(value) => handleInputChange("moneda", value)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ARS">Peso Argentino (ARS)</SelectItem>
-                      <SelectItem value="USD">Dólar (USD)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="iva">IVA (%)</Label>
-                  <Input
-                    id="iva"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={configuracion.iva}
-                    onChange={(e) => handleInputChange("iva", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="descuentoMaximo">Descuento Máximo (%)</Label>
-                  <Input
-                    id="descuentoMaximo"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={configuracion.descuentoMaximo}
-                    onChange={(e) => handleInputChange("descuentoMaximo", e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="stockMinimo">Stock Mínimo (unidades)</Label>
-                  <Input
-                    id="stockMinimo"
-                    type="number"
-                    min="0"
-                    value={configuracion.stockMinimo}
-                    onChange={(e) => handleInputChange("stockMinimo", e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Notificaciones */}
             <Card className="lg:col-span-2 bg-white border-green-200">
               <CardHeader>

@@ -48,6 +48,7 @@ import type { ComponentType } from "react"
 
 interface Producto {
   id: string
+  sku: string
   nombre: string
   descripcion: string | null
   categoria: string
@@ -62,6 +63,7 @@ interface Producto {
 }
 
 interface ProductoFormData {
+  sku: string
   nombre: string
   categoria: string
   precio: string
@@ -99,6 +101,7 @@ export default function ProductosPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState<ProductoFormData>({
+    sku: "",
     nombre: "",
     categoria: "",
     precio: "",
@@ -142,6 +145,7 @@ export default function ProductosPage() {
 
   const resetForm = () => {
     setFormData({
+      sku: "",
       nombre: "",
       categoria: "",
       precio: "",
@@ -153,11 +157,48 @@ export default function ProductosPage() {
     })
   }
 
+  const generateSKU = (categoria: string) => {
+    if (!categoria || categoria === "todas") return ""
+    
+    const categoriaPrefix = {
+      "Semillas": "SEED",
+      "Fertilizantes": "FERT", 
+      "Iluminación": "LIGHT",
+      "Hidroponía": "HYDRO",
+      "Herramientas": "TOOL",
+      "Kits": "KIT"
+    }[categoria] || "PROD"
+    
+    // Generar un número aleatorio para evitar conflictos
+    const randomNum = Math.floor(Math.random() * 9999) + 1
+    return `${categoriaPrefix}-${randomNum.toString().padStart(4, '0')}`
+  }
+
+  const handleCategoriaChange = (categoria: string) => {
+    handleInputChange("categoria", categoria)
+    
+    // Si no hay SKU personalizado, generar uno automático
+    if (!formData.sku.trim()) {
+      const autoSKU = generateSKU(categoria)
+      handleInputChange("sku", autoSKU)
+    }
+  }
+
   const handleAddProduct = async () => {
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria) {
+    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria || !formData.sku) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
+        description: "Por favor completa todos los campos obligatorios (incluyendo SKU)",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validar formato del SKU
+    if (!/^[A-Z0-9-]+$/.test(formData.sku)) {
+      toast({
+        title: "Error",
+        description: "El SKU solo puede contener letras mayúsculas, números y guiones",
         variant: "destructive",
       })
       return
@@ -169,6 +210,7 @@ export default function ProductosPage() {
         .from("productos")
         .insert([
           {
+            sku: formData.sku.toUpperCase(),
             nombre: formData.nombre,
             categoria: formData.categoria,
             precio: Number.parseFloat(formData.precio),
@@ -199,7 +241,7 @@ export default function ProductosPage() {
       console.error("Error agregando producto:", error)
       toast({
         title: "Error",
-        description: "No se pudo agregar el producto",
+        description: "No se pudo agregar el producto. Verifica que el SKU sea único.",
         variant: "destructive",
       })
     }
@@ -208,6 +250,7 @@ export default function ProductosPage() {
   const handleEditProduct = (product: Producto) => {
     setEditingProduct(product)
     setFormData({
+      sku: product.sku,
       nombre: product.nombre,
       categoria: product.categoria,
       precio: product.precio.toString(),
@@ -221,10 +264,22 @@ export default function ProductosPage() {
   }
 
   const handleSaveEdit = async () => {
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria || !editingProduct) {
+    if (!editingProduct) return
+
+    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria || !formData.sku) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
+        description: "Por favor completa todos los campos obligatorios (incluyendo SKU)",
+        variant: "destructive",
+      })
+      return
+    }
+
+    // Validar formato del SKU
+    if (!/^[A-Z0-9-]+$/.test(formData.sku)) {
+      toast({
+        title: "Error",
+        description: "El SKU solo puede contener letras mayúsculas, números y guiones",
         variant: "destructive",
       })
       return
@@ -235,12 +290,13 @@ export default function ProductosPage() {
       const { data, error } = await supabase
         .from("productos")
         .update({
+          sku: formData.sku.toUpperCase(),
           nombre: formData.nombre,
           categoria: formData.categoria,
           precio: Number.parseFloat(formData.precio),
           costo: Number.parseFloat(formData.costo),
-          stock: Number.parseInt(formData.stock),
-          stock_minimo: Number.parseInt(formData.stock_minimo),
+          stock: Number.parseInt(formData.stock) || 0,
+          stock_minimo: Number.parseInt(formData.stock_minimo) || 5,
           descripcion: formData.descripcion || null,
           imagen_url: formData.imagen_url || null,
         })
@@ -249,23 +305,23 @@ export default function ProductosPage() {
 
       if (error) throw error
 
-      // Actualizar la lista local
       if (data && data[0]) {
-        setProductos(productos.map((producto: Producto) => (producto.id === editingProduct.id ? data[0] : producto)))
+        setProductos((prev) =>
+          prev.map((product) => (product.id === editingProduct.id ? data[0] : product))
+        )
+        setIsEditDialogOpen(false)
+        setEditingProduct(null)
+        resetForm()
+        toast({
+          title: "Producto actualizado",
+          description: `${formData.nombre} ha sido actualizado exitosamente`,
+        })
       }
-
-      resetForm()
-      setIsEditDialogOpen(false)
-      setEditingProduct(null)
-      toast({
-        title: "Producto actualizado",
-        description: `${formData.nombre} ha sido actualizado correctamente`,
-      })
     } catch (error) {
-      console.error("Error editando producto:", error)
+      console.error("Error updating producto:", error)
       toast({
         title: "Error",
-        description: "No se pudieron guardar los cambios",
+        description: "No se pudo actualizar el producto. Verifica que el SKU sea único.",
         variant: "destructive",
       })
     }
@@ -295,13 +351,16 @@ export default function ProductosPage() {
   }
 
   const filteredProductos = productos.filter((producto: Producto) => {
-    const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesSearch =
+      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      producto.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      producto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategoria = filterCategoria === "todas" || producto.categoria === filterCategoria
     const matchesStock =
       filterStock === "todos" ||
-      (filterStock === "bajo" && producto.stock <= producto.stock_minimo) ||
-      (filterStock === "agotado" && producto.stock === 0) ||
-      (filterStock === "disponible" && producto.stock > 0)
+      (filterStock === "disponible" && producto.stock > 0) ||
+      (filterStock === "bajo" && producto.stock > 0 && producto.stock <= producto.stock_minimo) ||
+      (filterStock === "agotado" && producto.stock === 0)
 
     return matchesSearch && matchesCategoria && matchesStock
   })
@@ -482,7 +541,7 @@ export default function ProductosPage() {
                       {getCategoriaIcon(producto.categoria)}
                       <span className="text-xs text-gray-500">{producto.categoria}</span>
                     </div>
-                    <span className="text-xs text-gray-400">{producto.id.slice(0, 8)}</span>
+                    <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{producto.sku}</span>
                   </div>
                   <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{producto.nombre}</CardTitle>
                 </CardHeader>
@@ -634,6 +693,28 @@ export default function ProductosPage() {
               <div className="grid grid-cols-2 gap-6 py-4">
                 <div className="space-y-4">
                   <div>
+                    <Label htmlFor="sku">SKU *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="sku"
+                        placeholder="Ej: SEED-0001, FERT-001, o dejar vacío para generar automáticamente"
+                        value={formData.sku}
+                        onChange={(e) => handleInputChange("sku", e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const autoSKU = generateSKU(formData.categoria);
+                          handleInputChange("sku", autoSKU);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Generar SKU
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
                     <Label htmlFor="nombre">Nombre del producto *</Label>
                     <Input
                       id="nombre"
@@ -644,7 +725,7 @@ export default function ProductosPage() {
                   </div>
                   <div>
                     <Label htmlFor="categoria">Categoría *</Label>
-                    <Select value={formData.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
+                    <Select value={formData.categoria} onValueChange={(value) => handleCategoriaChange(value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
@@ -752,6 +833,28 @@ export default function ProductosPage() {
               <div className="grid grid-cols-2 gap-6 py-4">
                 <div className="space-y-4">
                   <div>
+                    <Label htmlFor="edit-sku">SKU *</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="edit-sku"
+                        placeholder="Ej: SEED-0001, FERT-001, o dejar vacío para generar automáticamente"
+                        value={formData.sku}
+                        onChange={(e) => handleInputChange("sku", e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const autoSKU = generateSKU(formData.categoria);
+                          handleInputChange("sku", autoSKU);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Generar SKU
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
                     <Label htmlFor="edit-nombre">Nombre del producto *</Label>
                     <Input
                       id="edit-nombre"
@@ -762,7 +865,7 @@ export default function ProductosPage() {
                   </div>
                   <div>
                     <Label htmlFor="edit-categoria">Categoría *</Label>
-                    <Select value={formData.categoria} onValueChange={(value) => handleInputChange("categoria", value)}>
+                    <Select value={formData.categoria} onValueChange={(value) => handleCategoriaChange(value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>

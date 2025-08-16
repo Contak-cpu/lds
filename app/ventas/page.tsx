@@ -117,6 +117,9 @@ interface VentaSupabase {
 interface ProductoCarrito extends Producto {
   cantidad: number
   esPersonalizado?: boolean
+  categoria: string
+  descripcion: string | null
+  imagen_url: string | null
 }
 
 interface ProductoSupabase {
@@ -561,7 +564,13 @@ export default function VentasPage() {
       updated_at: new Date().toISOString(),
     }
 
-    agregarAlCarrito(nuevoProducto)
+    const nuevoItemPersonalizado: ProductoCarrito = {
+      ...nuevoProducto,
+      cantidad: 1,
+      esPersonalizado: true,
+    }
+
+    setCarrito([...carrito, nuevoItemPersonalizado])
     setProductoPersonalizado({ nombre: "", precio: "" })
   }
 
