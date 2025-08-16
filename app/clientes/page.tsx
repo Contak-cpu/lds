@@ -126,15 +126,24 @@ export default function ClientesPage() {
         return
       }
 
+      const clienteData = {
+        nombre: newClienteForm.nombre,
+        email: newClienteForm.email || null,
+        telefono: newClienteForm.telefono || null,
+        direccion: newClienteForm.direccion || null,
+        ciudad: newClienteForm.ciudad || null,
+        provincia: newClienteForm.provincia || null,
+        codigo_postal: newClienteForm.codigo_postal || null,
+        notas: newClienteForm.notas || null,
+        fecha_registro: new Date().toISOString(),
+        estado: "Activo",
+      }
+
+      console.log("Datos del cliente a insertar:", clienteData)
+
       const { data, error } = await supabase
         .from("clientes")
-        .insert([
-          {
-            ...newClienteForm,
-            fecha_registro: new Date().toISOString(),
-            estado: "Activo",
-          },
-        ])
+        .insert([clienteData])
         .select()
 
       if (error) throw error
@@ -159,9 +168,18 @@ export default function ClientesPage() {
       }
     } catch (error) {
       console.error("Error adding cliente:", error)
+      
+      // Mostrar error más específico
+      let errorMessage = "No se pudo agregar el cliente"
+      if (error instanceof Error) {
+        errorMessage = error.message
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message)
+      }
+      
       toast({
         title: "Error",
-        description: "No se pudo agregar el cliente",
+        description: errorMessage,
         variant: "destructive",
       })
     }
