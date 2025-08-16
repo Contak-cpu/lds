@@ -18,7 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
 import { createClient } from "@/lib/supabase/client"
-import { useToast } from "@/hooks/use-toast"
+import { useNotifications } from "@/hooks/use-notifications"
 
 interface Cliente {
   id: string
@@ -131,7 +131,7 @@ export default function ClientesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [formErrors, setFormErrors] = useState<ClienteFormErrors>({})
   const [editFormErrors, setEditFormErrors] = useState<ClienteFormErrors>({})
-  const { toast } = useToast()
+  const { showError, showClienteCreated, showClienteUpdated, showClienteDeleted } = useNotifications()
 
   const [newClienteForm, setNewClienteForm] = useState<ClienteFormData>({
     nombre: "",
@@ -167,11 +167,7 @@ export default function ClientesPage() {
       setClientes(data || [])
     } catch (error) {
       console.error("Error loading clientes:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los clientes",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron cargar los clientes")
     } finally {
       setLoading(false)
     }
@@ -184,11 +180,7 @@ export default function ClientesPage() {
       
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors)
-        toast({
-          title: "Error de validación",
-          description: "Por favor, corrige los errores en el formulario",
-          variant: "destructive",
-        })
+        showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
@@ -230,10 +222,7 @@ export default function ClientesPage() {
           notas: "",
         })
         setIsAddDialogOpen(false)
-        toast({
-          title: "Cliente agregado",
-          description: "El cliente se ha agregado exitosamente",
-        })
+        showClienteCreated()
       }
     } catch (error) {
       console.error("Error adding cliente:", error)
@@ -246,11 +235,7 @@ export default function ClientesPage() {
         errorMessage = String((error as any).message)
       }
       
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      })
+      showError("Error", errorMessage)
     }
   }
 
@@ -266,17 +251,10 @@ export default function ClientesPage() {
       setClientes((prev: Cliente[]) => prev.filter((c: Cliente) => c.id !== clienteId))
       setIsDeleteDialogOpen(false)
       setClienteToDelete(null)
-      toast({
-        title: "Cliente eliminado",
-        description: "El cliente se ha eliminado exitosamente",
-      })
+      showClienteDeleted()
     } catch (error) {
       console.error("Error deleting cliente:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el cliente",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudo eliminar el cliente")
     }
   }
 
@@ -364,11 +342,7 @@ export default function ClientesPage() {
       
       if (Object.keys(errors).length > 0) {
         setEditFormErrors(errors)
-        toast({
-          title: "Error de validación",
-          description: "Por favor, corrige los errores en el formulario",
-          variant: "destructive",
-        })
+        showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
@@ -385,18 +359,11 @@ export default function ClientesPage() {
         )
         setIsEditDialogOpen(false)
         setEditingCliente(null)
-        toast({
-          title: "Cliente actualizado",
-          description: "Los cambios se han guardado exitosamente",
-        })
+        showClienteUpdated()
       }
     } catch (error) {
       console.error("Error updating cliente:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron guardar los cambios")
     }
   }
 

@@ -840,13 +840,13 @@ export default function VentasPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ventas Hoy</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Hoy</CardTitle>
                 <DollarSign className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   $
                   {ventas
                     .filter((v) => v.fecha === new Date().toISOString().split("T")[0])
@@ -857,37 +857,37 @@ export default function VentasPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Pedidos Pendientes</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Pendientes</CardTitle>
                 <Clock className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {ventas.filter((v) => v.estado === "Pendiente").length}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Procesando</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Procesando</CardTitle>
                 <AlertCircle className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {ventas.filter((v) => v.estado === "Procesando").length}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Completadas</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Completadas</CardTitle>
                 <CheckCircle className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {ventas.filter((v) => v.estado === "Completado").length}
                 </div>
               </CardContent>
@@ -895,12 +895,12 @@ export default function VentasPage() {
           </div>
 
           {/* Filters and Search */}
-          <Card className="mb-6 bg-white border-green-200">
+          <Card className="mb-6 bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Buscar por número de venta o cliente..."
                       value={searchTerm}
@@ -1095,7 +1095,7 @@ export default function VentasPage() {
                     <CardContent className="p-4 text-center">
                       <User className="h-8 w-8 mx-auto mb-2 text-green-600" />
                       <h3 className="font-semibold">Venta Registrada</h3>
-                      <p className="text-sm text-gray-600">Cliente registrado en el sistema</p>
+                                              <p className="text-sm text-muted-foreground">Cliente registrado en el sistema</p>
                     </CardContent>
                   </Card>
 
@@ -1237,7 +1237,7 @@ export default function VentasPage() {
                     <div>
                       <Label>Productos Disponibles</Label>
                       <div className="relative mt-2">
-                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                         <Input
                           placeholder="Buscar productos..."
                           value={searchProducto}
@@ -1251,11 +1251,11 @@ export default function VentasPage() {
                       {productosFiltrados.map((producto) => (
                         <div
                           key={producto.id}
-                          className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
+                          className="flex items-center justify-between p-3 border border-border rounded-lg bg-card"
                         >
                           <div className="flex-1">
-                            <div className="text-sm font-medium">{producto.nombre}</div>
-                            <div className="text-xs text-gray-600">
+                            <div className="text-sm font-medium text-card-foreground">{producto.nombre}</div>
+                            <div className="text-xs text-muted-foreground">
                               ${producto.precio.toLocaleString()} - Stock: {producto.stock}
                             </div>
                           </div>
@@ -1271,7 +1271,7 @@ export default function VentasPage() {
                       ))}
                     </div>
 
-                    <Card className="border-dashed border-2 border-orange-300 bg-orange-50">
+                    <Card className="border-dashed border-2 border-orange-300 bg-orange-50 dark:bg-orange-950 dark:border-orange-700">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm flex items-center">
                           <Zap className="h-4 w-4 mr-2 text-orange-600" />

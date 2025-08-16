@@ -42,7 +42,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
-import { toast } from "@/hooks/use-toast"
+import { useNotifications } from "@/hooks/use-notifications"
 import { createClient } from "@/lib/supabase/client"
 import type { ComponentType } from "react"
 
@@ -164,6 +164,7 @@ const categorias: CategoriaInfo[] = [
 ]
 
 export default function ProductosPage() {
+  const { showError, showProductoCreated, showProductoUpdated, showProductoDeleted } = useNotifications()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategoria, setFilterCategoria] = useState("todas")
   const [filterStock, setFilterStock] = useState("todos")
@@ -213,11 +214,7 @@ export default function ProductosPage() {
       setProductos(data || [])
     } catch (error) {
       console.error("Error cargando productos:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los productos",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron cargar los productos")
     } finally {
       setIsLoading(false)
     }
@@ -430,11 +427,7 @@ export default function ProductosPage() {
       
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors)
-        toast({
-          title: "Error de validación",
-          description: "Por favor, corrige los errores en el formulario",
-          variant: "destructive",
-        })
+        showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
@@ -465,18 +458,11 @@ export default function ProductosPage() {
         setProductos((prev) => [data[0], ...prev])
         resetForm()
         setIsAddDialogOpen(false)
-        toast({
-          title: "Producto agregado",
-          description: "El producto se ha agregado exitosamente",
-        })
+        showProductoCreated()
       }
     } catch (error) {
       console.error("Error adding product:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo agregar el producto",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudo agregar el producto")
     }
   }
 
@@ -506,11 +492,7 @@ export default function ProductosPage() {
       
       if (Object.keys(errors).length > 0) {
         setEditFormErrors(errors)
-        toast({
-          title: "Error de validación",
-          description: "Por favor, corrige los errores en el formulario",
-          variant: "destructive",
-        })
+        showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
@@ -541,18 +523,11 @@ export default function ProductosPage() {
         )
         setIsEditDialogOpen(false)
         setEditingProduct(null)
-        toast({
-          title: "Producto actualizado",
-          description: "Los cambios se han guardado exitosamente",
-        })
+        showProductoUpdated()
       }
     } catch (error) {
       console.error("Error updating product:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron guardar los cambios")
     }
   }
 
@@ -565,17 +540,10 @@ export default function ProductosPage() {
 
       // Actualizar la lista local
       setProductos(productos.filter((producto: Producto) => producto.id !== productId))
-      toast({
-        title: "Producto eliminado",
-        description: "El producto ha sido eliminado del catálogo",
-      })
+      showProductoDeleted()
     } catch (error) {
       console.error("Error eliminando producto:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el producto",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudo eliminar el producto")
     }
   }
 

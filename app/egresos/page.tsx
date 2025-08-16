@@ -18,7 +18,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
-import { Plus, Search, Filter, DollarSign, TrendingDown, Calendar, Receipt } from "lucide-react"
+import { Plus, Search, Filter, DollarSign, TrendingDown, Calendar, Receipt, User, Eye } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
 
@@ -172,13 +172,21 @@ export default function EgresosPage() {
   })
 
   // Calcular estadísticas
-  const totalEgresos = egresos.reduce((sum: number, egreso: Egreso) => sum + egreso.monto, 0)
+  const totalEgresos = egresos.reduce((sum: number, egreso: Egreso) => sum + (egreso.monto || 0), 0)
   const egresosMesActual = egresos.filter((egreso: Egreso) => {
     const fechaEgreso = new Date(egreso.fecha_egreso)
     const ahora = new Date()
     return fechaEgreso.getMonth() === ahora.getMonth() && fechaEgreso.getFullYear() === ahora.getFullYear()
   })
-  const totalMesActual = egresosMesActual.reduce((sum: number, egreso: Egreso) => sum + egreso.monto, 0)
+  const totalMesActual = egresosMesActual.reduce((sum: number, egreso: Egreso) => sum + (egreso.monto || 0), 0)
+  
+  // Calcular promedio diario (evitar división por cero)
+  const promedioDiario = new Date().getDate() > 0 ? totalMesActual / new Date().getDate() : 0
+  
+  // Calcular mayor egreso (evitar array vacío)
+  const mayorEgreso = egresos.length > 0 ? Math.max(...egresos.map((e: Egreso) => e.monto || 0)) : 0
+  
+
 
   // Manejar cambios en el formulario
   const handleInputChange = (field: keyof EgresoFormData, value: string): void => {
@@ -522,7 +530,9 @@ export default function EgresosPage() {
                 <TrendingDown className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-red-600">${totalEgresos.toLocaleString("es-AR")}</div>
+                <div className="text-2xl font-bold text-red-600">
+                  ${totalEgresos.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
                 <p className="text-xs text-muted-foreground">{egresos.length} registros</p>
               </CardContent>
             </Card>
@@ -533,7 +543,9 @@ export default function EgresosPage() {
                 <Calendar className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-orange-600">${totalMesActual.toLocaleString("es-AR")}</div>
+                <div className="text-2xl font-bold text-orange-600">
+                  ${totalMesActual.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
                 <p className="text-xs text-muted-foreground">{egresosMesActual.length} egresos</p>
               </CardContent>
             </Card>
@@ -545,7 +557,7 @@ export default function EgresosPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  ${Math.round(totalMesActual / new Date().getDate()).toLocaleString("es-AR")}
+                  ${promedioDiario.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground">Basado en el mes actual</p>
               </CardContent>
@@ -558,7 +570,7 @@ export default function EgresosPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
-                  ${Math.max(...egresos.map((e: Egreso) => e.monto), 0).toLocaleString("es-AR")}
+                  ${mayorEgreso.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <p className="text-xs text-muted-foreground">Registro más alto</p>
               </CardContent>
@@ -602,66 +614,148 @@ export default function EgresosPage() {
           </Card>
 
           {/* Lista de Egresos */}
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle>Registro de Egresos</CardTitle>
-              <CardDescription>
-                {egresosFiltrados.length} de {egresos.length} egresos
-              </CardDescription>
+              <CardTitle className="text-lg font-semibold text-card-foreground">
+                Lista de Egresos ({egresosFiltrados.length})
+              </CardTitle>
+              <CardDescription>Gestiona todos los gastos del negocio</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {egresosFiltrados.map((egreso: Egreso) => (
                   <div
                     key={egreso.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{egreso.descripcion}</h3>
-                        <Badge variant="outline">{egreso.categoria}</Badge>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-full">
+                        <Receipt className="h-5 w-5 text-white" />
                       </div>
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>
-                          <strong>Proveedor:</strong> {egreso.proveedor}
-                        </p>
-                        <p>
-                          <strong>Fecha:</strong> {new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}
-                        </p>
-                        <p>
-                          <strong>Método:</strong> {egreso.metodo_pago}
-                        </p>
-                        {egreso.notas && (
-                          <p>
-                            <strong>Descripción:</strong> {egreso.notas}
-                          </p>
-                        )}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="font-semibold text-card-foreground">{egreso.descripcion}</h3>
+                          <Badge variant="outline" className="border-border">{egreso.categoria}</Badge>
+                        </div>
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>{egreso.proveedor}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-4 w-4 text-muted-foreground" />
+                            <span>{new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span>{egreso.metodo_pago}</span>
+                          </div>
+                          {egreso.notas && (
+                            <div className="flex items-center space-x-1">
+                              <span className="text-xs bg-muted px-2 py-1 rounded">
+                                {egreso.notas}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-red-600 mb-2">
-                        -${egreso.monto.toLocaleString("es-AR")}
+                    <div className="flex items-center space-x-2">
+                      <div className="text-right mr-4">
+                        <div className="text-xl font-bold text-red-600 mb-1">
+                          -${egreso.monto.toLocaleString("es-AR")}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {new Date(egreso.fecha_egreso).toLocaleDateString("es-AR", { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)}>
-                          Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => eliminarEgreso(egreso.id)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          Eliminar
-                        </Button>
-                      </div>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            Ver
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle>Detalles del Egreso</DialogTitle>
+                            <DialogDescription>Información completa del gasto</DialogDescription>
+                          </DialogHeader>
+                          <div className="grid grid-cols-2 gap-4 py-4">
+                            <div className="space-y-4">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">Información del Egreso</Label>
+                                <div className="mt-2 space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Concepto:</span>
+                                    <span className="text-sm font-medium">{egreso.descripcion}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Categoría:</span>
+                                    <Badge variant="outline">{egreso.categoria}</Badge>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Monto:</span>
+                                    <span className="text-lg font-bold text-red-600">
+                                      -${egreso.monto.toLocaleString("es-AR")}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Método de pago:</span>
+                                    <span className="text-sm font-medium">{egreso.metodo_pago}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              {egreso.notas && (
+                                <div>
+                                  <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
+                                  <p className="text-sm text-card-foreground mt-1">{egreso.notas}</p>
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-4">
+                              <div>
+                                <Label className="text-sm font-medium text-muted-foreground">Información Adicional</Label>
+                                <div className="mt-2 space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Proveedor:</span>
+                                    <span className="text-sm font-medium">{egreso.proveedor}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">Fecha:</span>
+                                    <span className="text-sm">{new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-sm text-muted-foreground">ID:</span>
+                                    <span className="text-sm text-muted-foreground">{egreso.id}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
+                      <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)}>
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => eliminarEgreso(egreso.id)}
+                        className="text-red-600 hover:text-red-700"
+                      >
+                        Eliminar
+                      </Button>
                     </div>
                   </div>
                 ))}
 
                 {egresosFiltrados.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     No se encontraron egresos que coincidan con los filtros
                   </div>
                 )}
