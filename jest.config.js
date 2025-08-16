@@ -17,7 +17,7 @@ const customJestConfig = {
     "!**/*.d.ts",
     "!**/node_modules/**",
   ],
-  moduleNameMapping: {
+  moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },
 }

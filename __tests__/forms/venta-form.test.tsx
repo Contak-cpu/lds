@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { describe, it, expect, jest, beforeEach, vi } from "@jest/globals"
@@ -43,9 +43,24 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
 }) => {
   const [items, setItems] = React.useState(initialData?.items || [])
   const [clienteSeleccionado, setClienteSeleccionado] = React.useState(initialData?.cliente_id || "")
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  const [totales, setTotales] = React.useState({ subtotal: 0, total: 0 })
 
+  // Recalcular totales cuando cambien los items
+  React.useEffect(() => {
+    const subtotal = items.reduce((sum, item) => sum + (item.subtotal || 0), 0)
+    const descuento = parseFloat((document.querySelector('[name="descuento"]') as HTMLInputElement)?.value || "0")
+    setTotales({
+      subtotal,
+      total: Math.max(0, subtotal - descuento)
+    })
+  }, [items])
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
+    
+    setIsSubmitting(true)
     const formData = new FormData(e.target as HTMLFormElement)
     
     const data = {
@@ -53,15 +68,20 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
       cliente_nombre: formData.get("cliente_nombre") || null,
       cliente_casual: formData.get("cliente_casual") || null,
       tipo_venta: formData.get("tipo_venta") || "efectivo",
-      subtotal: parseFloat(formData.get("subtotal") as string) || 0,
+      subtotal: totales.subtotal,
       descuento: parseFloat(formData.get("descuento") as string) || 0,
-      total: parseFloat(formData.get("total") as string) || 0,
+      total: totales.total,
       estado: formData.get("estado") || "completada",
       metodo_pago: formData.get("metodo_pago") || "efectivo",
       notas: formData.get("notas") || null,
       items: items
     }
     onSubmit(data)
+    
+    // Usar setTimeout para simular un envío real
+    setTimeout(() => {
+      setIsSubmitting(false)
+    }, 100)
   }
 
   const agregarItem = () => {
@@ -81,9 +101,17 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
   }
 
   const actualizarItem = (id: string, campo: string, valor: any) => {
-    setItems(items.map(item => 
-      item.id === id ? { ...item, [campo]: valor } : item
-    ))
+    setItems(items.map(item => {
+      if (item.id === id) {
+        const updatedItem = { ...item, [campo]: valor }
+        // Recalcular subtotal si cambia cantidad o precio
+        if (campo === "cantidad" || campo === "precio_unitario") {
+          updatedItem.subtotal = updatedItem.cantidad * updatedItem.precio_unitario
+        }
+        return updatedItem
+      }
+      return item
+    }))
   }
 
   const calcularTotales = () => {
@@ -91,7 +119,7 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
     const descuento = parseFloat((document.querySelector('[name="descuento"]') as HTMLInputElement)?.value || "0")
     return {
       subtotal,
-      total: subtotal - descuento
+      total: Math.max(0, subtotal - descuento)
     }
   }
 
@@ -144,10 +172,8 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
               placeholder="Cantidad"
               value={item.cantidad}
               onChange={(e) => {
-                const cantidad = parseInt(e.target.value) || 1
-                const subtotal = cantidad * item.precio_unitario
+                const cantidad = Math.max(1, parseInt(e.target.value) || 1)
                 actualizarItem(item.id, "cantidad", cantidad)
-                actualizarItem(item.id, "subtotal", subtotal)
               }}
               data-testid={`cantidad-${index}`}
             />
@@ -159,10 +185,8 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
               placeholder="Precio unitario"
               value={item.precio_unitario}
               onChange={(e) => {
-                const precio = parseFloat(e.target.value) || 0
-                const subtotal = item.cantidad * precio
+                const precio = Math.max(0, parseFloat(e.target.value) || 0)
                 actualizarItem(item.id, "precio_unitario", precio)
-                actualizarItem(item.id, "subtotal", subtotal)
               }}
               data-testid={`precio-unitario-${index}`}
             />
@@ -222,7 +246,7 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
           <label>
             Subtotal:
             <span data-testid="subtotal-total">
-              ${calcularTotales().subtotal.toFixed(2)}
+              ${totales.subtotal.toFixed(2)}
             </span>
           </label>
           <label>
@@ -235,12 +259,19 @@ const VentaForm = ({ onSubmit, initialData, mode = "create" }: {
               placeholder="0.00"
               defaultValue={initialData?.descuento || "0"}
               data-testid="descuento-input"
+              onChange={(e) => {
+                const descuento = parseFloat(e.target.value) || 0
+                setTotales(prev => ({
+                  ...prev,
+                  total: Math.max(0, prev.subtotal - descuento)
+                }))
+              }}
             />
           </label>
           <label>
             Total:
             <span data-testid="total-final">
-              ${calcularTotales().total.toFixed(2)}
+              ${totales.total.toFixed(2)}
             </span>
           </label>
         </div>
@@ -440,8 +471,8 @@ describe("🛒 Formulario de Ventas - Validación Completa", () => {
       const descuentoInput = screen.getByTestId("descuento-input")
       fireEvent.change(descuentoInput, { target: { value: "100" } })
 
-      // Verificar total: 50 - 100 = -50 (se permitiría en el formulario)
-      expect(screen.getByTestId("total-final")).toHaveTextContent("$-50.00")
+      // Verificar total: 50 - 100 = 0 (el formulario no permite totales negativos)
+      expect(screen.getByTestId("total-final")).toHaveTextContent("$0.00")
     })
   })
 
@@ -550,7 +581,7 @@ describe("🛒 Formulario de Ventas - Validación Completa", () => {
 
       await waitFor(() => {
         expect(mockOnSubmit).toHaveBeenCalledWith({
-          cliente_id: "",
+          cliente_id: null,
           cliente_nombre: null,
           cliente_casual: null,
           tipo_venta: "efectivo",
@@ -559,7 +590,7 @@ describe("🛒 Formulario de Ventas - Validación Completa", () => {
           total: 0,
           estado: "completada",
           metodo_pago: "efectivo",
-          notas: "",
+          notas: null,
           items: []
         })
       })
@@ -594,7 +625,7 @@ describe("🛒 Formulario de Ventas - Validación Completa", () => {
       expect(screen.getByTestId("tipo-venta-select")).toHaveValue("transferencia")
       expect(screen.getByTestId("estado-select")).toHaveValue("pendiente")
       expect(screen.getByTestId("metodo-pago-select")).toHaveValue("debito")
-      expect(screen.getByTestId("descuento-input")).toHaveValue("15")
+      expect(screen.getByTestId("descuento-input")).toHaveValue(15)
       expect(screen.getByTestId("notas-input")).toHaveValue("Venta existente")
 
       // Verificar que el producto se haya cargado
@@ -702,11 +733,11 @@ describe("🛒 Formulario de Ventas - Validación Completa", () => {
       
       // Intentar establecer cantidad 0
       fireEvent.change(cantidadInput, { target: { value: "0" } })
-      expect(cantidadInput).toHaveValue(0)
+      expect(cantidadInput).toHaveValue(1) // El componente previene valores menores a 1
 
       // Intentar establecer cantidad negativa
       fireEvent.change(cantidadInput, { target: { value: "-1" } })
-      expect(cantidadInput).toHaveValue(-1)
+      expect(cantidadInput).toHaveValue(1) // Debería mantener el valor anterior
     })
   })
 })

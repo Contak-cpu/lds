@@ -49,6 +49,7 @@ import type { ComponentType } from "react"
 interface Producto {
   id: string
   sku: string
+  categoria_id: string
   nombre: string
   descripcion: string | null
   categoria: string
@@ -110,6 +111,8 @@ export default function ProductosPage() {
     imagen_url: "",
   })
 
+  const [previewCategoriaId, setPreviewCategoriaId] = useState<string>("")
+
   useEffect(() => {
     cargarProductos()
   }, [])
@@ -152,6 +155,7 @@ export default function ProductosPage() {
       descripcion: "",
       imagen_url: "",
     })
+    setPreviewCategoriaId("")
   }
 
   const generateSKU = async (categoria: string): Promise<string> => {
@@ -210,14 +214,112 @@ export default function ProductosPage() {
     }
   }
 
+  const generateCategoriaId = async (categoria: string): Promise<string> => {
+    try {
+      const supabase = createClient()
+      
+      // Definir prefijos para cada categoría
+      let categoriaPrefix = 'PRO' // Producto genérico por defecto
+      
+      switch (categoria.toLowerCase()) {
+        case 'semillas':
+          categoriaPrefix = 'SEM'
+          break
+        case 'fertilizantes':
+          categoriaPrefix = 'FER'
+          break
+        case 'herramientas':
+          categoriaPrefix = 'HER'
+          break
+        case 'sustratos':
+          categoriaPrefix = 'SUS'
+          break
+        case 'iluminacion':
+        case 'iluminación':
+          categoriaPrefix = 'ILU'
+          break
+        case 'hidroponia':
+        case 'hidroponía':
+          categoriaPrefix = 'HID'
+          break
+        case 'kits':
+          categoriaPrefix = 'KIT'
+          break
+        case 'accesorios':
+          categoriaPrefix = 'ACC'
+          break
+        default:
+          categoriaPrefix = 'PRO'
+      }
+      
+      // Obtener el último número para esta categoría
+      const { data: lastProduct, error } = await supabase
+        .from("productos")
+        .select("categoria_id")
+        .like("categoria_id", `${categoriaPrefix}-%`)
+        .order("categoria_id", { ascending: false })
+        .limit(1)
+      
+      if (error) throw error
+      
+      let nextNumber = 1
+      
+      if (lastProduct && lastProduct.length > 0) {
+        // Extraer el número del último categoria_id (ej: SEM-001 -> 1)
+        const lastCategoriaId = lastProduct[0].categoria_id
+        const match = lastCategoriaId.match(new RegExp(`${categoriaPrefix}-(\\d+)`))
+        if (match) {
+          nextNumber = parseInt(match[1]) + 1
+        }
+      }
+      
+      // Formatear el ID con ceros a la izquierda (ej: SEM-001, SEM-002)
+      return `${categoriaPrefix}-${nextNumber.toString().padStart(3, '0')}`
+    } catch (error) {
+      console.error("Error generando categoria_id:", error)
+      // Fallback: usar timestamp como categoria_id
+      return `PRO-${Date.now().toString().slice(-3)}`
+    }
+  }
+
   const handleCategoriaChange = (categoria: string) => {
     handleInputChange("categoria", categoria)
     
-    // Si no hay SKU personalizado, generar uno automático
-    // if (!formData.sku.trim()) {
-    //   const autoSKU = generateSKU(categoria)
-    //   handleInputChange("sku", autoSKU)
-    // }
+    // Generar preview del categoria_id que se creará
+    let categoriaPrefix = 'PRO'
+    switch (categoria.toLowerCase()) {
+      case 'semillas':
+        categoriaPrefix = 'SEM'
+        break
+      case 'fertilizantes':
+        categoriaPrefix = 'FER'
+        break
+      case 'herramientas':
+        categoriaPrefix = 'HER'
+        break
+      case 'sustratos':
+        categoriaPrefix = 'SUS'
+        break
+      case 'iluminacion':
+      case 'iluminación':
+        categoriaPrefix = 'ILU'
+        break
+      case 'hidroponia':
+      case 'hidroponía':
+        categoriaPrefix = 'HID'
+        break
+      case 'kits':
+        categoriaPrefix = 'KIT'
+        break
+      case 'accesorios':
+        categoriaPrefix = 'ACC'
+        break
+      default:
+        categoriaPrefix = 'PRO'
+    }
+    
+    // Actualizar el campo categoria_id en el formulario para mostrar el preview
+    setPreviewCategoriaId(`${categoriaPrefix}-001`)
   }
 
   const handleAddProduct = async () => {
@@ -233,14 +335,18 @@ export default function ProductosPage() {
     try {
       const supabase = createClient()
       
-      // Generar SKU único automáticamente
-      const sku = await generateSKU(formData.categoria)
+      // Generar SKU único y categoria_id automáticamente
+      const [sku, categoriaId] = await Promise.all([
+        generateSKU(formData.categoria),
+        generateCategoriaId(formData.categoria)
+      ])
       
       const { data, error } = await supabase
         .from("productos")
         .insert([
           {
             sku: sku,
+            categoria_id: categoriaId,
             nombre: formData.nombre,
             descripcion: formData.descripcion || null,
             categoria: formData.categoria,
@@ -368,7 +474,8 @@ export default function ProductosPage() {
     const matchesSearch =
       producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       producto.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.categoria.toLowerCase().includes(searchTerm.toLowerCase())
+      producto.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (producto.categoria_id && producto.categoria_id.toLowerCase().includes(searchTerm.toLowerCase()))
     const matchesCategoria = filterCategoria === "todas" || producto.categoria === filterCategoria
     const matchesStock =
       filterStock === "todos" ||
@@ -555,7 +662,12 @@ export default function ProductosPage() {
                       {getCategoriaIcon(producto.categoria)}
                       <span className="text-xs text-gray-500">{producto.categoria}</span>
                     </div>
-                    <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{producto.sku}</span>
+                    <div className="flex flex-col items-end space-y-1">
+                      <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{producto.sku}</span>
+                      {producto.categoria_id && (
+                        <span className="text-xs font-mono bg-blue-100 px-2 py-1 rounded text-blue-600">{producto.categoria_id}</span>
+                      )}
+                    </div>
                   </div>
                   <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{producto.nombre}</CardTitle>
                 </CardHeader>
@@ -596,6 +708,10 @@ export default function ProductosPage() {
                                 <div className="flex justify-between">
                                   <span className="text-sm text-gray-600">ID:</span>
                                   <span className="text-sm font-medium">{producto.id.slice(0, 8)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-sm text-gray-600">ID de Categoría:</span>
+                                  <span className="text-sm font-medium font-mono bg-blue-100 px-2 py-1 rounded">{producto.categoria_id || 'No asignado'}</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span className="text-sm text-gray-600">Categoría:</span>
@@ -730,6 +846,16 @@ export default function ProductosPage() {
                       </SelectContent>
                     </Select>
                   </div>
+                  <div>
+                    <Label htmlFor="categoria-id">ID de Categoría</Label>
+                    <Input
+                      id="categoria-id"
+                      value={previewCategoriaId ? `Se generará: ${previewCategoriaId}` : "Selecciona una categoría"}
+                      disabled
+                      className="bg-gray-100 cursor-not-allowed text-sm"
+                      placeholder="Se genera automáticamente"
+                    />
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label htmlFor="precio">Precio de venta ($) *</Label>
@@ -847,6 +973,16 @@ export default function ProductosPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="edit-categoria-id">ID de Categoría</Label>
+                    <Input
+                      id="edit-categoria-id"
+                      value={editingProduct?.categoria_id || ""}
+                      disabled
+                      className="bg-gray-100 cursor-not-allowed"
+                      placeholder="Se genera automáticamente"
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>

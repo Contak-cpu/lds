@@ -1,7 +1,4 @@
-"use client"
-
 import "@testing-library/jest-dom"
-import jest from "jest"
 
 // Mock de Next.js router
 jest.mock("next/router", () => ({

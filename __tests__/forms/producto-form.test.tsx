@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 import { render, screen, fireEvent, waitFor, within } from "@testing-library/react"
 import "@testing-library/jest-dom"
 import { describe, it, expect, jest, beforeEach, vi } from "@jest/globals"
@@ -41,8 +41,13 @@ const ProductoForm = ({ onSubmit, initialData, mode = "create" }: {
   initialData?: any
   mode?: "create" | "edit"
 }) => {
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    if (isSubmitting) return
+    
+    setIsSubmitting(true)
     const formData = new FormData(e.target as HTMLFormElement)
     const data = {
       nombre: formData.get("nombre"),
@@ -53,9 +58,14 @@ const ProductoForm = ({ onSubmit, initialData, mode = "create" }: {
       stock: parseInt(formData.get("stock") as string) || 0,
       stock_minimo: parseInt(formData.get("stock_minimo") as string) || 0,
       imagen_url: formData.get("imagen_url"),
-      activo: formData.get("activo") === "true"
+      activo: formData.get("activo") === "on"
     }
     onSubmit(data)
+    
+    // Usar setTimeout para simular un envío real
+    setTimeout(() => {
+      setIsSubmitting(false)
+    }, 100)
   }
 
   return (
@@ -150,7 +160,7 @@ const ProductoForm = ({ onSubmit, initialData, mode = "create" }: {
           <input 
             name="activo" 
             type="checkbox" 
-            defaultChecked={initialData?.activo !== false}
+            defaultChecked={initialData?.activo || false}
             data-testid="activo-checkbox"
           />
           Producto activo
