@@ -45,30 +45,30 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="flex min-h-screen bg-background">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg text-gray-600">Cargando métricas...</div>
+          <div className="text-lg text-muted-foreground">Cargando métricas...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div>
-                <h1 className="text-xl font-bold text-gray-900">Dashboard de Ventas</h1>
+                <h1 className="text-xl font-bold text-card-foreground">Dashboard de Ventas</h1>
                 <p className="text-sm text-green-600">Gestiona tu negocio de cultivo de manera eficiente</p>
               </div>
               <div className="flex items-center space-x-4">
-                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300">
+                <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700">
                   Activo
                 </Badge>
                 <Link href="/configuracion">
@@ -85,48 +85,48 @@ export default function Dashboard() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Metrics Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-green-200 hover:shadow-lg transition-shadow">
+            <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Ventas Hoy</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Hoy</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">${metricas.ventasHoy.toLocaleString()} ARS</div>
+                <div className="text-2xl font-bold text-card-foreground">${metricas.ventasHoy.toLocaleString()} ARS</div>
                 <p className={`text-xs mt-1 ${metricas.cambioVentasHoy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {metricas.cambioVentasHoy >= 0 ? '+' : ''}{metricas.cambioVentasHoy.toFixed(1)}% desde ayer
                 </p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200 hover:shadow-lg transition-shadow">
+            <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Clientes Activos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Clientes Activos</CardTitle>
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metricas.clientesActivos}</div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.clientesActivos}</div>
                 <p className="text-xs text-blue-600 mt-1">+{metricas.nuevosClientesSemana} nuevos esta semana</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200 hover:shadow-lg transition-shadow">
+            <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Productos en Stock</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Productos en Stock</CardTitle>
                 <Package className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metricas.productosEnStock}</div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.productosEnStock}</div>
                 <p className="text-xs text-amber-600 mt-1">{metricas.productosStockBajo} productos con stock bajo</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200 hover:shadow-lg transition-shadow">
+            <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Pedidos Pendientes</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Pendientes</CardTitle>
                 <ShoppingCart className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{metricas.pedidosPendientes}</div>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.pedidosPendientes}</div>
                 <p className="text-xs text-purple-600 mt-1">{metricas.pedidosRequierenAtencion} requieren atención</p>
               </CardContent>
             </Card>
@@ -135,9 +135,9 @@ export default function Dashboard() {
           {/* Quick Actions & Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Actions */}
-            <Card className="lg:col-span-1 bg-white border-green-200">
+            <Card className="lg:col-span-1 bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Acciones Rápidas</CardTitle>
+                <CardTitle className="text-lg font-semibold text-card-foreground">Acciones Rápidas</CardTitle>
                 <CardDescription>Gestiona tu negocio eficientemente</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -169,55 +169,55 @@ export default function Dashboard() {
             </Card>
 
             {/* Recent Activity */}
-            <Card className="lg:col-span-2 bg-white border-green-200">
+            <Card className="lg:col-span-2 bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-lg font-semibold text-gray-900">Actividad Reciente</CardTitle>
+                <CardTitle className="text-lg font-semibold text-card-foreground">Actividad Reciente</CardTitle>
                 <CardDescription>Últimas transacciones y eventos</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {metricas.ventasHoy > 0 && (
-                    <div className="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="bg-green-600 p-2 rounded-full">
                         <ShoppingCart className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Ventas del día</p>
-                        <p className="text-xs text-gray-500">Total: ${metricas.ventasHoy.toLocaleString()} ARS</p>
+                        <p className="text-sm font-medium text-card-foreground">Ventas del día</p>
+                        <p className="text-xs text-muted-foreground">Total: ${metricas.ventasHoy.toLocaleString()} ARS</p>
                       </div>
-                      <span className="text-xs text-gray-400">Hoy</span>
+                      <span className="text-xs text-muted-foreground">Hoy</span>
                     </div>
                   )}
 
                   {metricas.nuevosClientesSemana > 0 && (
-                    <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
                       <div className="bg-blue-600 p-2 rounded-full">
                         <Users className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Nuevos clientes</p>
-                        <p className="text-xs text-gray-500">{metricas.nuevosClientesSemana} registrados esta semana</p>
+                        <p className="text-sm font-medium text-card-foreground">Nuevos clientes</p>
+                        <p className="text-xs text-muted-foreground">{metricas.nuevosClientesSemana} registrados esta semana</p>
                       </div>
-                      <span className="text-xs text-gray-400">Esta semana</span>
+                      <span className="text-xs text-muted-foreground">Esta semana</span>
                     </div>
                   )}
 
                   {metricas.productosStockBajo > 0 && (
-                    <div className="flex items-center space-x-3 p-3 bg-amber-50 rounded-lg">
+                    <div className="flex items-center space-x-3 p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
                       <div className="bg-amber-600 p-2 rounded-full">
                         <Package className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Stock bajo</p>
-                        <p className="text-xs text-gray-500">{metricas.productosStockBajo} productos requieren reposición</p>
+                        <p className="text-sm font-medium text-card-foreground">Stock bajo</p>
+                        <p className="text-xs text-muted-foreground">{metricas.productosStockBajo} productos requieren reposición</p>
                       </div>
-                      <span className="text-xs text-gray-400">Reciente</span>
+                      <span className="text-xs text-muted-foreground">Reciente</span>
                     </div>
                   )}
 
                   {metricas.ventasHoy === 0 && metricas.nuevosClientesSemana === 0 && metricas.productosStockBajo === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <p className="text-sm">No hay actividad reciente</p>
                       <p className="text-xs">Comienza creando tu primera venta o cliente</p>
                     </div>
@@ -228,28 +228,28 @@ export default function Dashboard() {
           </div>
 
           {/* Top Products */}
-          <Card className="mt-6 bg-white border-green-200">
+          <Card className="mt-6 bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">Productos Más Vendidos</CardTitle>
+              <CardTitle className="text-lg font-semibold text-card-foreground">Productos Más Vendidos</CardTitle>
               <CardDescription>Los favoritos de tus clientes este mes</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {productosMasVendidos.length > 0 ? (
                   productosMasVendidos.slice(0, 3).map((producto, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div key={index} className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="bg-green-600 p-3 rounded-lg">
                         <Leaf className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{producto.nombre}</h4>
-                        <p className="text-sm text-gray-600">{producto.ventas} ventas - ${producto.ingresos.toLocaleString()} ARS</p>
+                        <h4 className="font-semibold text-card-foreground">{producto.nombre}</h4>
+                        <p className="text-sm text-muted-foreground">{producto.ventas} ventas - ${producto.ingresos.toLocaleString()} ARS</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-3 text-center py-8 text-gray-500">
-                    <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="col-span-3 text-center py-8 text-muted-foreground">
+                    <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm">No hay productos vendidos aún</p>
                     <p className="text-xs">Las ventas aparecerán aquí</p>
                   </div>

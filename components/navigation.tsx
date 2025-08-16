@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Leaf, Settings, TrendingDown } from "lucide-react"
+import { ThemeToggle } from "./theme-toggle"
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -19,14 +20,14 @@ export function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-white border-r border-green-200 w-64 min-h-screen">
+    <nav className="bg-sidebar border-r border-sidebar-border w-64 min-h-screen">
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-8">
           <div className="bg-green-600 p-2 rounded-lg">
             <Leaf className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">GrowShop CRM</h1>
+            <h1 className="text-lg font-bold text-sidebar-foreground">GrowShop CRM</h1>
             <p className="text-xs text-green-600">Tu cultivo optimizado</p>
           </div>
         </div>
@@ -41,8 +42,8 @@ export function Navigation() {
                   className={cn(
                     "flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-green-100 text-green-700 border border-green-200"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground border border-sidebar-border"
+                      : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5" />
@@ -52,6 +53,13 @@ export function Navigation() {
             )
           })}
         </ul>
+
+        <div className="mt-8 pt-6 border-t border-sidebar-border">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-sidebar-foreground">Tema</span>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
     </nav>
   )
