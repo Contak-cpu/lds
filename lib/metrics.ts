@@ -114,13 +114,15 @@ export class MetricsService {
         .from("productos")
         .select("stock, stock_minimo")
         .eq("activo", true)
-        .lt("stock", "stock_minimo")
 
       if (errorStockBajo) {
         console.error("❌ Error en productos stock bajo:", errorStockBajo)
         throw new Error(`Error en productos stock bajo: ${errorStockBajo.message}`)
       }
-      console.log("✅ Productos Stock Bajo:", { data: productosStockBajo, count: productosStockBajo?.length || 0 })
+
+      // Filtrar productos con stock bajo en JavaScript
+      const productosConStockBajo = productosStockBajo?.filter((p: { stock: number | null; stock_minimo: number | null }) => (p.stock || 0) < (p.stock_minimo || 0)) || []
+      console.log("✅ Productos Stock Bajo:", { data: productosConStockBajo, count: productosConStockBajo.length })
 
       // Nuevos clientes esta semana
       console.log("🔍 Consultando nuevos clientes...")
@@ -149,7 +151,7 @@ export class MetricsService {
         pedidosPendientes: 0, // Por implementar
         cambioVentasHoy: Math.round(cambioVentasHoy * 100) / 100,
         nuevosClientesSemana: nuevosClientes?.length || 0,
-        productosStockBajo: productosStockBajo?.length || 0,
+        productosStockBajo: productosConStockBajo.length,
         pedidosRequierenAtencion: 0, // Por implementar
       }
 
