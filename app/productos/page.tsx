@@ -63,7 +63,6 @@ interface Producto {
 }
 
 interface ProductoFormData {
-  sku: string
   nombre: string
   categoria: string
   precio: string
@@ -101,7 +100,6 @@ export default function ProductosPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   const [formData, setFormData] = useState<ProductoFormData>({
-    sku: "",
     nombre: "",
     categoria: "",
     precio: "",
@@ -145,7 +143,6 @@ export default function ProductosPage() {
 
   const resetForm = () => {
     setFormData({
-      sku: "",
       nombre: "",
       categoria: "",
       precio: "",
@@ -157,48 +154,77 @@ export default function ProductosPage() {
     })
   }
 
-  const generateSKU = (categoria: string) => {
-    if (!categoria || categoria === "todas") return ""
-    
-    const categoriaPrefix = {
-      "Semillas": "SEED",
-      "Fertilizantes": "FERT", 
-      "Iluminación": "LIGHT",
-      "Hidroponía": "HYDRO",
-      "Herramientas": "TOOL",
-      "Kits": "KIT"
-    }[categoria] || "PROD"
-    
-    // Generar un número aleatorio para evitar conflictos
-    const randomNum = Math.floor(Math.random() * 9999) + 1
-    return `${categoriaPrefix}-${randomNum.toString().padStart(4, '0')}`
+  const generateSKU = async (categoria: string): Promise<string> => {
+    try {
+      const supabase = createClient()
+      
+      // Obtener el último SKU numérico de la base de datos
+      const { data: lastProduct, error } = await supabase
+        .from("productos")
+        .select("sku")
+        .order("sku", { ascending: false })
+        .limit(1)
+      
+      if (error) throw error
+      
+      let nextNumber = 1
+      
+      if (lastProduct && lastProduct.length > 0) {
+        // Extraer el número del último SKU (asumiendo formato numérico)
+        const lastSKU = lastProduct[0].sku
+        const lastNumber = parseInt(lastSKU) || 0
+        nextNumber = lastNumber + 1
+      }
+      
+      // Verificar que el SKU no exista (por si acaso)
+      let skuExists = true
+      let attempts = 0
+      const maxAttempts = 100
+      
+      while (skuExists && attempts < maxAttempts) {
+        const testSKU = nextNumber.toString()
+        
+        const { data: existingProduct } = await supabase
+          .from("productos")
+          .select("id")
+          .eq("sku", testSKU)
+          .single()
+        
+        if (!existingProduct) {
+          skuExists = false
+        } else {
+          nextNumber++
+          attempts++
+        }
+      }
+      
+      if (attempts >= maxAttempts) {
+        throw new Error("No se pudo generar un SKU único después de múltiples intentos")
+      }
+      
+      return nextNumber.toString()
+    } catch (error) {
+      console.error("Error generando SKU:", error)
+      // Fallback: usar timestamp como SKU
+      return Date.now().toString()
+    }
   }
 
   const handleCategoriaChange = (categoria: string) => {
     handleInputChange("categoria", categoria)
     
     // Si no hay SKU personalizado, generar uno automático
-    if (!formData.sku.trim()) {
-      const autoSKU = generateSKU(categoria)
-      handleInputChange("sku", autoSKU)
-    }
+    // if (!formData.sku.trim()) {
+    //   const autoSKU = generateSKU(categoria)
+    //   handleInputChange("sku", autoSKU)
+    // }
   }
 
   const handleAddProduct = async () => {
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria || !formData.sku) {
+    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos obligatorios (incluyendo SKU)",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Validar formato del SKU
-    if (!/^[A-Z0-9-]+$/.test(formData.sku)) {
-      toast({
-        title: "Error",
-        description: "El SKU solo puede contener letras mayúsculas, números y guiones",
+        description: "Por favor completa todos los campos obligatorios",
         variant: "destructive",
       })
       return
@@ -206,18 +232,22 @@ export default function ProductosPage() {
 
     try {
       const supabase = createClient()
+      
+      // Generar SKU único automáticamente
+      const sku = await generateSKU(formData.categoria)
+      
       const { data, error } = await supabase
         .from("productos")
         .insert([
           {
-            sku: formData.sku.toUpperCase(),
+            sku: sku,
             nombre: formData.nombre,
-            categoria: formData.categoria,
-            precio: Number.parseFloat(formData.precio),
-            costo: Number.parseFloat(formData.costo),
-            stock: Number.parseInt(formData.stock) || 0,
-            stock_minimo: Number.parseInt(formData.stock_minimo) || 5,
             descripcion: formData.descripcion || null,
+            categoria: formData.categoria,
+            precio: parseFloat(formData.precio),
+            costo: parseFloat(formData.costo),
+            stock: parseInt(formData.stock) || 0,
+            stock_minimo: parseInt(formData.stock_minimo) || 5,
             imagen_url: formData.imagen_url || null,
             activo: true,
           },
@@ -226,22 +256,19 @@ export default function ProductosPage() {
 
       if (error) throw error
 
-      // Actualizar la lista local
-      if (data && data[0]) {
-        setProductos([data[0], ...productos])
+      if (data) {
+        setProductos((prev: Producto[]) => [data[0], ...prev])
+        resetForm()
+        toast({
+          title: "Producto agregado",
+          description: "El producto se ha agregado exitosamente",
+        })
       }
-
-      resetForm()
-      setIsAddDialogOpen(false)
-      toast({
-        title: "Producto agregado",
-        description: `${formData.nombre} ha sido agregado al catálogo`,
-      })
     } catch (error) {
-      console.error("Error agregando producto:", error)
+      console.error("Error adding product:", error)
       toast({
         title: "Error",
-        description: "No se pudo agregar el producto. Verifica que el SKU sea único.",
+        description: "No se pudo agregar el producto",
         variant: "destructive",
       })
     }
@@ -250,7 +277,6 @@ export default function ProductosPage() {
   const handleEditProduct = (product: Producto) => {
     setEditingProduct(product)
     setFormData({
-      sku: product.sku,
       nombre: product.nombre,
       categoria: product.categoria,
       precio: product.precio.toString(),
@@ -266,20 +292,10 @@ export default function ProductosPage() {
   const handleSaveEdit = async () => {
     if (!editingProduct) return
 
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria || !formData.sku) {
+    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria) {
       toast({
         title: "Error",
-        description: "Por favor completa todos los campos obligatorios (incluyendo SKU)",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Validar formato del SKU
-    if (!/^[A-Z0-9-]+$/.test(formData.sku)) {
-      toast({
-        title: "Error",
-        description: "El SKU solo puede contener letras mayúsculas, números y guiones",
+        description: "Por favor completa todos los campos obligatorios",
         variant: "destructive",
       })
       return
@@ -290,14 +306,13 @@ export default function ProductosPage() {
       const { data, error } = await supabase
         .from("productos")
         .update({
-          sku: formData.sku.toUpperCase(),
           nombre: formData.nombre,
-          categoria: formData.categoria,
-          precio: Number.parseFloat(formData.precio),
-          costo: Number.parseFloat(formData.costo),
-          stock: Number.parseInt(formData.stock) || 0,
-          stock_minimo: Number.parseInt(formData.stock_minimo) || 5,
           descripcion: formData.descripcion || null,
+          categoria: formData.categoria,
+          precio: parseFloat(formData.precio),
+          costo: parseFloat(formData.costo),
+          stock: parseInt(formData.stock) || 0,
+          stock_minimo: parseInt(formData.stock_minimo) || 5,
           imagen_url: formData.imagen_url || null,
         })
         .eq("id", editingProduct.id)
@@ -305,23 +320,22 @@ export default function ProductosPage() {
 
       if (error) throw error
 
-      if (data && data[0]) {
-        setProductos((prev) =>
-          prev.map((product) => (product.id === editingProduct.id ? data[0] : product))
+      if (data) {
+        setProductos((prev: Producto[]) =>
+          prev.map((producto: Producto) => (producto.id === editingProduct.id ? data[0] : producto)),
         )
         setIsEditDialogOpen(false)
         setEditingProduct(null)
-        resetForm()
         toast({
           title: "Producto actualizado",
-          description: `${formData.nombre} ha sido actualizado exitosamente`,
+          description: "Los cambios se han guardado exitosamente",
         })
       }
     } catch (error) {
-      console.error("Error updating producto:", error)
+      console.error("Error updating product:", error)
       toast({
         title: "Error",
-        description: "No se pudo actualizar el producto. Verifica que el SKU sea único.",
+        description: "No se pudieron guardar los cambios",
         variant: "destructive",
       })
     }
@@ -690,30 +704,8 @@ export default function ProductosPage() {
                 <DialogTitle>Nuevo Producto</DialogTitle>
                 <DialogDescription>Añade un nuevo producto a tu catálogo</DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-6 py-4">
+              <div className="grid grid-cols-2 gap-4 py-4">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="sku">SKU *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="sku"
-                        placeholder="Ej: SEED-0001, FERT-001, o dejar vacío para generar automáticamente"
-                        value={formData.sku}
-                        onChange={(e) => handleInputChange("sku", e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const autoSKU = generateSKU(formData.categoria);
-                          handleInputChange("sku", autoSKU);
-                        }}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Generar SKU
-                      </Button>
-                    </div>
-                  </div>
                   <div>
                     <Label htmlFor="nombre">Nombre del producto *</Label>
                     <Input
@@ -832,28 +824,6 @@ export default function ProductosPage() {
               </DialogHeader>
               <div className="grid grid-cols-2 gap-6 py-4">
                 <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="edit-sku">SKU *</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="edit-sku"
-                        placeholder="Ej: SEED-0001, FERT-001, o dejar vacío para generar automáticamente"
-                        value={formData.sku}
-                        onChange={(e) => handleInputChange("sku", e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          const autoSKU = generateSKU(formData.categoria);
-                          handleInputChange("sku", autoSKU);
-                        }}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Generar SKU
-                      </Button>
-                    </div>
-                  </div>
                   <div>
                     <Label htmlFor="edit-nombre">Nombre del producto *</Label>
                     <Input

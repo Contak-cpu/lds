@@ -1,49 +1,55 @@
 -- Agregar campo SKU a la tabla productos
--- Este script agrega un campo SKU personalizable para cada producto
+-- Este script agrega un campo SKU numérico único para cada producto
 
--- Agregar columna SKU
-ALTER TABLE productos ADD COLUMN IF NOT EXISTS sku VARCHAR(50) UNIQUE;
+-- Agregar columna SKU como INTEGER
+ALTER TABLE productos ADD COLUMN IF NOT EXISTS sku INTEGER UNIQUE;
 
 -- Crear índice para mejorar búsquedas por SKU
 CREATE INDEX IF NOT EXISTS idx_productos_sku ON productos(sku);
 
--- Crear función para generar SKU automático basado en categoría
-CREATE OR REPLACE FUNCTION generate_sku(categoria_producto VARCHAR(100))
-RETURNS VARCHAR(50) AS $$
+-- Crear secuencia para generar SKUs automáticamente
+CREATE SEQUENCE IF NOT EXISTS productos_sku_seq START 1;
+
+-- Crear función para generar SKU único automáticamente
+CREATE OR REPLACE FUNCTION generate_unique_sku()
+RETURNS INTEGER AS $$
 DECLARE
-    next_number INTEGER;
-    sku_generated VARCHAR(50);
-    categoria_prefix VARCHAR(10);
+  next_sku INTEGER;
+  attempts INTEGER := 0;
+  max_attempts INTEGER := 100;
 BEGIN
-    -- Definir prefijos por categoría
-    CASE categoria_producto
-        WHEN 'Semillas' THEN categoria_prefix := 'SEED';
-        WHEN 'Fertilizantes' THEN categoria_prefix := 'FERT';
-        WHEN 'Iluminación' THEN categoria_prefix := 'LIGHT';
-        WHEN 'Hidroponía' THEN categoria_prefix := 'HYDRO';
-        WHEN 'Herramientas' THEN categoria_prefix := 'TOOL';
-        WHEN 'Kits' THEN categoria_prefix := 'KIT';
-        ELSE categoria_prefix := 'PROD';
-    END CASE;
+  LOOP
+    -- Obtener el siguiente número de la secuencia
+    next_sku := nextval('productos_sku_seq');
     
-    -- Obtener el siguiente número para esta categoría
-    SELECT COALESCE(MAX(CAST(SUBSTRING(sku FROM LENGTH(categoria_prefix) + 2) AS INTEGER)), 0) + 1
-    INTO next_number
-    FROM productos 
-    WHERE sku LIKE categoria_prefix || '-%' 
-    AND sku ~ ('^' || categoria_prefix || '-[0-9]+$');
+    -- Verificar que no exista
+    IF NOT EXISTS (SELECT 1 FROM productos WHERE sku = next_sku) THEN
+      RETURN next_sku;
+    END IF;
     
-    -- Generar SKU con formato CATEGORIA-0001
-    sku_generated := categoria_prefix || '-' || LPAD(next_number::TEXT, 4, '0');
-    
-    RETURN sku_generated;
+    -- Si existe, intentar con el siguiente
+    attempts := attempts + 1;
+    IF attempts >= max_attempts THEN
+      RAISE EXCEPTION 'No se pudo generar un SKU único después de % intentos', max_attempts;
+    END IF;
+  END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
--- Actualizar productos existentes con SKUs generados automáticamente
-UPDATE productos 
-SET sku = generate_sku(categoria) 
-WHERE sku IS NULL;
+-- Crear trigger para asignar SKU automáticamente si no se proporciona
+CREATE OR REPLACE FUNCTION assign_sku_if_null()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.sku IS NULL THEN
+    NEW.sku := generate_unique_sku();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
--- Hacer el campo SKU NOT NULL después de poblarlo
-ALTER TABLE productos ALTER COLUMN sku SET NOT NULL; 
+-- Crear trigger
+DROP TRIGGER IF EXISTS trigger_assign_sku ON productos;
+CREATE TRIGGER trigger_assign_sku
+  BEFORE INSERT ON productos
+  FOR EACH ROW
+  EXECUTE FUNCTION assign_sku_if_null(); 

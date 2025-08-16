@@ -150,8 +150,13 @@ export default function VentasPage() {
   const [productoPersonalizado, setProductoPersonalizado] = useState({ nombre: "", precio: "" })
   const [metodoPago, setMetodoPago] = useState("")
   const [notasVenta, setNotasVenta] = useState("")
+  const [filterEstado, setFilterEstado] = useState("todos")
+  const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
 
   const supabase = createClient()
+
+  const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
 
   const cargarDatos = async () => {
     try {
@@ -263,6 +268,161 @@ export default function VentasPage() {
   useEffect(() => {
     cargarDatos()
   }, [])
+
+  const agregarAlCarrito = (producto: Producto): void => {
+    if (!producto.nombre || producto.precio <= 0) {
+      toast({
+        title: "Error",
+        description: "Producto inválido",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const productoExistente = carrito.find((item: ProductoCarrito) => item.id === producto.id)
+    if (productoExistente) {
+      if (productoExistente.cantidad >= producto.stock) {
+        toast({
+          title: "Stock insuficiente",
+          description: `Solo hay ${producto.stock} unidades disponibles`,
+          variant: "destructive",
+        })
+        return
+      }
+      actualizarCantidad(producto.id, productoExistente.cantidad + 1)
+    } else {
+      const nuevoItem: ProductoCarrito = {
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        cantidad: 1,
+        stock: producto.stock,
+        descripcion: producto.descripcion,
+        categoria: producto.categoria,
+        costo: producto.costo,
+        stock_minimo: producto.stock_minimo,
+        imagen_url: producto.imagen_url,
+        activo: producto.activo,
+        created_at: producto.created_at,
+        updated_at: producto.updated_at,
+      }
+      setCarrito([...carrito, nuevoItem])
+    }
+  }
+
+  const actualizarCantidad = (productoId: string, nuevaCantidad: number): void => {
+    if (nuevaCantidad <= 0) {
+      removerDelCarrito(productoId)
+      return
+    }
+
+    const producto = productos.find((p) => p.id === productoId)
+    if (producto && nuevaCantidad > producto.stock) {
+      toast({
+        title: "Stock insuficiente",
+        description: `Solo hay ${producto.stock} unidades disponibles`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    setCarrito((prev: ProductoCarrito[]) =>
+      prev.map((item: ProductoCarrito) => (item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item)),
+    )
+  }
+
+  const removerDelCarrito = (productoId: string): void => {
+    setCarrito((prev: ProductoCarrito[]) => prev.filter((item: ProductoCarrito) => item.id !== productoId))
+  }
+
+  const agregarProductoPersonalizado = (): void => {
+    const { nombre, precio: precioStr } = productoPersonalizado
+
+    if (!nombre.trim()) {
+      toast({
+        title: "Error",
+        description: "El nombre del producto es requerido",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const precio = Number.parseFloat(precioStr)
+    if (isNaN(precio) || precio <= 0) {
+      toast({
+        title: "Error",
+        description: "El precio debe ser un número válido mayor a 0",
+        variant: "destructive",
+      })
+      return
+    }
+
+    const nuevoProducto: Producto = {
+      id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      nombre: nombre,
+      descripcion: "Producto personalizado",
+      categoria: "Personalizado",
+      precio: precio,
+      costo: precio * 0.7, // Asumir 30% de margen
+      stock: 999,
+      stock_minimo: 0,
+      imagen_url: null,
+      activo: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }
+
+    const nuevoItemPersonalizado: ProductoCarrito = {
+      ...nuevoProducto,
+      cantidad: 1,
+      esPersonalizado: true,
+    }
+
+    setCarrito([...carrito, nuevoItemPersonalizado])
+    setProductoPersonalizado({ nombre: "", precio: "" })
+  }
+
+  const getEstadoBadge = (estado: "Completado" | "Procesando" | "Pendiente" | "Cancelado" | string) => {
+    const badges = {
+      Completado: (
+        <Badge className="bg-green-100 text-green-800 border-green-300">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Completado
+        </Badge>
+      ),
+      Procesando: (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+          <Clock className="w-3 h-3 mr-1" />
+          Procesando
+        </Badge>
+      ),
+      Pendiente: (
+        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Pendiente
+        </Badge>
+      ),
+      Cancelado: (
+        <Badge variant="destructive">
+          <XCircle className="w-3 h-3 mr-1" />
+          Cancelado
+        </Badge>
+      ),
+    }
+    return badges[estado as keyof typeof badges] || badges.Pendiente
+  }
+
+  const filteredVentas = ventas.filter((venta) => {
+    const matchesSearch =
+      (venta.numeroVenta || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (venta.cliente || "").toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesEstado = filterEstado === "todos" || (venta.estado || "").toLowerCase() === filterEstado
+    return matchesSearch && matchesEstado
+  })
+
+  const productosFiltrados = productos.filter((producto) =>
+    (producto.nombre || "").toLowerCase().includes(searchProducto.toLowerCase()),
+  )
 
   const crearVenta = async () => {
     if (carrito.length === 0) {
@@ -460,167 +620,6 @@ export default function VentasPage() {
       })
     }
   }
-
-  const agregarAlCarrito = (producto: Producto): void => {
-    if (!producto.nombre || producto.precio <= 0) {
-      toast({
-        title: "Error",
-        description: "Producto inválido",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const productoExistente = carrito.find((item: ProductoCarrito) => item.id === producto.id)
-    if (productoExistente) {
-      if (productoExistente.cantidad >= producto.stock) {
-        toast({
-          title: "Stock insuficiente",
-          description: `Solo hay ${producto.stock} unidades disponibles`,
-          variant: "destructive",
-        })
-        return
-      }
-      actualizarCantidad(producto.id, productoExistente.cantidad + 1)
-    } else {
-      const nuevoItem: ProductoCarrito = {
-        id: producto.id,
-        nombre: producto.nombre,
-        precio: producto.precio,
-        cantidad: 1,
-        stock: producto.stock,
-        descripcion: producto.descripcion,
-        categoria: producto.categoria,
-        costo: producto.costo,
-        stock_minimo: producto.stock_minimo,
-        imagen_url: producto.imagen_url,
-        activo: producto.activo,
-        created_at: producto.created_at,
-        updated_at: producto.updated_at,
-      }
-      setCarrito([...carrito, nuevoItem])
-    }
-  }
-
-  const actualizarCantidad = (productoId: string, nuevaCantidad: number): void => {
-    if (nuevaCantidad <= 0) {
-      removerDelCarrito(productoId)
-      return
-    }
-
-    const producto = productos.find((p) => p.id === productoId)
-    if (producto && nuevaCantidad > producto.stock) {
-      toast({
-        title: "Stock insuficiente",
-        description: `Solo hay ${producto.stock} unidades disponibles`,
-        variant: "destructive",
-      })
-      return
-    }
-
-    setCarrito((prev: ProductoCarrito[]) =>
-      prev.map((item: ProductoCarrito) => (item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item)),
-    )
-  }
-
-  const removerDelCarrito = (productoId: string): void => {
-    setCarrito((prev: ProductoCarrito[]) => prev.filter((item: ProductoCarrito) => item.id !== productoId))
-  }
-
-  const agregarProductoPersonalizado = (): void => {
-    const { nombre, precio: precioStr } = productoPersonalizado
-
-    if (!nombre.trim()) {
-      toast({
-        title: "Error",
-        description: "El nombre del producto es requerido",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const precio = Number.parseFloat(precioStr)
-    if (isNaN(precio) || precio <= 0) {
-      toast({
-        title: "Error",
-        description: "El precio debe ser un número válido mayor a 0",
-        variant: "destructive",
-      })
-      return
-    }
-
-    const nuevoProducto: Producto = {
-      id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      nombre: nombre,
-      descripcion: "Producto personalizado",
-      categoria: "Personalizado",
-      precio: precio,
-      costo: precio * 0.7, // Asumir 30% de margen
-      stock: 999,
-      stock_minimo: 0,
-      imagen_url: null,
-      activo: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-
-    const nuevoItemPersonalizado: ProductoCarrito = {
-      ...nuevoProducto,
-      cantidad: 1,
-      esPersonalizado: true,
-    }
-
-    setCarrito([...carrito, nuevoItemPersonalizado])
-    setProductoPersonalizado({ nombre: "", precio: "" })
-  }
-
-  const getEstadoBadge = (estado: "Completado" | "Procesando" | "Pendiente" | "Cancelado" | string) => {
-    const badges = {
-      Completado: (
-        <Badge className="bg-green-100 text-green-800 border-green-300">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Completado
-        </Badge>
-      ),
-      Procesando: (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-          <Clock className="w-3 h-3 mr-1" />
-          Procesando
-        </Badge>
-      ),
-      Pendiente: (
-        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-          <AlertCircle className="w-3 h-3 mr-1" />
-          Pendiente
-        </Badge>
-      ),
-      Cancelado: (
-        <Badge variant="destructive">
-          <XCircle className="w-3 h-3 mr-1" />
-          Cancelado
-        </Badge>
-      ),
-    }
-    return badges[estado as keyof typeof badges] || badges.Pendiente
-  }
-
-  const filteredVentas = ventas.filter((venta) => {
-    const matchesSearch =
-      (venta.numeroVenta || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (venta.cliente || "").toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesEstado = filterEstado === "todos" || (venta.estado || "").toLowerCase() === filterEstado
-    return matchesSearch && matchesEstado
-  })
-
-  const productosFiltrados = productos.filter((producto) =>
-    (producto.nombre || "").toLowerCase().includes(searchProducto.toLowerCase()),
-  )
-
-  const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
-
-  const [filterEstado, setFilterEstado] = useState("todos")
-  const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
 
   if (loading) {
     return (
