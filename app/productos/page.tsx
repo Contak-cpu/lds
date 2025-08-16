@@ -509,12 +509,12 @@ export default function ProductosPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-background">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando productos...</p>
+            <p className="mt-4 text-muted-foreground">Cargando productos...</p>
           </div>
         </div>
       </div>
@@ -522,12 +522,12 @@ export default function ProductosPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -535,7 +535,7 @@ export default function ProductosPage() {
                   <Package className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Catálogo de Productos</h1>
+                  <h1 className="text-xl font-bold text-card-foreground">Catálogo de Productos</h1>
                   <p className="text-sm text-amber-600">Gestiona tu inventario de cultivo</p>
                 </div>
               </div>
@@ -550,47 +550,47 @@ export default function ProductosPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Productos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Productos</CardTitle>
                 <Package className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{productos.length}</div>
+                <div className="text-2xl font-bold text-card-foreground">{productos.length}</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Stock Bajo</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Stock Bajo</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {productos.filter((p: Producto) => p.stock <= p.stock_minimo && p.stock > 0).length}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Agotados</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Agotados</CardTitle>
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {productos.filter((p: Producto) => p.stock === 0).length}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Valor Inventario</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Valor Inventario</CardTitle>
                 <Package className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   ${productos.reduce((sum: number, p: Producto) => sum + p.precio * p.stock, 0).toLocaleString()}
                 </div>
               </CardContent>
@@ -598,12 +598,12 @@ export default function ProductosPage() {
           </div>
 
           {/* Filters and Search */}
-          <Card className="mb-6 bg-white border-green-200">
+          <Card className="mb-6 bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Buscar por nombre o SKU..."
                       value={searchTerm}
@@ -647,7 +647,7 @@ export default function ProductosPage() {
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProductos.map((producto: Producto) => (
-              <Card key={producto.id} className="bg-white border-green-200 hover:shadow-lg transition-shadow">
+              <Card key={producto.id} className="bg-card border-border hover:shadow-lg transition-shadow">
                 <div className="aspect-square relative overflow-hidden rounded-t-lg">
                   <img
                     src={producto.imagen_url || "/professional-pruning-scissors.png"}
@@ -660,7 +660,7 @@ export default function ProductosPage() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       {getCategoriaIcon(producto.categoria)}
-                      <span className="text-xs text-gray-500">{producto.categoria}</span>
+                      <span className="text-xs text-muted-foreground">{producto.categoria}</span>
                     </div>
                     <div className="flex flex-col items-end space-y-1">
                       <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded text-gray-600">{producto.sku}</span>
@@ -669,15 +669,15 @@ export default function ProductosPage() {
                       )}
                     </div>
                   </div>
-                  <CardTitle className="text-lg font-semibold text-gray-900 line-clamp-2">{producto.nombre}</CardTitle>
+                  <CardTitle className="text-lg font-semibold text-card-foreground line-clamp-2">{producto.nombre}</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">{producto.descripcion}</p>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{producto.descripcion}</p>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-2xl font-bold text-green-600">${producto.precio.toLocaleString()}</span>
                     <div className="text-right">
-                      <div className="text-sm font-medium text-gray-900">Stock: {producto.stock}</div>
-                      <div className="text-xs text-gray-500">Mín: {producto.stock_minimo}</div>
+                      <div className="text-sm font-medium text-card-foreground">Stock: {producto.stock}</div>
+                      <div className="text-xs text-muted-foreground">Mín: {producto.stock_minimo}</div>
                     </div>
                   </div>
                   <div className="flex space-x-1">
@@ -703,61 +703,61 @@ export default function ProductosPage() {
                           </div>
                           <div className="space-y-4">
                             <div>
-                              <Label className="text-sm font-medium text-gray-600">Información Básica</Label>
+                              <Label className="text-sm font-medium text-muted-foreground">Información Básica</Label>
                               <div className="mt-2 space-y-2">
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">ID:</span>
+                                  <span className="text-sm text-muted-foreground">ID:</span>
                                   <span className="text-sm font-medium">{producto.id.slice(0, 8)}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">ID de Categoría:</span>
+                                  <span className="text-sm text-muted-foreground">ID de Categoría:</span>
                                   <span className="text-sm font-medium font-mono bg-blue-100 px-2 py-1 rounded">{producto.categoria_id || 'No asignado'}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Categoría:</span>
+                                  <span className="text-sm text-muted-foreground">Categoría:</span>
                                   <span className="text-sm font-medium">{producto.categoria}</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Precio de venta:</span>
+                                  <span className="text-sm text-muted-foreground">Precio de venta:</span>
                                   <span className="text-lg font-bold text-green-600">
                                     ${producto.precio.toLocaleString()}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Costo:</span>
+                                  <span className="text-sm text-muted-foreground">Costo:</span>
                                   <span className="text-sm font-medium text-red-600">
                                     ${producto.costo.toLocaleString()}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Ganancia:</span>
+                                  <span className="text-sm text-muted-foreground">Ganancia:</span>
                                   <span className="text-sm font-bold text-blue-600">
                                     ${calcularGanancia(producto.precio, producto.costo).toLocaleString()}
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Margen:</span>
+                                  <span className="text-sm text-muted-foreground">Margen:</span>
                                   <span className="text-sm font-bold text-blue-600">
                                     {calcularMargenGanancia(producto.precio, producto.costo)}%
                                   </span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Stock actual:</span>
+                                  <span className="text-sm text-muted-foreground">Stock actual:</span>
                                   <span className="text-sm font-medium">{producto.stock} unidades</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Stock mínimo:</span>
+                                  <span className="text-sm text-muted-foreground">Stock mínimo:</span>
                                   <span className="text-sm font-medium">{producto.stock_minimo} unidades</span>
                                 </div>
                                 <div className="flex justify-between">
-                                  <span className="text-sm text-gray-600">Estado:</span>
+                                  <span className="text-sm text-muted-foreground">Estado:</span>
                                   {getStockBadge(producto)}
                                 </div>
                               </div>
                             </div>
                             <div>
-                              <Label className="text-sm font-medium text-gray-600">Descripción</Label>
-                              <p className="text-sm text-gray-700 mt-1">{producto.descripcion}</p>
+                              <Label className="text-sm font-medium text-muted-foreground">Descripción</Label>
+                              <p className="text-sm text-card-foreground mt-1">{producto.descripcion}</p>
                             </div>
                           </div>
                         </div>
@@ -805,11 +805,11 @@ export default function ProductosPage() {
 
           {/* No products found message */}
           {filteredProductos.length === 0 && (
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardContent className="text-center py-12">
-                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No se encontraron productos</h3>
-                <p className="text-gray-600">Intenta ajustar los filtros de búsqueda</p>
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-card-foreground mb-2">No se encontraron productos</h3>
+                <p className="text-muted-foreground">Intenta ajustar los filtros de búsqueda</p>
               </CardContent>
             </Card>
           )}

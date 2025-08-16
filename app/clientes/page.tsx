@@ -308,12 +308,12 @@ export default function ClientesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
@@ -321,7 +321,7 @@ export default function ClientesPage() {
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Gestión de Clientes</h1>
+                  <h1 className="text-xl font-bold text-card-foreground">Gestión de Clientes</h1>
                   <p className="text-sm text-blue-600">Administra tu base de clientes</p>
                 </div>
               </div>
@@ -336,35 +336,35 @@ export default function ClientesPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Clientes</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Clientes</CardTitle>
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{clientes.length}</div>
+                <div className="text-2xl font-bold text-card-foreground">{clientes.length}</div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-sm font-medium text-gray-600">Clientes Activos</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Clientes Activos</CardTitle>
                 <Users className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {filteredClientes.filter((c: Cliente) => c.estado === "Activo").length}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-sm font-medium text-gray-600">Nuevos Este Mes</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Nuevos Este Mes</CardTitle>
                 <ShoppingBag className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {
                     clientes.filter((c: Cliente) => {
                       const fechaRegistro = new Date(c.fecha_registro)
@@ -379,13 +379,13 @@ export default function ClientesPage() {
               </CardContent>
             </Card>
 
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
-                <CardTitle className="text-sm font-medium text-gray-600">Registrados Hoy</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Registrados Hoy</CardTitle>
                 <ShoppingBag className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-card-foreground">
                   {
                     clientes.filter((c: Cliente) => {
                       const fechaRegistro = new Date(c.fecha_registro)
@@ -399,12 +399,12 @@ export default function ClientesPage() {
           </div>
 
           {/* Filters and Search */}
-          <Card className="mb-6 bg-white border-green-200">
+          <Card className="mb-6 bg-card border-border">
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Buscar por nombre o email..."
                       value={searchTerm}
@@ -418,9 +418,9 @@ export default function ClientesPage() {
           </Card>
 
           {/* Clients List */}
-          <Card className="bg-white border-green-200">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-card-foreground">
                 Lista de Clientes ({filteredClientes.length})
               </CardTitle>
               <CardDescription>Gestiona la información de tus clientes</CardDescription>
@@ -430,7 +430,7 @@ export default function ClientesPage() {
                 {filteredClientes.map((cliente: Cliente) => (
                   <div
                     key={cliente.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <div className="flex items-center space-x-4">
                       <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-full">
@@ -438,20 +438,20 @@ export default function ClientesPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{cliente.nombre}</h3>
+                          <h3 className="font-semibold text-card-foreground">{cliente.nombre}</h3>
                           {getEstadoBadge(cliente.estado)}
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
-                            <Mail className="h-4 w-4 text-gray-400" />
+                            <Mail className="h-4 w-4 text-muted-foreground" />
                             <span>{cliente.email}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <Phone className="h-4 w-4 text-gray-400" />
+                            <Phone className="h-4 w-4 text-muted-foreground" />
                             <span>{cliente.telefono}</span>
                           </div>
                           <div className="flex items-center space-x-1">
-                            <MapPin className="h-4 w-4 text-gray-400" />
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
                             <span>
                               {cliente.ciudad}, {cliente.provincia}
                             </span>
@@ -475,45 +475,45 @@ export default function ClientesPage() {
                           <div className="grid grid-cols-2 gap-4 py-4">
                             <div className="space-y-4">
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Información Personal</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">Información Personal</Label>
                                 <div className="mt-2 space-y-2">
                                   <div className="flex items-center space-x-2">
-                                    <Mail className="h-4 w-4 text-gray-400" />
+                                    <Mail className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">{cliente.email}</span>
                                   </div>
                                   <div className="flex items-center space-x-2">
-                                    <Phone className="h-4 w-4 text-gray-400" />
+                                    <Phone className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">{cliente.telefono}</span>
                                   </div>
                                   <div className="flex items-center space-x-2">
-                                    <MapPin className="h-4 w-4 text-gray-400" />
+                                    <MapPin className="h-4 w-4 text-muted-foreground" />
                                     <span className="text-sm">{cliente.direccion}</span>
                                   </div>
                                 </div>
                               </div>
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Notas</Label>
-                                <p className="text-sm text-gray-700 mt-1">{cliente.notas}</p>
+                                <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
+                                <p className="text-sm text-card-foreground mt-1">{cliente.notas}</p>
                               </div>
                             </div>
                             <div className="space-y-4">
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Información Comercial</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">Información Comercial</Label>
                                 <div className="mt-2 space-y-2">
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Estado:</span>
+                                    <span className="text-sm text-muted-foreground">Estado:</span>
                                     {getEstadoBadge(cliente.estado)}
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Registro:</span>
+                                    <span className="text-sm text-muted-foreground">Registro:</span>
                                     <span className="text-sm">{cliente.fecha_registro}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Ciudad:</span>
+                                    <span className="text-sm text-muted-foreground">Ciudad:</span>
                                     <span className="text-sm">{cliente.ciudad}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Provincia:</span>
+                                    <span className="text-sm text-muted-foreground">Provincia:</span>
                                     <span className="text-sm">{cliente.provincia}</span>
                                   </div>
                                 </div>

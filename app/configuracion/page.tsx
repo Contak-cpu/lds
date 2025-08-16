@@ -299,7 +299,7 @@ export default function ConfiguracionPage() {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando configuración...</p>
+            <p className="mt-4 text-muted-foreground">Cargando configuración...</p>
           </div>
         </div>
       </div>
@@ -307,22 +307,22 @@ export default function ConfiguracionPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
               <div className="flex items-center space-x-3">
                 <Settings className="h-6 w-6 text-green-600" />
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Configuración</h1>
+                  <h1 className="text-xl font-bold text-card-foreground">Configuración</h1>
                   <p className="text-sm text-green-600">Personaliza tu CRM de growshop</p>
                 </div>
                 {hasChanges && (
-                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300">
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700">
                     <AlertTriangle className="w-3 h-3 mr-1" />
                     Cambios sin guardar
                   </Badge>
@@ -363,7 +363,7 @@ export default function ConfiguracionPage() {
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Información del Negocio */}
-            <Card className="lg:col-span-2 bg-white border-green-200">
+            <Card className="lg:col-span-2 bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Store className="h-5 w-5 text-green-600" />
@@ -395,7 +395,7 @@ export default function ConfiguracionPage() {
                 <div>
                   <Label htmlFor="direccion">Dirección</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       id="direccion"
                       className="pl-10"
@@ -409,7 +409,7 @@ export default function ConfiguracionPage() {
                   <div>
                     <Label htmlFor="telefono">Teléfono</Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="telefono"
                         className="pl-10"
@@ -421,7 +421,7 @@ export default function ConfiguracionPage() {
                   <div>
                     <Label htmlFor="email">Email *</Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="email"
                         className={`pl-10 ${!configuracion.email.includes("@") ? "border-red-300" : ""}`}
@@ -445,7 +445,7 @@ export default function ConfiguracionPage() {
             </Card>
 
             {/* Notificaciones */}
-            <Card className="lg:col-span-2 bg-white border-green-200">
+            <Card className="lg:col-span-2 bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Bell className="h-5 w-5 text-amber-600" />
@@ -457,7 +457,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notificarStockBajo">Notificar Stock Bajo</Label>
-                    <p className="text-sm text-gray-500">Recibe alertas cuando el stock esté por debajo del mínimo</p>
+                    <p className="text-sm text-muted-foreground">Recibe alertas cuando el stock esté por debajo del mínimo</p>
                   </div>
                   <Switch
                     id="notificarStockBajo"
@@ -471,7 +471,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notificarNuevasVentas">Notificar Nuevas Ventas</Label>
-                    <p className="text-sm text-gray-500">Recibe alertas por cada nueva venta realizada</p>
+                    <p className="text-sm text-muted-foreground">Recibe alertas por cada nueva venta realizada</p>
                   </div>
                   <Switch
                     id="notificarNuevasVentas"
@@ -485,7 +485,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="notificarNuevosClientes">Notificar Nuevos Clientes</Label>
-                    <p className="text-sm text-gray-500">Recibe alertas cuando se registre un nuevo cliente</p>
+                    <p className="text-sm text-muted-foreground">Recibe alertas cuando se registre un nuevo cliente</p>
                   </div>
                   <Switch
                     id="notificarNuevosClientes"
@@ -499,7 +499,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="emailNotificaciones">Notificaciones por Email</Label>
-                    <p className="text-sm text-gray-500">Enviar notificaciones también por correo electrónico</p>
+                    <p className="text-sm text-muted-foreground">Enviar notificaciones también por correo electrónico</p>
                   </div>
                   <Switch
                     id="emailNotificaciones"
@@ -511,7 +511,7 @@ export default function ConfiguracionPage() {
             </Card>
 
             {/* Configuración del Sistema */}
-            <Card className="bg-white border-green-200">
+            <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
                   <Shield className="h-5 w-5 text-purple-600" />
@@ -523,7 +523,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="backupAutomatico">Backup Automático</Label>
-                    <p className="text-sm text-gray-500">Respaldo diario de datos</p>
+                    <p className="text-sm text-muted-foreground">Respaldo diario de datos</p>
                   </div>
                   <Switch
                     id="backupAutomatico"
@@ -537,7 +537,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="registroActividad">Registro de Actividad</Label>
-                    <p className="text-sm text-gray-500">Guardar log de acciones</p>
+                    <p className="text-sm text-muted-foreground">Guardar log de acciones</p>
                   </div>
                   <Switch
                     id="registroActividad"
@@ -551,7 +551,7 @@ export default function ConfiguracionPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label htmlFor="modoMantenimiento">Modo Mantenimiento</Label>
-                    <p className="text-sm text-gray-500">Desactivar temporalmente</p>
+                    <p className="text-sm text-muted-foreground">Desactivar temporalmente</p>
                   </div>
                   <Switch
                     id="modoMantenimiento"

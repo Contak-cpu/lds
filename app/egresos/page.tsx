@@ -271,12 +271,12 @@ export default function EgresosPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen bg-gray-50">
+      <div className="flex h-screen bg-background">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando egresos...</p>
+            <p className="mt-4 text-muted-foreground">Cargando egresos...</p>
           </div>
         </div>
       </div>
@@ -284,15 +284,15 @@ export default function EgresosPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-background">
       <Navigation />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white shadow-sm border-b px-6 py-4">
+        <header className="bg-card shadow-sm border-b border-border px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Egresos</h1>
-              <p className="text-gray-600">Gestiona todos los gastos del negocio</p>
+              <h1 className="text-2xl font-bold text-card-foreground">Egresos</h1>
+              <p className="text-muted-foreground">Gestiona todos los gastos del negocio</p>
             </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>

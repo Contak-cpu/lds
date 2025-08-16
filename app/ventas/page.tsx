@@ -822,9 +822,9 @@ export default function VentasPage() {
           </Card>
 
           {/* Sales List */}
-          <Card className="bg-white border-green-200">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900">
+              <CardTitle className="text-lg font-semibold text-card-foreground">
                 Lista de Ventas ({filteredVentas.length})
               </CardTitle>
               <CardDescription>Gestiona todas las transacciones de tu negocio</CardDescription>
@@ -834,7 +834,7 @@ export default function VentasPage() {
                 {filteredVentas.map((venta) => (
                   <div
                     key={venta.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
                   >
                     <div className="flex items-center space-x-4">
                       <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-full">
@@ -842,10 +842,10 @@ export default function VentasPage() {
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-gray-900">{venta.numeroVenta}</h3>
+                          <h3 className="font-semibold text-card-foreground">{venta.numeroVenta}</h3>
                           {getEstadoBadge(venta.estado)}
                         </div>
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
+                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                           <div className="flex items-center space-x-1">
                             <User className="h-3 w-3" />
                             <span>{venta.cliente}</span>
@@ -881,26 +881,26 @@ export default function VentasPage() {
                           <div className="grid grid-cols-2 gap-6 py-4">
                             <div className="space-y-4">
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Información de la Venta</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">Información de la Venta</Label>
                                 <div className="mt-2 space-y-2">
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Número:</span>
+                                    <span className="text-sm text-muted-foreground">Número:</span>
                                     <span className="text-sm font-medium">{venta.numeroVenta}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Fecha:</span>
+                                    <span className="text-sm text-muted-foreground">Fecha:</span>
                                     <span className="text-sm font-medium">{venta.fecha}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Estado:</span>
+                                    <span className="text-sm text-muted-foreground">Estado:</span>
                                     {getEstadoBadge(venta.estado)}
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Método de pago:</span>
+                                    <span className="text-sm text-muted-foreground">Método de pago:</span>
                                     <span className="text-sm font-medium">{venta.metodoPago}</span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-sm text-gray-600">Total:</span>
+                                    <span className="text-sm text-muted-foreground">Total:</span>
                                     <span className="text-lg font-bold text-green-600">
                                       ${venta.total.toLocaleString()}
                                     </span>
@@ -908,22 +908,22 @@ export default function VentasPage() {
                                 </div>
                               </div>
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Cliente</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">Cliente</Label>
                                 <div className="mt-2 space-y-1">
                                   <div className="text-sm font-medium">{venta.cliente}</div>
-                                  <div className="text-sm text-gray-600">{venta.clienteEmail}</div>
+                                  <div className="text-sm text-muted-foreground">{venta.clienteEmail}</div>
                                 </div>
                               </div>
                               {venta.notas && (
                                 <div>
-                                  <Label className="text-sm font-medium text-gray-600">Notas</Label>
-                                  <p className="text-sm text-gray-700 mt-1">{venta.notas}</p>
+                                  <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
+                                  <p className="text-sm text-muted-foreground mt-1">{venta.notas}</p>
                                 </div>
                               )}
                             </div>
                             <div className="space-y-4">
                               <div>
-                                <Label className="text-sm font-medium text-gray-600">Productos</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">Productos</Label>
                                 <div className="mt-2 space-y-2">
                                   {venta.productos.map((producto, index) => (
                                     <div
@@ -932,7 +932,7 @@ export default function VentasPage() {
                                     >
                                       <div>
                                         <div className="text-sm font-medium">{producto.producto_nombre}</div>
-                                        <div className="text-xs text-gray-600">Cantidad: {producto.cantidad}</div>
+                                        <div className="text-xs text-muted-foreground">Cantidad: {producto.cantidad}</div>
                                       </div>
                                       <div className="text-sm font-semibold">
                                         ${(producto.precio_unitario * producto.cantidad).toLocaleString()}

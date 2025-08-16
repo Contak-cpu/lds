@@ -198,22 +198,22 @@ export default function ReportesPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="flex min-h-screen bg-background">
         <Navigation />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg text-gray-600">Cargando reportes...</div>
+          <div className="text-lg text-muted-foreground">Cargando reportes...</div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+    <div className="flex min-h-screen bg-background">
       <Navigation />
 
       <div className="flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-green-200 shadow-sm">
+        <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4 sm:gap-0">
               <div className="flex items-center space-x-3">
@@ -221,7 +221,7 @@ export default function ReportesPage() {
                   <BarChart3 className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-gray-900">Reportes y Métricas</h1>
+                  <h1 className="text-xl font-bold text-card-foreground">Reportes y Métricas</h1>
                   <p className="text-sm text-indigo-600">Analiza el rendimiento de tu negocio</p>
                 </div>
               </div>
