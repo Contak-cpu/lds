@@ -116,7 +116,7 @@ export default function ClientesPage() {
       if (error) throw error
 
       if (data) {
-        setClientes((prev) => [data[0], ...prev])
+        setClientes((prev: Cliente[]) => [data[0], ...prev])
         setNewClienteForm({
           nombre: "",
           email: "",
@@ -147,7 +147,7 @@ export default function ClientesPage() {
     loadClientes()
   }, [])
 
-  const filteredClientes = clientes.filter((cliente) => {
+  const filteredClientes = clientes.filter((cliente: Cliente) => {
     const matchesSearch =
       cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       cliente.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -200,7 +200,9 @@ export default function ClientesPage() {
       if (error) throw error
 
       if (data) {
-        setClientes((prev) => prev.map((cliente) => (cliente.id === editingCliente.id ? data[0] : cliente)))
+        setClientes((prev: Cliente[]) =>
+          prev.map((cliente: Cliente) => (cliente.id === editingCliente.id ? data[0] : cliente)),
+        )
         setIsEditDialogOpen(false)
         setEditingCliente(null)
         toast({
@@ -277,19 +279,21 @@ export default function ClientesPage() {
                 <Users className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{clientes.length}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {filteredClientes.filter((c) => c.estado === "Activo").length}
+                </div>
               </CardContent>
             </Card>
 
             <Card className="bg-white border-green-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-600">Nuevos Este Mes</CardTitle>
-                <Users className="h-4 w-4 text-purple-600" />
+                <ShoppingBag className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
                   {
-                    clientes.filter((c) => {
+                    clientes.filter((c: Cliente) => {
                       const fechaRegistro = new Date(c.fecha_registro)
                       const ahora = new Date()
                       return (
@@ -310,7 +314,7 @@ export default function ClientesPage() {
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
                   {
-                    clientes.filter((c) => {
+                    clientes.filter((c: Cliente) => {
                       const fechaRegistro = new Date(c.fecha_registro)
                       const hoy = new Date()
                       return fechaRegistro.toDateString() === hoy.toDateString()
@@ -350,7 +354,7 @@ export default function ClientesPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {filteredClientes.map((cliente) => (
+                {filteredClientes.map((cliente: Cliente) => (
                   <div
                     key={cliente.id}
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -362,7 +366,7 @@ export default function ClientesPage() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-2 mb-1">
                           <h3 className="font-semibold text-gray-900">{cliente.nombre}</h3>
-                          <Badge className="bg-green-100 text-green-800 border-green-300">Activo</Badge>
+                          {getEstadoBadge(cliente.estado)}
                         </div>
                         <div className="flex items-center space-x-4 text-sm text-gray-600">
                           <div className="flex items-center space-x-1">
@@ -425,7 +429,7 @@ export default function ClientesPage() {
                                 <div className="mt-2 space-y-2">
                                   <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Estado:</span>
-                                    <Badge className="bg-green-100 text-green-800 border-green-300">Activo</Badge>
+                                    {getEstadoBadge(cliente.estado)}
                                   </div>
                                   <div className="flex justify-between">
                                     <span className="text-sm text-gray-600">Registro:</span>

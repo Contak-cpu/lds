@@ -228,7 +228,7 @@ export default function ReportesPage() {
       case "csv":
         const csvHeaders = "Período,Ventas,Pedidos\n"
         const csvData = datosActuales.ventasPorPeriodo
-          .map((item) => `${item.periodo},${item.ventas},${item.pedidos}`)
+          .map((item: VentaPorPeriodo) => `${item.periodo},${item.ventas},${item.pedidos}`)
           .join("\n")
         dataStr = csvHeaders + csvData
         mimeType = "text/csv"
@@ -243,7 +243,7 @@ export default function ReportesPage() {
         dataStr += `Ventas Semana: $${datosActuales.metricas.ventasSemana.valor.toLocaleString()}\n`
         dataStr += `Ventas Mes: $${datosActuales.metricas.ventasMes.valor.toLocaleString()}\n\n`
         dataStr += `VENTAS POR PERÍODO:\n`
-        datosActuales.ventasPorPeriodo.forEach((item) => {
+        datosActuales.ventasPorPeriodo.forEach((item: VentaPorPeriodo) => {
           dataStr += `${item.periodo}: $${item.ventas.toLocaleString()} (${item.pedidos} pedidos)\n`
         })
         mimeType = "text/plain"
@@ -295,13 +295,17 @@ export default function ReportesPage() {
           // Hoja de ventas por período
           const ventasData = [
             ["Período", "Ventas", "Pedidos"],
-            ...datosActuales.ventasPorPeriodo.map((item) => [item.periodo, item.ventas, item.pedidos]),
+            ...datosActuales.ventasPorPeriodo.map((item: VentaPorPeriodo) => [item.periodo, item.ventas, item.pedidos]),
           ]
 
           // Hoja de productos más vendidos
           const productosData = [
             ["Producto", "Unidades Vendidas", "Ingresos"],
-            ...productosMasVendidos.map((producto) => [producto.nombre, producto.ventas, producto.ingresos]),
+            ...productosMasVendidos.map((producto: ProductoMasVendido) => [
+              producto.nombre,
+              producto.ventas,
+              producto.ingresos,
+            ]),
           ]
 
           // Convertir arrays a formato de hoja de cálculo
@@ -430,7 +434,7 @@ export default function ReportesPage() {
                 <tbody>
                   ${datosActuales.ventasPorPeriodo
                     .map(
-                      (item) => `
+                      (item: VentaPorPeriodo) => `
                     <tr>
                       <td>${item.periodo}</td>
                       <td>$${item.ventas.toLocaleString()}</td>
@@ -454,7 +458,7 @@ export default function ReportesPage() {
                 <tbody>
                   ${productosMasVendidos
                     .map(
-                      (producto) => `
+                      (producto: ProductoMasVendido) => `
                     <tr>
                       <td>${producto.nombre}</td>
                       <td>${producto.ventas}</td>
@@ -877,7 +881,7 @@ export default function ReportesPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {productosMasVendidos.map((producto, index) => (
+                  {productosMasVendidos.map((producto: ProductoMasVendido, index: number) => (
                     <div key={index} className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 flex-shrink-0">
@@ -927,7 +931,7 @@ export default function ReportesPage() {
                         label={({ categoria, valor }) => `${categoria}: ${valor}%`}
                         fontSize={12}
                       >
-                        {categoriaVentas.map((entry, index) => (
+                        {categoriaVentas.map((entry: CategoriaVenta, index: number) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>

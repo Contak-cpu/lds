@@ -103,7 +103,7 @@ export default function EgresosPage() {
   }
 
   // Filtrar egresos
-  const egresosFiltrados = egresos.filter((egreso) => {
+  const egresosFiltrados = egresos.filter((egreso: Egreso) => {
     const coincideBusqueda =
       egreso.descripcion.toLowerCase().includes(busqueda.toLowerCase()) ||
       egreso.proveedor.toLowerCase().includes(busqueda.toLowerCase())
@@ -112,13 +112,13 @@ export default function EgresosPage() {
   })
 
   // Calcular estadísticas
-  const totalEgresos = egresos.reduce((sum, egreso) => sum + egreso.monto, 0)
-  const egresosMesActual = egresos.filter((egreso) => {
+  const totalEgresos = egresos.reduce((sum: number, egreso: Egreso) => sum + egreso.monto, 0)
+  const egresosMesActual = egresos.filter((egreso: Egreso) => {
     const fechaEgreso = new Date(egreso.fecha_egreso)
     const ahora = new Date()
     return fechaEgreso.getMonth() === ahora.getMonth() && fechaEgreso.getFullYear() === ahora.getFullYear()
   })
-  const totalMesActual = egresosMesActual.reduce((sum, egreso) => sum + egreso.monto, 0)
+  const totalMesActual = egresosMesActual.reduce((sum: number, egreso: Egreso) => sum + egreso.monto, 0)
 
   // Manejar cambios en el formulario
   const handleInputChange = (field: keyof EgresoFormData, value: string): void => {
@@ -212,7 +212,7 @@ export default function EgresosPage() {
 
       // Actualizar la lista local
       if (data && data[0]) {
-        setEgresos(egresos.map((egreso) => (egreso.id === editandoEgreso.id ? data[0] : egreso)))
+        setEgresos(egresos.map((egreso: Egreso) => (egreso.id === editandoEgreso.id ? data[0] : egreso)))
       }
 
       setEditandoEgreso(null)
@@ -253,7 +253,7 @@ export default function EgresosPage() {
       if (error) throw error
 
       // Actualizar la lista local
-      setEgresos(egresos.filter((egreso) => egreso.id !== id))
+      setEgresos(egresos.filter((egreso: Egreso) => egreso.id !== id))
 
       toast({
         title: "Egreso eliminado",
@@ -341,7 +341,7 @@ export default function EgresosPage() {
                         <SelectValue placeholder="Selecciona una categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categorias.map((categoria) => (
+                        {categorias.map((categoria: string) => (
                           <SelectItem key={categoria} value={categoria}>
                             {categoria}
                           </SelectItem>
@@ -381,7 +381,7 @@ export default function EgresosPage() {
                         <SelectValue placeholder="Selecciona método" />
                       </SelectTrigger>
                       <SelectContent>
-                        {metodosPago.map((metodo) => (
+                        {metodosPago.map((metodo: string) => (
                           <SelectItem key={metodo} value={metodo}>
                             {metodo}
                           </SelectItem>
@@ -460,7 +460,7 @@ export default function EgresosPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">
-                  ${Math.max(...egresos.map((e) => e.monto), 0).toLocaleString("es-AR")}
+                  ${Math.max(...egresos.map((e: Egreso) => e.monto), 0).toLocaleString("es-AR")}
                 </div>
                 <p className="text-xs text-gray-600">Registro más alto</p>
               </CardContent>
@@ -491,7 +491,7 @@ export default function EgresosPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="todos">Todas las categorías</SelectItem>
-                      {categorias.map((categoria) => (
+                      {categorias.map((categoria: string) => (
                         <SelectItem key={categoria} value={categoria}>
                           {categoria}
                         </SelectItem>
@@ -513,7 +513,7 @@ export default function EgresosPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {egresosFiltrados.map((egreso) => (
+                {egresosFiltrados.map((egreso: Egreso) => (
                   <div
                     key={egreso.id}
                     className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"

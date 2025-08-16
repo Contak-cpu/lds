@@ -647,12 +647,11 @@ export default function ProductosPage() {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Kits">Kits</SelectItem>
-                        <SelectItem value="Semillas">Semillas</SelectItem>
-                        <SelectItem value="Fertilizantes">Fertilizantes</SelectItem>
-                        <SelectItem value="Iluminación">Iluminación</SelectItem>
-                        <SelectItem value="Hidroponía">Hidroponía</SelectItem>
-                        <SelectItem value="Herramientas">Herramientas</SelectItem>
+                        {categorias.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -766,12 +765,11 @@ export default function ProductosPage() {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Kits">Kits</SelectItem>
-                        <SelectItem value="Semillas">Semillas</SelectItem>
-                        <SelectItem value="Fertilizantes">Fertilizantes</SelectItem>
-                        <SelectItem value="Iluminación">Iluminación</SelectItem>
-                        <SelectItem value="Hidroponía">Hidroponía</SelectItem>
-                        <SelectItem value="Herramientas">Herramientas</SelectItem>
+                        {categorias.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

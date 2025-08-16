@@ -77,6 +77,9 @@ interface VentaItem {
   subtotal?: number
   created_at?: string
   updated_at?: string
+  categoria: string
+  descripcion: string
+  imagen_url: string | null
 }
 
 interface Venta {
@@ -189,12 +192,12 @@ export default function VentasPage() {
             id: venta.id,
             numeroVenta: numeroVenta,
             cliente: venta.cliente_id
-              ? clientesResponse.data?.find((c) => c.id === venta.cliente_id)?.nombre ||
+              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.nombre ||
                 venta.cliente_nombre ||
                 "Cliente sin nombre"
               : venta.cliente_casual || "Cliente sin nombre",
             clienteEmail: venta.cliente_id
-              ? clientesResponse.data?.find((c) => c.id === venta.cliente_id)?.email || ""
+              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.email || ""
               : "",
             fecha: fecha.toISOString().split("T")[0],
             estado: venta.estado || "Pendiente",
@@ -214,6 +217,9 @@ export default function VentasPage() {
                   subtotal: item.subtotal || (item.cantidad || 0) * (item.precio_unitario || 0),
                   created_at: item.created_at || undefined,
                   updated_at: item.updated_at || undefined,
+                  categoria: item.categoria || "Sin categoría",
+                  descripcion: item.descripcion || "",
+                  imagen_url: item.imagen_url || null,
                 }),
               ) || [],
           }
@@ -371,13 +377,18 @@ export default function VentasPage() {
       }
 
       // Crear items de venta con validación
-      const ventaItems = carrito.map((item) => ({
+      const ventaItems = carrito.map((item: ProductoCarrito) => ({
         venta_id: ventaCreada.id,
         producto_id: item.esPersonalizado ? null : item.id,
         producto_nombre: item.nombre,
         cantidad: item.cantidad,
         precio_unitario: item.precio,
         subtotal: item.precio * item.cantidad,
+        categoria: item.categoria || "Sin categoría",
+        descripcion: item.descripcion || "",
+        imagen_url: item.imagen_url || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }))
 
       const { error: itemsError } = await supabase.from("venta_items").insert(ventaItems)
@@ -457,7 +468,7 @@ export default function VentasPage() {
       return
     }
 
-    const productoExistente = carrito.find((item) => item.id === producto.id)
+    const productoExistente = carrito.find((item: ProductoCarrito) => item.id === producto.id)
     if (productoExistente) {
       if (productoExistente.cantidad >= producto.stock) {
         toast({
@@ -504,11 +515,13 @@ export default function VentasPage() {
       return
     }
 
-    setCarrito(carrito.map((item) => (item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item)))
+    setCarrito((prev: ProductoCarrito[]) =>
+      prev.map((item: ProductoCarrito) => (item.id === productoId ? { ...item, cantidad: nuevaCantidad } : item)),
+    )
   }
 
   const removerDelCarrito = (productoId: string): void => {
-    setCarrito(carrito.filter((item) => item.id !== productoId))
+    setCarrito((prev: ProductoCarrito[]) => prev.filter((item: ProductoCarrito) => item.id !== productoId))
   }
 
   const agregarProductoPersonalizado = (): void => {
@@ -594,7 +607,7 @@ export default function VentasPage() {
     (producto.nombre || "").toLowerCase().includes(searchProducto.toLowerCase()),
   )
 
-  const totalCarrito = carrito.reduce((sum, item) => sum + item.precio * item.cantidad, 0)
+  const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
 
   const [filterEstado, setFilterEstado] = useState("todos")
   const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
@@ -942,7 +955,7 @@ export default function VentasPage() {
                             <p className="text-sm text-gray-500 text-center py-4">No hay productos en el carrito</p>
                           ) : (
                             <div className="space-y-2">
-                              {carrito.map((item) => (
+                              {carrito.map((item: ProductoCarrito) => (
                                 <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                                   <div className="flex-1">
                                     <div className="text-sm font-medium">
