@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
 import { Plus, Search, Filter, DollarSign, TrendingDown, Calendar, Receipt, User, Eye } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { useNotifications } from "@/hooks/use-notifications"
 import { createClient } from "@/lib/supabase/client"
 
 interface Egreso {
@@ -117,7 +117,7 @@ export default function EgresosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [formErrors, setFormErrors] = useState<EgresoFormErrors>({})
   const [editFormErrors, setEditFormErrors] = useState<EgresoFormErrors>({})
-  const { toast } = useToast()
+  const { showError, showEgresoCreated, showEgresoUpdated, showEgresoDeleted } = useNotifications()
 
   // Estado del formulario
   const [formData, setFormData] = useState<EgresoFormData>({
@@ -152,11 +152,7 @@ export default function EgresosPage() {
       setEgresos(data || [])
     } catch (error) {
       console.error("Error cargando egresos:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron cargar los egresos",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron cargar los egresos")
     } finally {
       setIsLoading(false)
     }
@@ -239,11 +235,7 @@ export default function EgresosPage() {
       
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors)
-        toast({
-          title: "Error de validación",
-          description: "Por favor, corrige los errores en el formulario",
-          variant: "destructive",
-        })
+        showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
@@ -286,17 +278,10 @@ export default function EgresosPage() {
       // Cerrar diálogo
       setDialogAbierto(false)
 
-      toast({
-        title: "Éxito",
-        description: "Egreso agregado correctamente",
-      })
+      showEgresoCreated()
     } catch (error) {
       console.error("Error agregando egreso:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo agregar el egreso",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudo agregar el egreso")
     }
   }
 
@@ -327,17 +312,10 @@ export default function EgresosPage() {
 
       setEditandoEgreso(null)
       setDialogAbierto(false)
-      toast({
-        title: "Egreso actualizado",
-        description: "Los cambios se guardaron correctamente",
-      })
+      showEgresoUpdated()
     } catch (error) {
       console.error("Error editando egreso:", error)
-      toast({
-        title: "Error",
-        description: "No se pudieron guardar los cambios",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudieron guardar los cambios")
     }
   }
 
@@ -365,55 +343,48 @@ export default function EgresosPage() {
       // Actualizar la lista local
       setEgresos(egresos.filter((egreso: Egreso) => egreso.id !== id))
 
-      toast({
-        title: "Egreso eliminado",
-        description: "El egreso se eliminó correctamente",
-      })
+      showEgresoDeleted()
     } catch (error) {
       console.error("Error eliminando egreso:", error)
-      toast({
-        title: "Error",
-        description: "No se pudo eliminar el egreso",
-        variant: "destructive",
-      })
+      showError("Error", "No se pudo eliminar el egreso")
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen bg-background">
-        <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Cargando egresos...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+     if (isLoading) {
+     return (
+       <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+         <Navigation />
+         <div className="flex-1 flex items-center justify-center">
+           <div className="text-center">
+             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+             <p className="mt-4 text-gray-600 dark:text-gray-300">Cargando egresos...</p>
+           </div>
+         </div>
+       </div>
+     )
+   }
 
-  return (
-    <div className="flex h-screen bg-background">
-      <Navigation />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-card shadow-sm border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-card-foreground">Egresos</h1>
-              <p className="text-muted-foreground">Gestiona todos los gastos del negocio</p>
-            </div>
+     return (
+     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+       <Navigation />
+ 
+       <div className="flex-1 flex flex-col overflow-hidden">
+         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+           <div className="flex items-center justify-between">
+             <div>
+               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Egresos</h1>
+               <p className="text-gray-600 dark:text-gray-300">Gestiona todos los gastos del negocio</p>
+             </div>
 
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
               <DialogTrigger asChild>
-                <Button
-                  onClick={handleOpenDialog}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Nuevo Egreso
-                </Button>
+                                 <Button
+                   onClick={handleOpenDialog}
+                   className="bg-green-600 hover:bg-green-700 text-white"
+                 >
+                   <Plus className="h-4 w-4 mr-2" />
+                   Nuevo Egreso
+                 </Button>
               </DialogTrigger>
 
               <DialogContent className="max-w-md">
@@ -521,77 +492,77 @@ export default function EgresosPage() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+                 <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
           {/* Estadísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Egresos</CardTitle>
-                <TrendingDown className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  ${totalEgresos.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <p className="text-xs text-muted-foreground">{egresos.length} registros</p>
-              </CardContent>
-            </Card>
+                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+             <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Total Egresos</CardTitle>
+                 <TrendingDown className="h-4 w-4 text-red-600" />
+               </CardHeader>
+               <CardContent>
+                 <div className="text-2xl font-bold text-red-600">
+                   ${totalEgresos.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                 </div>
+                 <p className="text-xs text-gray-500 dark:text-gray-400">{egresos.length} registros</p>
+               </CardContent>
+             </Card>
 
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Este Mes</CardTitle>
-                <Calendar className="h-4 w-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  ${totalMesActual.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <p className="text-xs text-muted-foreground">{egresosMesActual.length} egresos</p>
-              </CardContent>
-            </Card>
+                         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Este Mes</CardTitle>
+                 <Calendar className="h-4 w-4 text-orange-600" />
+               </CardHeader>
+               <CardContent>
+                 <div className="text-2xl font-bold text-orange-600">
+                   ${totalMesActual.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                 </div>
+                 <p className="text-xs text-gray-500 dark:text-gray-400">{egresosMesActual.length} egresos</p>
+               </CardContent>
+             </Card>
 
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Promedio Diario</CardTitle>
-                <DollarSign className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  ${promedioDiario.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <p className="text-xs text-muted-foreground">Basado en el mes actual</p>
-              </CardContent>
-            </Card>
+                         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Promedio Diario</CardTitle>
+                 <DollarSign className="h-4 w-4 text-blue-600" />
+               </CardHeader>
+               <CardContent>
+                 <div className="text-2xl font-bold text-blue-600">
+                   ${promedioDiario.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                 </div>
+                 <p className="text-xs text-gray-500 dark:text-gray-400">Basado en el mes actual</p>
+               </CardContent>
+             </Card>
 
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Mayor Egreso</CardTitle>
-                <Receipt className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-600">
-                  ${mayorEgreso.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <p className="text-xs text-muted-foreground">Registro más alto</p>
-              </CardContent>
-            </Card>
+                         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Mayor Egreso</CardTitle>
+                 <Receipt className="h-4 w-4 text-purple-600" />
+               </CardHeader>
+               <CardContent>
+                 <div className="text-2xl font-bold text-purple-600">
+                   ${mayorEgreso.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                 </div>
+                 <p className="text-xs text-gray-500 dark:text-gray-400">Registro más alto</p>
+               </CardContent>
+             </Card>
           </div>
 
           {/* Filtros */}
-          <Card className="mb-6 bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Buscar por concepto o proveedor..."
-                      value={busqueda}
-                      onChange={(e) => setBusqueda(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
+                     <Card className="mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+             <CardContent className="pt-6">
+               <div className="flex flex-col sm:flex-row gap-4">
+                 <div className="flex-1">
+                   <div className="relative">
+                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                     <Input
+                       placeholder="Buscar por concepto o proveedor..."
+                       value={busqueda}
+                       onChange={(e) => setBusqueda(e.target.value)}
+                       className="pl-10 border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
+                     />
+                   </div>
+                 </div>
 
                 <div className="sm:w-48">
                   <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
@@ -614,71 +585,71 @@ export default function EgresosPage() {
           </Card>
 
           {/* Lista de Egresos */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-card-foreground">
-                Lista de Egresos ({egresosFiltrados.length})
-              </CardTitle>
-              <CardDescription>Gestiona todos los gastos del negocio</CardDescription>
-            </CardHeader>
+                     <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+             <CardHeader>
+               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                 Lista de Egresos ({egresosFiltrados.length})
+               </CardTitle>
+               <CardDescription className="text-gray-600 dark:text-gray-300">Gestiona todos los gastos del negocio</CardDescription>
+             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {egresosFiltrados.map((egreso: Egreso) => (
-                  <div
-                    key={egreso.id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-full">
-                        <Receipt className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-card-foreground">{egreso.descripcion}</h3>
-                          <Badge variant="outline" className="border-border">{egreso.categoria}</Badge>
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <User className="h-4 w-4 text-muted-foreground" />
-                            <span>{egreso.proveedor}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <span>{new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span>{egreso.metodo_pago}</span>
-                          </div>
-                          {egreso.notas && (
-                            <div className="flex items-center space-x-1">
-                              <span className="text-xs bg-muted px-2 py-1 rounded">
-                                {egreso.notas}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="text-right mr-4">
-                        <div className="text-xl font-bold text-red-600 mb-1">
-                          -${egreso.monto.toLocaleString("es-AR")}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {new Date(egreso.fecha_egreso).toLocaleDateString("es-AR", { 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          })}
-                        </div>
-                      </div>
+                                     <div
+                     key={egreso.id}
+                     className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
+                   >
+                     <div className="flex items-center space-x-4">
+                       <div className="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-full shadow-sm">
+                         <Receipt className="h-5 w-5 text-white" />
+                       </div>
+                       <div className="flex-1">
+                         <div className="flex items-center space-x-2 mb-1">
+                           <h3 className="font-semibold text-gray-900 dark:text-white">{egreso.descripcion}</h3>
+                           <Badge variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700">{egreso.categoria}</Badge>
+                         </div>
+                         <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                           <div className="flex items-center space-x-1">
+                             <User className="h-4 w-4 text-gray-500" />
+                             <span>{egreso.proveedor}</span>
+                           </div>
+                           <div className="flex items-center space-x-1">
+                             <Calendar className="h-4 w-4 text-gray-500" />
+                             <span>{new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}</span>
+                           </div>
+                           <div className="flex items-center space-x-1">
+                             <DollarSign className="h-4 w-4 text-gray-500" />
+                             <span>{egreso.metodo_pago}</span>
+                           </div>
+                           {egreso.notas && (
+                             <div className="flex items-center space-x-1">
+                               <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
+                                 {egreso.notas}
+                               </span>
+                             </div>
+                           )}
+                         </div>
+                       </div>
+                     </div>
+                                         <div className="flex items-center space-x-2">
+                       <div className="text-right mr-4">
+                         <div className="text-xl font-bold text-red-600 mb-1">
+                           -${egreso.monto.toLocaleString("es-AR")}
+                         </div>
+                         <div className="text-xs text-gray-500 dark:text-gray-400">
+                           {new Date(egreso.fecha_egreso).toLocaleDateString("es-AR", { 
+                             year: 'numeric', 
+                             month: 'short', 
+                             day: 'numeric' 
+                           })}
+                         </div>
+                       </div>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
+                                                 <Button variant="outline" size="sm" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                         <Eye className="h-4 w-4 mr-1" />
+                         Ver
+                       </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-2xl">
                           <DialogHeader>
@@ -739,26 +710,28 @@ export default function EgresosPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)}>
-                        Editar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => eliminarEgreso(egreso.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Eliminar
-                      </Button>
+                                             <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)} className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                         Editar
+                       </Button>
+                       <Button
+                         variant="outline"
+                         size="sm"
+                         onClick={() => eliminarEgreso(egreso.id)}
+                         className="border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
+                       >
+                         Eliminar
+                       </Button>
                     </div>
                   </div>
                 ))}
 
-                {egresosFiltrados.length === 0 && (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No se encontraron egresos que coincidan con los filtros
-                  </div>
-                )}
+                                 {egresosFiltrados.length === 0 && (
+                   <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                     <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                     <p className="text-lg font-medium">No se encontraron egresos</p>
+                     <p className="text-sm">No hay egresos que coincidan con los filtros aplicados</p>
+                   </div>
+                 )}
               </div>
             </CardContent>
           </Card>

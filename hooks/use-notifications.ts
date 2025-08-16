@@ -8,6 +8,7 @@ export const useNotifications = () => {
       title,
       description,
       variant: "default",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
     })
   }
 
@@ -16,126 +17,144 @@ export const useNotifications = () => {
       title,
       description,
       variant: "destructive",
+      className: "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-50",
     })
   }
 
   const showProductoCreated = () => {
-    showSuccess(
-      "✅ Producto creado exitosamente",
-      "El producto ha sido agregado al inventario"
-    )
+    toast({
+      title: "✅ Producto creado exitosamente",
+      description: "El producto ha sido agregado al inventario",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showProductoUpdated = () => {
-    showSuccess(
-      "✅ Producto actualizado exitosamente",
-      "Los cambios han sido guardados"
-    )
+    toast({
+      title: "✅ Producto actualizado exitosamente",
+      description: "Los cambios han sido guardados",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showProductoDeleted = () => {
-    showSuccess(
-      "✅ Producto eliminado exitosamente",
-      "El producto ha sido removido del inventario"
-    )
+    toast({
+      title: "✅ Producto eliminado exitosamente",
+      description: "El producto ha sido removido del inventario",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showClienteCreated = () => {
-    showSuccess(
-      "✅ Cliente registrado exitosamente",
-      "El cliente ha sido agregado a la base de datos"
-    )
+    toast({
+      title: "✅ Cliente registrado exitosamente",
+      description: "El cliente ha sido agregado a la base de datos",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showClienteUpdated = () => {
-    showSuccess(
-      "✅ Cliente actualizado exitosamente",
-      "Los datos del cliente han sido modificados"
-    )
+    toast({
+      title: "✅ Cliente actualizado exitosamente",
+      description: "Los datos del cliente han sido modificados",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showClienteDeleted = () => {
-    showSuccess(
-      "✅ Cliente eliminado exitosamente",
-      "El cliente ha sido removido de la base de datos"
-    )
+    toast({
+      title: "✅ Cliente eliminado exitosamente",
+      description: "El cliente ha sido removido de la base de datos",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showVentaCreated = () => {
-    showSuccess(
-      "✅ Venta registrada exitosamente",
-      "La venta ha sido procesada y registrada"
-    )
+    toast({
+      title: "✅ Venta registrada exitosamente",
+      description: "La venta ha sido procesada y registrada",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showVentaUpdated = () => {
-    showSuccess(
-      "✅ Venta actualizada exitosamente",
-      "Los cambios en la venta han sido guardados"
-    )
+    toast({
+      title: "✅ Venta actualizada exitosamente",
+      description: "Los cambios en la venta han sido guardados",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showVentaDeleted = () => {
-    showSuccess(
-      "✅ Venta eliminada exitosamente",
-      "La venta ha sido removida del sistema"
-    )
+    toast({
+      title: "✅ Venta eliminada exitosamente",
+      description: "La venta ha sido removida del sistema",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showEgresoCreated = () => {
-    showSuccess(
-      "✅ Egreso registrado exitosamente",
-      "El egreso ha sido agregado al sistema"
-    )
+    toast({
+      title: "✅ Egreso registrado exitosamente",
+      description: "El egreso ha sido agregado al sistema",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showEgresoUpdated = () => {
-    showSuccess(
-      "✅ Egreso actualizado exitosamente",
-      "Los cambios en el egreso han sido guardados"
-    )
+    toast({
+      title: "✅ Egreso actualizado exitosamente",
+      description: "Los cambios en el egreso han sido guardados",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showEgresoDeleted = () => {
-    showSuccess(
-      "✅ Egreso eliminado exitosamente",
-      "El egreso ha sido removido del sistema"
-    )
+    toast({
+      title: "✅ Egreso eliminado exitosamente",
+      description: "El egreso ha sido removido del sistema",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showCategoriaCreated = () => {
-    showSuccess(
-      "✅ Categoría creada exitosamente",
-      "La nueva categoría ha sido agregada"
-    )
+    toast({
+      title: "✅ Categoría creada exitosamente",
+      description: "La nueva categoría ha sido agregada",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showCategoriaUpdated = () => {
-    showSuccess(
-      "✅ Categoría actualizada exitosamente",
-      "Los cambios en la categoría han sido guardados"
-    )
+    toast({
+      title: "✅ Categoría actualizada exitosamente",
+      description: "Los cambios en la categoría han sido guardados",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showCategoriaDeleted = () => {
-    showSuccess(
-      "✅ Categoría eliminada exitosamente",
-      "La categoría ha sido removida del sistema"
-    )
+    toast({
+      title: "✅ Categoría eliminada exitosamente",
+      description: "La categoría ha sido removida del sistema",
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showGenericSuccess = (operation: string, entity: string) => {
-    showSuccess(
-      `✅ ${operation} exitoso`,
-      `La operación en ${entity} se completó correctamente`
-    )
+    toast({
+      title: `✅ ${operation} exitoso`,
+      description: `La operación en ${entity} se completó correctamente`,
+      className: "border-green-200 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-50",
+    })
   }
 
   const showGenericError = (operation: string, entity: string, error?: string) => {
-    showError(
-      `❌ Error al ${operation}`,
-      `No se pudo completar la operación en ${entity}${error ? `: ${error}` : ""}`
-    )
+    toast({
+      title: `❌ Error al ${operation}`,
+      description: `No se pudo completar la operación en ${entity}${error ? `: ${error}` : ""}`,
+      className: "border-red-200 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-50",
+    })
   }
 
   return {
