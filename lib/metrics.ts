@@ -90,12 +90,12 @@ export class MetricsService {
         throw new Error("Error al obtener métricas")
       }
 
-      const totalVentasHoy = ventasHoy?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
-      const totalVentasAyer = ventasAyer?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
+      const totalVentasHoy = ventasHoy?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
 
       const clientesUnicos = new Set(clientesActivos?.map(v => v.cliente_id).filter(Boolean))
-      const totalProductosStock = productosStock?.reduce((sum, p) => sum + (p.stock || 0), 0) || 0
+      const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
 
       return {
         ventasHoy: totalVentasHoy,
@@ -249,7 +249,7 @@ export class MetricsService {
         categoriasMap.set(categoria, actual + (item.cantidad * item.precio_unitario))
       })
 
-      const total = Array.from(categoriasMap.values()).reduce((sum, valor) => sum + valor, 0)
+      const total = Array.from(categoriasMap.values()).reduce((sum: number, valor: number) => sum + valor, 0)
       const colores = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"]
 
       return Array.from(categoriasMap.entries())
@@ -370,16 +370,16 @@ export class MetricsService {
       ])
 
       // Calcular totales y cambios
-      const totalVentasHoy = ventasHoy.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
-      const totalVentasAyer = ventasAyer.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
+      const totalVentasHoy = ventasHoy.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const totalVentasAyer = ventasAyer.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
 
-      const totalVentasEstaSemana = ventasEstaSemana.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
-      const totalVentasSemanaAnterior = ventasSemanaAnterior.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
+      const totalVentasEstaSemana = ventasEstaSemana.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const totalVentasSemanaAnterior = ventasSemanaAnterior.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasSemana = totalVentasSemanaAnterior > 0 ? ((totalVentasEstaSemana - totalVentasSemanaAnterior) / totalVentasSemanaAnterior) * 100 : 0
 
-      const totalVentasEsteMes = ventasEsteMes.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
-      const totalVentasMesAnterior = ventasMesAnterior.data?.reduce((sum, v) => sum + (v.total || 0), 0) || 0
+      const totalVentasEsteMes = ventasEsteMes.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const totalVentasMesAnterior = ventasMesAnterior.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasMes = totalVentasMesAnterior > 0 ? ((totalVentasEsteMes - totalVentasMesAnterior) / totalVentasMesAnterior) * 100 : 0
 
       const totalClientesEstaSemana = clientesEstaSemana.data?.length || 0
