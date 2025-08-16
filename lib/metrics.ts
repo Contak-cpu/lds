@@ -94,7 +94,7 @@ export class MetricsService {
       const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
 
-      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string | null }) => v.cliente_id).filter((id): id is string => Boolean(id)))
+      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string | null }) => v.cliente_id).filter((id: string | null): id is string => Boolean(id)))
       const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
 
       return {
@@ -161,7 +161,7 @@ export class MetricsService {
       // Agrupar ventas por período
       const ventasPorPeriodo = new Map<string, { ventas: number; pedidos: number }>()
 
-      ventas?.forEach(venta => {
+      ventas?.forEach((venta: { total: number | null; fecha_venta: string }) => {
         const fecha = new Date(venta.fecha_venta)
         let periodo: string
 
@@ -182,7 +182,7 @@ export class MetricsService {
         ventasPorPeriodo.set(periodo, actual)
       })
 
-      return Array.from(ventasPorPeriodo.entries()).map(([periodo, datos]) => ({
+      return Array.from(ventasPorPeriodo.entries()).map(([periodo, datos]: [string, { ventas: number; pedidos: number }]) => ({
         periodo,
         ventas: datos.ventas,
         pedidos: datos.pedidos,
@@ -204,7 +204,7 @@ export class MetricsService {
 
       const productosMap = new Map<string, { ventas: number; ingresos: number }>()
 
-      ventaItems?.forEach(item => {
+      ventaItems?.forEach((item: { producto_nombre: string; cantidad: number; precio_unitario: number }) => {
         const actual = productosMap.get(item.producto_nombre) || { ventas: 0, ingresos: 0 }
         actual.ventas += item.cantidad
         actual.ingresos += item.cantidad * item.precio_unitario
@@ -214,7 +214,7 @@ export class MetricsService {
       const colores = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"]
 
       return Array.from(productosMap.entries())
-        .map(([nombre, datos], index) => ({
+        .map(([nombre, datos]: [string, { ventas: number; ingresos: number }], index: number) => ({
           nombre,
           ventas: datos.ventas,
           ingresos: datos.ingresos,
@@ -243,7 +243,7 @@ export class MetricsService {
 
       const categoriasMap = new Map<string, number>()
 
-      ventaItems?.forEach(item => {
+      ventaItems?.forEach((item: { cantidad: number; precio_unitario: number; productos: { categoria: string } | null }) => {
         const categoria = item.productos?.categoria || "Sin categoría"
         const actual = categoriasMap.get(categoria) || 0
         categoriasMap.set(categoria, actual + (item.cantidad * item.precio_unitario))
@@ -253,7 +253,7 @@ export class MetricsService {
       const colores = ["#10b981", "#3b82f6", "#f59e0b", "#8b5cf6", "#ef4444"]
 
       return Array.from(categoriasMap.entries())
-        .map(([categoria, valor], index) => ({
+        .map(([categoria, valor]: [string, number], index: number) => ({
           categoria,
           valor: Math.round((valor / total) * 100),
           color: colores[index % colores.length],
@@ -277,7 +277,7 @@ export class MetricsService {
 
       const ventasPorMes = new Map<string, { ventas: number; clientes: Set<string> }>()
 
-      ventas?.forEach(venta => {
+      ventas?.forEach((venta: { total: number | null; fecha_venta: string; cliente_id: string | null }) => {
         const fecha = new Date(venta.fecha_venta)
         const mes = fecha.toLocaleDateString("es-ES", { month: "short" })
         
@@ -289,7 +289,7 @@ export class MetricsService {
         ventasPorMes.set(mes, actual)
       })
 
-      return Array.from(ventasPorMes.entries()).map(([mes, datos]) => ({
+      return Array.from(ventasPorMes.entries()).map(([mes, datos]: [string, { ventas: number; clientes: Set<string> }]) => ({
         mes,
         ventas: datos.ventas,
         clientes: datos.clientes.size,
