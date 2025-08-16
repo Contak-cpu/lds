@@ -163,23 +163,23 @@ export class MetricsService {
 
       ventas?.forEach((venta: { total: number | null; fecha_venta: string }) => {
         const fecha = new Date(venta.fecha_venta)
-        let periodo: string
+        let periodoFormateado: string
 
         if (periodo === "hoy") {
-          periodo = fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+          periodoFormateado = fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
         } else if (periodo === "semana") {
-          periodo = fecha.toLocaleDateString("es-ES", { weekday: "short" })
+          periodoFormateado = fecha.toLocaleDateString("es-ES", { weekday: "short" })
         } else if (periodo === "mes") {
           const semana = Math.ceil((fecha.getDate() + fecha.getDay()) / 7)
-          periodo = `Sem ${semana}`
+          periodoFormateado = `Sem ${semana}`
         } else {
-          periodo = fecha.toLocaleDateString("es-ES", { month: "short" })
+          periodoFormateado = fecha.toLocaleDateString("es-ES", { month: "short" })
         }
 
-        const actual = ventasPorPeriodo.get(periodo) || { ventas: 0, pedidos: 0 }
+        const actual = ventasPorPeriodo.get(periodoFormateado) || { ventas: 0, pedidos: 0 }
         actual.ventas += venta.total || 0
         actual.pedidos += 1
-        ventasPorPeriodo.set(periodo, actual)
+        ventasPorPeriodo.set(periodoFormateado, actual)
       })
 
       return Array.from(ventasPorPeriodo.entries()).map(([periodo, datos]: [string, { ventas: number; pedidos: number }]) => ({
