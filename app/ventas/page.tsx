@@ -853,11 +853,11 @@ export default function VentasPage() {
                                       className="flex justify-between items-center p-2 bg-gray-50 rounded"
                                     >
                                       <div>
-                                        <div className="text-sm font-medium">{producto.nombre}</div>
+                                        <div className="text-sm font-medium">{producto.producto_nombre}</div>
                                         <div className="text-xs text-gray-600">Cantidad: {producto.cantidad}</div>
                                       </div>
                                       <div className="text-sm font-semibold">
-                                        ${(producto.precio * producto.cantidad).toLocaleString()}
+                                        ${(producto.precio_unitario * producto.cantidad).toLocaleString()}
                                       </div>
                                     </div>
                                   ))}
