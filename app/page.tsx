@@ -131,10 +131,10 @@ export default function Dashboard() {
                       <ShoppingCart className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Nueva venta - Kit de Cultivo Básico</p>
-                      <p className="text-xs text-gray-500">Cliente: Cliente Frecuente - $24.500 ARS</p>
+                      <p className="text-sm font-medium text-gray-900">Nueva venta - Producto</p>
+                      <p className="text-xs text-gray-500">Cliente: - $0 ARS</p>
                     </div>
-                    <span className="text-xs text-gray-400">Hace 5 min</span>
+                    <span className="text-xs text-gray-400">Reciente</span>
                   </div>
 
                   <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
@@ -176,8 +176,8 @@ export default function Dashboard() {
                     <Leaf className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Producto Destacado</h4>
-                    <p className="text-sm text-gray-600">47 ventas - $1.235.000 ARS</p>
+                    <h4 className="font-semibold text-gray-900">Producto</h4>
+                    <p className="text-sm text-gray-600">0 ventas - $0 ARS</p>
                   </div>
                 </div>
 
@@ -186,8 +186,8 @@ export default function Dashboard() {
                     <Droplets className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900">Sistema Hidropónico</h4>
-                    <p className="text-sm text-gray-600">32 ventas - $896.000 ARS</p>
+                    <h4 className="font-semibold text-gray-900">Producto 4</h4>
+                    <p className="text-sm text-gray-600">0 ventas - $0 ARS</p>
                   </div>
                 </div>
 
