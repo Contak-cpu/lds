@@ -94,7 +94,7 @@ export class MetricsService {
       const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
 
-      const clientesUnicos = new Set(clientesActivos?.map(v => v.cliente_id).filter(Boolean))
+      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string | null }) => v.cliente_id).filter((id): id is string => Boolean(id)))
       const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
 
       return {
