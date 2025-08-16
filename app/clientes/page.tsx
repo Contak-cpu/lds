@@ -33,6 +33,7 @@ interface Cliente {
   notas: string
   created_at: string
   updated_at: string
+  estado: string
 }
 
 interface ClienteFormData {
@@ -109,6 +110,7 @@ export default function ClientesPage() {
           {
             ...newClienteForm,
             fecha_registro: new Date().toISOString().split("T")[0],
+            estado: "Activo", // Assuming default estado is "Activo"
           },
         ])
         .select()
@@ -274,13 +276,13 @@ export default function ClientesPage() {
             </Card>
 
             <Card className="bg-white border-green-200">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader>
                 <CardTitle className="text-sm font-medium text-gray-600">Clientes Activos</CardTitle>
                 <Users className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {filteredClientes.filter((c) => c.estado === "Activo").length}
+                  {filteredClientes.filter((c: Cliente) => c.estado === "Activo").length}
                 </div>
               </CardContent>
             </Card>

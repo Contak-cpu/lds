@@ -251,7 +251,7 @@ export default function ProductosPage() {
 
       // Actualizar la lista local
       if (data && data[0]) {
-        setProductos(productos.map((producto) => (producto.id === editingProduct.id ? data[0] : producto)))
+        setProductos(productos.map((producto: Producto) => (producto.id === editingProduct.id ? data[0] : producto)))
       }
 
       resetForm()
@@ -279,7 +279,7 @@ export default function ProductosPage() {
       if (error) throw error
 
       // Actualizar la lista local
-      setProductos(productos.filter((producto) => producto.id !== productId))
+      setProductos(productos.filter((producto: Producto) => producto.id !== productId))
       toast({
         title: "Producto eliminado",
         description: "El producto ha sido eliminado del catálogo",
@@ -294,7 +294,7 @@ export default function ProductosPage() {
     }
   }
 
-  const filteredProductos = productos.filter((producto) => {
+  const filteredProductos = productos.filter((producto: Producto) => {
     const matchesSearch = producto.nombre.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategoria = filterCategoria === "todas" || producto.categoria === filterCategoria
     const matchesStock =
@@ -387,7 +387,7 @@ export default function ProductosPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  {productos.filter((p) => p.stock <= p.stock_minimo && p.stock > 0).length}
+                  {productos.filter((p: Producto) => p.stock <= p.stock_minimo && p.stock > 0).length}
                 </div>
               </CardContent>
             </Card>
@@ -398,7 +398,9 @@ export default function ProductosPage() {
                 <AlertTriangle className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{productos.filter((p) => p.stock === 0).length}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {productos.filter((p: Producto) => p.stock === 0).length}
+                </div>
               </CardContent>
             </Card>
 
@@ -409,7 +411,7 @@ export default function ProductosPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-gray-900">
-                  ${productos.reduce((sum, p) => sum + p.precio * p.stock, 0).toLocaleString()}
+                  ${productos.reduce((sum: number, p: Producto) => sum + p.precio * p.stock, 0).toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -436,7 +438,7 @@ export default function ProductosPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {categorias.map((cat) => (
+                      {categorias.map((cat: CategoriaInfo) => (
                         <SelectItem key={cat.value} value={cat.value}>
                           <div className="flex items-center space-x-2">
                             <cat.icon className="h-4 w-4" />
@@ -464,7 +466,7 @@ export default function ProductosPage() {
 
           {/* Products Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProductos.map((producto) => (
+            {filteredProductos.map((producto: Producto) => (
               <Card key={producto.id} className="bg-white border-green-200 hover:shadow-lg transition-shadow">
                 <div className="aspect-square relative overflow-hidden rounded-t-lg">
                   <img
@@ -647,7 +649,7 @@ export default function ProductosPage() {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categorias.map((cat) => (
+                        {categorias.map((cat: CategoriaInfo) => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}
                           </SelectItem>
@@ -765,7 +767,7 @@ export default function ProductosPage() {
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
                       <SelectContent>
-                        {categorias.map((cat) => (
+                        {categorias.map((cat: CategoriaInfo) => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}
                           </SelectItem>
