@@ -20,6 +20,7 @@ import {
   AlertCircle,
   UserX,
   Zap,
+  Trash2,
 } from "lucide-react"
 import {
   Dialog,
@@ -122,6 +123,7 @@ interface ProductoCarrito extends Producto {
 
 interface ProductoSupabase {
   id: string
+  sku?: string
   nombre: string
   descripcion: string | null
   categoria: string
@@ -173,20 +175,32 @@ export default function VentasPage() {
               cantidad,
               precio_unitario,
               subtotal,
+              categoria,
+              descripcion,
+              imagen_url,
               created_at,
               updated_at
             )
           `)
           .order("created_at", { ascending: false }),
 
-        supabase.from("productos").select("*").order("nombre"),
+        supabase.from("productos").select("*").eq("activo", true).order("nombre"),
 
         supabase.from("clientes").select("*").order("nombre"),
       ])
 
-      if (ventasResponse.error) throw ventasResponse.error
-      if (productosResponse.error) throw productosResponse.error
-      if (clientesResponse.error) throw clientesResponse.error
+      if (ventasResponse.error) {
+        console.error("Error cargando ventas:", ventasResponse.error)
+        throw ventasResponse.error
+      }
+      if (productosResponse.error) {
+        console.error("Error cargando productos:", productosResponse.error)
+        throw productosResponse.error
+      }
+      if (clientesResponse.error) {
+        console.error("Error cargando clientes:", clientesResponse.error)
+        throw clientesResponse.error
+      }
 
       const ventasTransformadas: Venta[] =
         ventasResponse.data?.map((venta: VentaSupabase, index: number) => {
@@ -231,11 +245,13 @@ export default function VentasPage() {
           }
         }) || []
 
+      console.log("Ventas cargadas:", ventasResponse.data?.length || 0)
       setVentas(ventasTransformadas)
 
       const productosTransformados: Producto[] =
         productosResponse.data?.map((producto: ProductoSupabase) => ({
           id: producto.id,
+          sku: producto.sku || `SKU-${producto.id.slice(0, 8)}`,
           nombre: producto.nombre,
           precio: producto.precio,
           stock: producto.stock,
@@ -249,7 +265,11 @@ export default function VentasPage() {
           updated_at: producto.updated_at,
         })) || []
 
+      console.log("Productos cargados:", productosResponse.data?.length || 0)
+      console.log("Productos activos:", productosTransformados.filter(p => p.activo).length)
       setProductos(productosTransformados)
+      
+      console.log("Clientes cargados:", clientesResponse.data?.length || 0)
       setClientes(clientesResponse.data || [])
     } catch (error) {
       console.error("Error cargando datos:", error)
@@ -380,6 +400,47 @@ export default function VentasPage() {
 
     setCarrito([...carrito, nuevoItemPersonalizado])
     setProductoPersonalizado({ nombre: "", precio: "" })
+  }
+
+  const eliminarVenta = async (ventaId: string): Promise<void> => {
+    try {
+      // Primero eliminar los items de venta (se eliminan automáticamente por CASCADE)
+      const { error: itemsError } = await supabase
+        .from("venta_items")
+        .delete()
+        .eq("venta_id", ventaId)
+
+      if (itemsError) {
+        console.error("Error eliminando items de venta:", itemsError)
+        throw new Error(`Error al eliminar los items: ${itemsError.message}`)
+      }
+
+      // Luego eliminar la venta
+      const { error: ventaError } = await supabase
+        .from("ventas")
+        .delete()
+        .eq("id", ventaId)
+
+      if (ventaError) {
+        console.error("Error eliminando venta:", ventaError)
+        throw new Error(`Error al eliminar la venta: ${ventaError.message}`)
+      }
+
+      // Recargar datos
+      await cargarDatos()
+
+      toast({
+        title: "Venta eliminada exitosamente",
+        description: "La venta y todos sus items han sido eliminados",
+      })
+    } catch (error) {
+      console.error("Error eliminando venta:", error)
+      toast({
+        title: "Error al eliminar la venta",
+        description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
+        variant: "destructive",
+      })
+    }
   }
 
   const getEstadoBadge = (estado: "Completado" | "Procesando" | "Pendiente" | "Cancelado" | string) => {
@@ -518,6 +579,7 @@ export default function VentasPage() {
       const ventaData = {
         cliente_id: clienteId,
         cliente_casual: tipoVenta === "casual" ? clienteCasual.trim() : null,
+        cliente_nombre: tipoVenta === "registrada" ? clienteNombre : null,
         total: totalCarrito,
         subtotal: totalCarrito,
         descuento: 0,
@@ -528,6 +590,8 @@ export default function VentasPage() {
         fecha_venta: new Date().toISOString(),
       }
 
+      console.log("Creando venta con datos:", ventaData)
+      
       const { data: ventaCreada, error: ventaError } = await supabase.from("ventas").insert(ventaData).select().single()
 
       if (ventaError) {
@@ -538,6 +602,8 @@ export default function VentasPage() {
       if (!ventaCreada) {
         throw new Error("No se pudo crear la venta")
       }
+
+      console.log("Venta creada exitosamente:", ventaCreada)
 
       // Crear items de venta con validación
       const ventaItems = carrito.map((item: ProductoCarrito) => ({
@@ -554,12 +620,16 @@ export default function VentasPage() {
         updated_at: new Date().toISOString(),
       }))
 
+      console.log("Creando items de venta:", ventaItems)
+      
       const { error: itemsError } = await supabase.from("venta_items").insert(ventaItems)
 
       if (itemsError) {
         console.error("Error creando items:", itemsError)
         throw new Error(`Error al crear los items: ${itemsError.message}`)
       }
+
+      console.log("Items de venta creados exitosamente")
 
       // Actualizar stock de productos (solo para productos no personalizados)
       const stockUpdates = []
@@ -886,6 +956,14 @@ export default function VentasPage() {
                           <SelectItem value="cancelado">Cancelado</SelectItem>
                         </SelectContent>
                       </Select>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => eliminarVenta(venta.id)}
+                        className="hover:bg-red-700"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
