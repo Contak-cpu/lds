@@ -54,68 +54,86 @@ export class MetricsService {
       })
 
       // Ventas de hoy
+      console.log("🔍 Consultando ventas de hoy...")
       const { data: ventasHoy, error: errorVentasHoy } = await this.supabase
         .from("ventas")
         .select("total")
         .gte("fecha_venta", inicioHoy.toISOString())
         .lt("fecha_venta", new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000).toISOString())
 
-      console.log("🔍 Ventas Hoy:", { data: ventasHoy, error: errorVentasHoy })
+      if (errorVentasHoy) {
+        console.error("❌ Error en ventas de hoy:", errorVentasHoy)
+        throw new Error(`Error en ventas de hoy: ${errorVentasHoy.message}`)
+      }
+      console.log("✅ Ventas Hoy:", { data: ventasHoy, count: ventasHoy?.length || 0 })
 
       // Ventas de ayer
+      console.log("🔍 Consultando ventas de ayer...")
       const { data: ventasAyer, error: errorVentasAyer } = await this.supabase
         .from("ventas")
         .select("total")
         .gte("fecha_venta", ayer.toISOString())
         .lt("fecha_venta", inicioHoy.toISOString())
 
-      console.log("🔍 Ventas Ayer:", { data: ventasAyer, error: errorVentasAyer })
+      if (errorVentasAyer) {
+        console.error("❌ Error en ventas de ayer:", errorVentasAyer)
+        throw new Error(`Error en ventas de ayer: ${errorVentasAyer.message}`)
+      }
+      console.log("✅ Ventas Ayer:", { data: ventasAyer, count: ventasAyer?.length || 0 })
 
       // Clientes activos (con ventas en los últimos 30 días)
+      console.log("🔍 Consultando clientes activos...")
       const { data: clientesActivos, error: errorClientes } = await this.supabase
         .from("ventas")
         .select("cliente_id")
         .gte("fecha_venta", new Date(hoy.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
         .not("cliente_id", "is", null)
 
-      console.log("🔍 Clientes Activos:", { data: clientesActivos, error: errorClientes })
+      if (errorClientes) {
+        console.error("❌ Error en clientes activos:", errorClientes)
+        throw new Error(`Error en clientes activos: ${errorClientes.message}`)
+      }
+      console.log("✅ Clientes Activos:", { data: clientesActivos, count: clientesActivos?.length || 0 })
 
       // Productos en stock
+      console.log("🔍 Consultando productos en stock...")
       const { data: productosStock, error: errorProductos } = await this.supabase
         .from("productos")
         .select("stock")
         .eq("activo", true)
 
-      console.log("🔍 Productos Stock:", { data: productosStock, error: errorProductos })
+      if (errorProductos) {
+        console.error("❌ Error en productos stock:", errorProductos)
+        throw new Error(`Error en productos stock: ${errorProductos.message}`)
+      }
+      console.log("✅ Productos Stock:", { data: productosStock, count: productosStock?.length || 0 })
 
       // Productos con stock bajo
+      console.log("🔍 Consultando productos con stock bajo...")
       const { data: productosStockBajo, error: errorStockBajo } = await this.supabase
         .from("productos")
         .select("stock, stock_minimo")
         .eq("activo", true)
         .lt("stock", "stock_minimo")
 
-      console.log("🔍 Productos Stock Bajo:", { data: productosStockBajo, error: errorStockBajo })
+      if (errorStockBajo) {
+        console.error("❌ Error en productos stock bajo:", errorStockBajo)
+        throw new Error(`Error en productos stock bajo: ${errorStockBajo.message}`)
+      }
+      console.log("✅ Productos Stock Bajo:", { data: productosStockBajo, count: productosStockBajo?.length || 0 })
 
       // Nuevos clientes esta semana
+      console.log("🔍 Consultando nuevos clientes...")
       const { data: nuevosClientes, error: errorNuevosClientes } = await this.supabase
         .from("clientes")
         .select("id")
         .gte("fecha_registro", inicioSemana.toISOString())
 
-      console.log("🔍 Nuevos Clientes:", { data: nuevosClientes, error: errorNuevosClientes })
-
-      if (errorVentasHoy || errorVentasAyer || errorClientes || errorProductos || errorStockBajo || errorNuevosClientes) {
-        console.error("❌ Errores en consultas:", {
-          errorVentasHoy,
-          errorVentasAyer,
-          errorClientes,
-          errorProductos,
-          errorStockBajo,
-          errorNuevosClientes
-        })
-        throw new Error("Error al obtener métricas")
+      if (errorNuevosClientes) {
+        console.error("❌ Error en nuevos clientes:", errorNuevosClientes)
+        throw new Error(`Error en nuevos clientes: ${errorNuevosClientes.message}`)
       }
+      console.log("✅ Nuevos Clientes:", { data: nuevosClientes, count: nuevosClientes?.length || 0 })
 
       const totalVentasHoy = ventasHoy?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
@@ -135,7 +153,7 @@ export class MetricsService {
         pedidosRequierenAtencion: 0, // Por implementar
       }
 
-      console.log("✅ Dashboard Resultado:", resultado)
+      console.log("✅ Dashboard Resultado Final:", resultado)
       return resultado
     } catch (error) {
       console.error("❌ Error obteniendo métricas del dashboard:", error)
