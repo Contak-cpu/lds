@@ -74,6 +74,79 @@ interface ProductoFormData {
   imagen_url: string
 }
 
+interface ProductoFormErrors {
+  nombre?: string
+  categoria?: string
+  precio?: string
+  costo?: string
+  stock?: string
+  stock_minimo?: string
+  descripcion?: string
+  imagen_url?: string
+}
+
+// Función de validación para productos
+const validateProductoForm = (formData: ProductoFormData): ProductoFormErrors => {
+  const errors: ProductoFormErrors = {}
+
+  // Validar nombre
+  if (!formData.nombre.trim()) {
+    errors.nombre = "El nombre del producto es obligatorio"
+  } else if (formData.nombre.trim().length < 2) {
+    errors.nombre = "El nombre debe tener al menos 2 caracteres"
+  }
+
+  // Validar categoría
+  if (!formData.categoria.trim()) {
+    errors.categoria = "La categoría es obligatoria"
+  }
+
+  // Validar precio
+  if (!formData.precio.trim()) {
+    errors.precio = "El precio es obligatorio"
+  } else if (!/^\d+(\.\d{1,2})?$/.test(formData.precio.trim())) {
+    errors.precio = "El precio debe ser un número válido (máximo 2 decimales)"
+  } else if (parseFloat(formData.precio) < 0) {
+    errors.precio = "El precio no puede ser negativo"
+  }
+
+  // Validar costo
+  if (!formData.costo.trim()) {
+    errors.costo = "El costo es obligatorio"
+  } else if (!/^\d+(\.\d{1,2})?$/.test(formData.costo.trim())) {
+    errors.costo = "El costo debe ser un número válido (máximo 2 decimales)"
+  } else if (parseFloat(formData.costo) < 0) {
+    errors.costo = "El costo no puede ser negativo"
+  }
+
+  // Validar stock
+  if (!formData.stock.trim()) {
+    errors.stock = "El stock es obligatorio"
+  } else if (!/^\d+$/.test(formData.stock.trim())) {
+    errors.stock = "El stock debe ser un número entero"
+  } else if (parseInt(formData.stock) < 0) {
+    errors.stock = "El stock no puede ser negativo"
+  }
+
+  // Validar stock mínimo
+  if (!formData.stock_minimo.trim()) {
+    errors.stock_minimo = "El stock mínimo es obligatorio"
+  } else if (!/^\d+$/.test(formData.stock_minimo.trim())) {
+    errors.stock_minimo = "El stock mínimo debe ser un número entero"
+  } else if (parseInt(formData.stock_minimo) < 0) {
+    errors.stock_minimo = "El stock mínimo no puede ser negativo"
+  }
+
+  // Validar descripción
+  if (!formData.descripcion.trim()) {
+    errors.descripcion = "La descripción es obligatoria"
+  } else if (formData.descripcion.trim().length < 10) {
+    errors.descripcion = "La descripción debe tener al menos 10 caracteres"
+  }
+
+  return errors
+}
+
 interface CategoriaInfo {
   value: string
   label: string
@@ -99,8 +172,21 @@ export default function ProductosPage() {
   const [productos, setProductos] = useState<Producto[]>([])
   const [editingProduct, setEditingProduct] = useState<Producto | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [formErrors, setFormErrors] = useState<ProductoFormErrors>({})
+  const [editFormErrors, setEditFormErrors] = useState<ProductoFormErrors>({})
 
   const [formData, setFormData] = useState<ProductoFormData>({
+    nombre: "",
+    categoria: "",
+    precio: "",
+    costo: "",
+    stock: "",
+    stock_minimo: "",
+    descripcion: "",
+    imagen_url: "",
+  })
+
+  const [editFormData, setEditFormData] = useState<ProductoFormData>({
     nombre: "",
     categoria: "",
     precio: "",
@@ -142,6 +228,55 @@ export default function ProductosPage() {
       ...prev,
       [field]: value,
     }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (formErrors[field]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
+  }
+
+  const handleEditInputChange = (field: keyof ProductoFormData, value: string): void => {
+    setEditFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (editFormErrors[field]) {
+      setEditFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
+  }
+
+  const handleCategoriaChange = (value: string): void => {
+    setFormData((prev) => ({
+      ...prev,
+      categoria: value,
+    }))
+    // Limpiar error de categoría
+    if (formErrors.categoria) {
+      setFormErrors((prev) => ({
+        ...prev,
+        categoria: undefined,
+      }))
+    }
+  }
+
+  const handleEditCategoriaChange = (value: string): void => {
+    setEditFormData((prev) => ({
+      ...prev,
+      categoria: value,
+    }))
+    // Limpiar error de categoría
+    if (editFormErrors.categoria) {
+      setEditFormErrors((prev) => ({
+        ...prev,
+        categoria: undefined,
+      }))
+    }
   }
 
   const resetForm = () => {
@@ -156,6 +291,12 @@ export default function ProductosPage() {
       imagen_url: "",
     })
     setPreviewCategoriaId("")
+  }
+
+  const handleOpenAddDialog = () => {
+    setIsAddDialogOpen(true)
+    // Limpiar errores previos
+    setFormErrors({})
   }
 
   const generateSKU = async (categoria: string): Promise<string> => {
@@ -282,79 +423,37 @@ export default function ProductosPage() {
     }
   }
 
-  const handleCategoriaChange = (categoria: string) => {
-    handleInputChange("categoria", categoria)
-    
-    // Generar preview del categoria_id que se creará
-    let categoriaPrefix = 'PRO'
-    switch (categoria.toLowerCase()) {
-      case 'semillas':
-        categoriaPrefix = 'SEM'
-        break
-      case 'fertilizantes':
-        categoriaPrefix = 'FER'
-        break
-      case 'herramientas':
-        categoriaPrefix = 'HER'
-        break
-      case 'sustratos':
-        categoriaPrefix = 'SUS'
-        break
-      case 'iluminacion':
-      case 'iluminación':
-        categoriaPrefix = 'ILU'
-        break
-      case 'hidroponia':
-      case 'hidroponía':
-        categoriaPrefix = 'HID'
-        break
-      case 'kits':
-        categoriaPrefix = 'KIT'
-        break
-      case 'accesorios':
-        categoriaPrefix = 'ACC'
-        break
-      default:
-        categoriaPrefix = 'PRO'
-    }
-    
-    // Actualizar el campo categoria_id en el formulario para mostrar el preview
-    setPreviewCategoriaId(`${categoriaPrefix}-001`)
-  }
-
   const handleAddProduct = async () => {
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
     try {
+      // Validar formulario
+      const errors = validateProductoForm(formData)
+      
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors)
+        toast({
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Limpiar errores previos
+      setFormErrors({})
+
       const supabase = createClient()
-      
-      // Generar SKU único y categoria_id automáticamente
-      const [sku, categoriaId] = await Promise.all([
-        generateSKU(formData.categoria),
-        generateCategoriaId(formData.categoria)
-      ])
-      
       const { data, error } = await supabase
         .from("productos")
         .insert([
           {
-            sku: sku,
-            categoria_id: categoriaId,
-            nombre: formData.nombre,
-            descripcion: formData.descripcion || null,
+            nombre: formData.nombre.trim(),
+            descripcion: formData.descripcion.trim() || null,
             categoria: formData.categoria,
             precio: parseFloat(formData.precio),
             costo: parseFloat(formData.costo),
             stock: parseInt(formData.stock) || 0,
             stock_minimo: parseInt(formData.stock_minimo) || 5,
-            imagen_url: formData.imagen_url || null,
+            imagen_url: formData.imagen_url.trim() || null,
             activo: true,
           },
         ])
@@ -363,8 +462,9 @@ export default function ProductosPage() {
       if (error) throw error
 
       if (data) {
-        setProductos((prev: Producto[]) => [data[0], ...prev])
+        setProductos((prev) => [data[0], ...prev])
         resetForm()
+        setIsAddDialogOpen(false)
         toast({
           title: "Producto agregado",
           description: "El producto se ha agregado exitosamente",
@@ -382,7 +482,7 @@ export default function ProductosPage() {
 
   const handleEditProduct = (product: Producto) => {
     setEditingProduct(product)
-    setFormData({
+    setEditFormData({
       nombre: product.nombre,
       categoria: product.categoria,
       precio: product.precio.toString(),
@@ -392,34 +492,43 @@ export default function ProductosPage() {
       descripcion: product.descripcion || "",
       imagen_url: product.imagen_url || "",
     })
+    // Limpiar errores previos
+    setEditFormErrors({})
     setIsEditDialogOpen(true)
   }
 
   const handleSaveEdit = async () => {
     if (!editingProduct) return
 
-    if (!formData.nombre || !formData.precio || !formData.costo || !formData.categoria) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
     try {
+      // Validar formulario de edición
+      const errors = validateProductoForm(editFormData)
+      
+      if (Object.keys(errors).length > 0) {
+        setEditFormErrors(errors)
+        toast({
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Limpiar errores previos
+      setEditFormErrors({})
+
       const supabase = createClient()
       const { data, error } = await supabase
         .from("productos")
         .update({
-          nombre: formData.nombre,
-          descripcion: formData.descripcion || null,
-          categoria: formData.categoria,
-          precio: parseFloat(formData.precio),
-          costo: parseFloat(formData.costo),
-          stock: parseInt(formData.stock) || 0,
-          stock_minimo: parseInt(formData.stock_minimo) || 5,
-          imagen_url: formData.imagen_url || null,
+          nombre: editFormData.nombre.trim(),
+          descripcion: editFormData.descripcion.trim() || null,
+          categoria: editFormData.categoria,
+          precio: parseFloat(editFormData.precio),
+          costo: parseFloat(editFormData.costo),
+          stock: parseInt(editFormData.stock) || 0,
+          stock_minimo: parseInt(editFormData.stock_minimo) || 5,
+          imagen_url: editFormData.imagen_url.trim() || null,
         })
         .eq("id", editingProduct.id)
         .select()
@@ -427,8 +536,8 @@ export default function ProductosPage() {
       if (error) throw error
 
       if (data) {
-        setProductos((prev: Producto[]) =>
-          prev.map((producto: Producto) => (producto.id === editingProduct.id ? data[0] : producto)),
+        setProductos((prev) =>
+          prev.map((product) => (product.id === editingProduct.id ? data[0] : product)),
         )
         setIsEditDialogOpen(false)
         setEditingProduct(null)
@@ -539,7 +648,7 @@ export default function ProductosPage() {
                   <p className="text-sm text-amber-600">Gestiona tu inventario de cultivo</p>
                 </div>
               </div>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Nuevo Producto
               </Button>
@@ -830,6 +939,7 @@ export default function ProductosPage() {
                       value={formData.nombre}
                       onChange={(e) => handleInputChange("nombre", e.target.value)}
                     />
+                    {formErrors.nombre && <p className="text-xs text-red-500 mt-1">{formErrors.nombre}</p>}
                   </div>
                   <div>
                     <Label htmlFor="categoria">Categoría *</Label>
@@ -845,6 +955,7 @@ export default function ProductosPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {formErrors.categoria && <p className="text-xs text-red-500 mt-1">{formErrors.categoria}</p>}
                   </div>
                   <div>
                     <Label htmlFor="categoria-id">ID de Categoría</Label>
@@ -867,6 +978,7 @@ export default function ProductosPage() {
                         value={formData.precio}
                         onChange={(e) => handleInputChange("precio", e.target.value)}
                       />
+                      {formErrors.precio && <p className="text-xs text-red-500 mt-1">{formErrors.precio}</p>}
                     </div>
                     <div>
                       <Label htmlFor="costo">Costo ($) *</Label>
@@ -878,6 +990,7 @@ export default function ProductosPage() {
                         value={formData.costo}
                         onChange={(e) => handleInputChange("costo", e.target.value)}
                       />
+                      {formErrors.costo && <p className="text-xs text-red-500 mt-1">{formErrors.costo}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -890,6 +1003,7 @@ export default function ProductosPage() {
                         value={formData.stock}
                         onChange={(e) => handleInputChange("stock", e.target.value)}
                       />
+                      {formErrors.stock && <p className="text-xs text-red-500 mt-1">{formErrors.stock}</p>}
                     </div>
                     <div>
                       <Label htmlFor="stock_minimo">Stock mínimo</Label>
@@ -900,6 +1014,7 @@ export default function ProductosPage() {
                         value={formData.stock_minimo}
                         onChange={(e) => handleInputChange("stock_minimo", e.target.value)}
                       />
+                      {formErrors.stock_minimo && <p className="text-xs text-red-500 mt-1">{formErrors.stock_minimo}</p>}
                     </div>
                   </div>
                 </div>
@@ -913,6 +1028,7 @@ export default function ProductosPage() {
                       value={formData.descripcion}
                       onChange={(e) => handleInputChange("descripcion", e.target.value)}
                     />
+                    {formErrors.descripcion && <p className="text-xs text-red-500 mt-1">{formErrors.descripcion}</p>}
                   </div>
                   <div>
                     <Label htmlFor="imagen_url">URL de imagen</Label>
@@ -922,6 +1038,7 @@ export default function ProductosPage() {
                       value={formData.imagen_url}
                       onChange={(e) => handleInputChange("imagen_url", e.target.value)}
                     />
+                    {formErrors.imagen_url && <p className="text-xs text-red-500 mt-1">{formErrors.imagen_url}</p>}
                   </div>
                 </div>
               </div>
@@ -955,13 +1072,14 @@ export default function ProductosPage() {
                     <Input
                       id="edit-nombre"
                       placeholder="Nombre del producto"
-                      value={formData.nombre}
-                      onChange={(e) => handleInputChange("nombre", e.target.value)}
+                      value={editFormData.nombre}
+                      onChange={(e) => handleEditInputChange("nombre", e.target.value)}
                     />
+                    {editFormErrors.nombre && <p className="text-xs text-red-500 mt-1">{editFormErrors.nombre}</p>}
                   </div>
                   <div>
                     <Label htmlFor="edit-categoria">Categoría *</Label>
-                    <Select value={formData.categoria} onValueChange={(value) => handleCategoriaChange(value)}>
+                    <Select value={editFormData.categoria} onValueChange={(value) => handleEditCategoriaChange(value)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Seleccionar categoría" />
                       </SelectTrigger>
@@ -973,6 +1091,7 @@ export default function ProductosPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {editFormErrors.categoria && <p className="text-xs text-red-500 mt-1">{editFormErrors.categoria}</p>}
                   </div>
                   <div>
                     <Label htmlFor="edit-categoria-id">ID de Categoría</Label>
@@ -992,9 +1111,10 @@ export default function ProductosPage() {
                         type="number"
                         placeholder="0.00"
                         step="0.01"
-                        value={formData.precio}
-                        onChange={(e) => handleInputChange("precio", e.target.value)}
+                        value={editFormData.precio}
+                        onChange={(e) => handleEditInputChange("precio", e.target.value)}
                       />
+                      {editFormErrors.precio && <p className="text-xs text-red-500 mt-1">{editFormErrors.precio}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-costo">Costo ($) *</Label>
@@ -1003,9 +1123,10 @@ export default function ProductosPage() {
                         type="number"
                         placeholder="0.00"
                         step="0.01"
-                        value={formData.costo}
-                        onChange={(e) => handleInputChange("costo", e.target.value)}
+                        value={editFormData.costo}
+                        onChange={(e) => handleEditInputChange("costo", e.target.value)}
                       />
+                      {editFormErrors.costo && <p className="text-xs text-red-500 mt-1">{editFormErrors.costo}</p>}
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -1015,9 +1136,10 @@ export default function ProductosPage() {
                         id="edit-stock"
                         type="number"
                         placeholder="0"
-                        value={formData.stock}
-                        onChange={(e) => handleInputChange("stock", e.target.value)}
+                        value={editFormData.stock}
+                        onChange={(e) => handleEditInputChange("stock", e.target.value)}
                       />
+                      {editFormErrors.stock && <p className="text-xs text-red-500 mt-1">{editFormErrors.stock}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-stock_minimo">Stock mínimo</Label>
@@ -1025,9 +1147,10 @@ export default function ProductosPage() {
                         id="edit-stock_minimo"
                         type="number"
                         placeholder="5"
-                        value={formData.stock_minimo}
-                        onChange={(e) => handleInputChange("stock_minimo", e.target.value)}
+                        value={editFormData.stock_minimo}
+                        onChange={(e) => handleEditInputChange("stock_minimo", e.target.value)}
                       />
+                      {editFormErrors.stock_minimo && <p className="text-xs text-red-500 mt-1">{editFormErrors.stock_minimo}</p>}
                     </div>
                   </div>
                 </div>
@@ -1038,18 +1161,20 @@ export default function ProductosPage() {
                       id="edit-descripcion"
                       placeholder="Descripción detallada del producto"
                       className="h-32"
-                      value={formData.descripcion}
-                      onChange={(e) => handleInputChange("descripcion", e.target.value)}
+                      value={editFormData.descripcion}
+                      onChange={(e) => handleEditInputChange("descripcion", e.target.value)}
                     />
+                    {editFormErrors.descripcion && <p className="text-xs text-red-500 mt-1">{editFormErrors.descripcion}</p>}
                   </div>
                   <div>
                     <Label htmlFor="edit-imagen_url">URL de imagen</Label>
                     <Input
                       id="edit-imagen_url"
                       placeholder="URL de la imagen"
-                      value={formData.imagen_url}
-                      onChange={(e) => handleInputChange("imagen_url", e.target.value)}
+                      value={editFormData.imagen_url}
+                      onChange={(e) => handleEditInputChange("imagen_url", e.target.value)}
                     />
+                    {editFormErrors.imagen_url && <p className="text-xs text-red-500 mt-1">{editFormErrors.imagen_url}</p>}
                   </div>
                 </div>
               </div>

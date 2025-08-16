@@ -121,6 +121,68 @@ interface ProductoCarrito extends Producto {
   esPersonalizado?: boolean
 }
 
+interface VentaFormErrors {
+  clienteSeleccionado?: string
+  clienteCasual?: string
+  productoPersonalizado?: {
+    nombre?: string
+    precio?: string
+  }
+  metodoPago?: string
+  carrito?: string
+}
+
+// Función de validación para ventas
+const validateVentaForm = (
+  carrito: ProductoCarrito[],
+  clienteSeleccionado: string,
+  clienteCasual: string,
+  productoPersonalizado: { nombre: string; precio: string },
+  metodoPago: string,
+  tipoVenta: string
+): VentaFormErrors => {
+  const errors: VentaFormErrors = {}
+
+  // Validar carrito
+  if (carrito.length === 0) {
+    errors.carrito = "Debe agregar al menos un producto al carrito"
+  }
+
+  // Validar cliente según el tipo de venta
+  if (tipoVenta === "registrada") {
+    if (!clienteSeleccionado.trim()) {
+      errors.clienteSeleccionado = "Debe seleccionar un cliente registrado"
+    }
+  } else {
+    if (!clienteCasual.trim()) {
+      errors.clienteCasual = "Debe ingresar el nombre del cliente casual"
+    } else if (clienteCasual.trim().length < 2) {
+      errors.clienteCasual = "El nombre del cliente debe tener al menos 2 caracteres"
+    }
+  }
+
+  // Validar producto personalizado si existe
+  if (carrito.some(item => item.esPersonalizado)) {
+    if (!productoPersonalizado.nombre.trim()) {
+      errors.productoPersonalizado = { ...errors.productoPersonalizado, nombre: "El nombre del producto personalizado es obligatorio" }
+    }
+    if (!productoPersonalizado.precio.trim()) {
+      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio del producto personalizado es obligatorio" }
+    } else if (!/^\d+(\.\d{1,2})?$/.test(productoPersonalizado.precio.trim())) {
+      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio debe ser un número válido (máximo 2 decimales)" }
+    } else if (parseFloat(productoPersonalizado.precio) < 0) {
+      errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "El precio no puede ser negativo" }
+    }
+  }
+
+  // Validar método de pago
+  if (!metodoPago.trim()) {
+    errors.metodoPago = "Debe seleccionar un método de pago"
+  }
+
+  return errors
+}
+
 interface ProductoSupabase {
   id: string
   sku?: string
@@ -153,6 +215,7 @@ export default function VentasPage() {
   const [filterEstado, setFilterEstado] = useState("todos")
   const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [formErrors, setFormErrors] = useState<VentaFormErrors>({})
 
   const supabase = createClient()
 
@@ -486,76 +549,55 @@ export default function VentasPage() {
   )
 
   const crearVenta = async () => {
-    if (carrito.length === 0) {
-      toast({
-        title: "Error",
-        description: "Agrega al menos un producto al carrito",
-        variant: "destructive",
-      })
-      return
-    }
+    try {
+      // Validar formulario
+      const errors = validateVentaForm(
+        carrito,
+        clienteSeleccionado,
+        clienteCasual,
+        productoPersonalizado,
+        metodoPago,
+        tipoVenta
+      )
+      
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors)
+        toast({
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
+          variant: "destructive",
+        })
+        return
+      }
 
-    if (tipoVenta === "registrada" && !clienteSeleccionado) {
-      toast({
-        title: "Error",
-        description: "Selecciona un cliente para venta registrada",
-        variant: "destructive",
-      })
-      return
-    }
+      // Limpiar errores previos
+      setFormErrors({})
 
-    if (tipoVenta === "casual" && !clienteCasual.trim()) {
-      toast({
-        title: "Error",
-        description: "Ingresa un nombre para la venta casual",
-        variant: "destructive",
-      })
-      return
-    }
+      // Validar stock disponible antes de procesar
+      for (const item of carrito) {
+        if (!item.esPersonalizado) {
+          const productoActual = productos.find((p) => p.id === item.id)
+          if (!productoActual) {
+            toast({
+              title: "Error",
+              description: `Producto ${item.nombre} no encontrado`,
+              variant: "destructive",
+            })
+            return
+          }
 
-    if (!metodoPago) {
-      toast({
-        title: "Error",
-        description: "Selecciona un método de pago",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Validar stock disponible antes de procesar
-    for (const item of carrito) {
-      if (!item.esPersonalizado) {
-        const productoActual = productos.find((p) => p.id === item.id)
-        if (!productoActual) {
-          toast({
-            title: "Error",
-            description: `Producto ${item.nombre} no encontrado`,
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (productoActual.stock < item.cantidad) {
-          toast({
-            title: "Stock insuficiente",
-            description: `Solo hay ${productoActual.stock} unidades de ${item.nombre}`,
-            variant: "destructive",
-          })
-          return
+          if (productoActual.stock < item.cantidad) {
+            toast({
+              title: "Error de stock",
+              description: `Stock insuficiente para ${item.nombre}. Disponible: ${productoActual.stock}`,
+              variant: "destructive",
+            })
+            return
+          }
         }
       }
-    }
 
-    if (totalCarrito <= 0) {
-      toast({
-        title: "Error",
-        description: "El total de la venta debe ser mayor a 0",
-        variant: "destructive",
-      })
-      return
-    }
-
-    try {
+      // Continuar con la creación de la venta...
       // Obtener datos del cliente
       let clienteNombre = ""
       let clienteId = null
@@ -691,6 +733,70 @@ export default function VentasPage() {
     }
   }
 
+  const handleClienteSeleccionadoChange = (value: string) => {
+    setClienteSeleccionado(value)
+    // Limpiar error del cliente seleccionado
+    if (formErrors.clienteSeleccionado) {
+      setFormErrors(prev => ({ ...prev, clienteSeleccionado: undefined }))
+    }
+  }
+
+  const handleClienteCasualChange = (value: string) => {
+    setClienteCasual(value)
+    // Limpiar error del cliente casual
+    if (formErrors.clienteCasual) {
+      setFormErrors(prev => ({ ...prev, clienteCasual: undefined }))
+    }
+  }
+
+  const handleProductoPersonalizadoChange = (field: 'nombre' | 'precio', value: string) => {
+    setProductoPersonalizado(prev => ({ ...prev, [field]: value }))
+    // Limpiar error del producto personalizado
+    if (formErrors.productoPersonalizado?.[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        productoPersonalizado: {
+          ...prev.productoPersonalizado,
+          [field]: undefined
+        }
+      }))
+    }
+  }
+
+  const handleMetodoPagoChange = (value: string) => {
+    setMetodoPago(value)
+    // Limpiar error del método de pago
+    if (formErrors.metodoPago) {
+      setFormErrors(prev => ({ ...prev, metodoPago: undefined }))
+    }
+  }
+
+  const handleTipoVentaChange = (value: string) => {
+    setTipoVenta(value)
+    // Limpiar errores relacionados con clientes
+    setFormErrors(prev => ({
+      ...prev,
+      clienteSeleccionado: undefined,
+      clienteCasual: undefined
+    }))
+  }
+
+  const handleOpenNewSaleDialog = () => {
+    setIsNewSaleDialogOpen(true)
+    // Limpiar errores previos
+    setFormErrors({})
+  }
+
+  // Mostrar error del carrito si existe
+  const carritoError = formErrors.carrito && (
+    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <p className="text-sm text-red-600 flex items-center">
+        <AlertCircle className="w-4 h-4 mr-2" />
+        {formErrors.carrito}
+      </p>
+    </div>
+  )
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-background">
@@ -723,7 +829,7 @@ export default function VentasPage() {
                   <p className="text-sm text-purple-600">Administra las transacciones de tu negocio</p>
                 </div>
               </div>
-              <Button onClick={() => setIsNewSaleDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleOpenNewSaleDialog} className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Nueva Venta
               </Button>
@@ -978,6 +1084,8 @@ export default function VentasPage() {
                 <DialogDescription>Crea una nueva venta registrada o casual</DialogDescription>
               </DialogHeader>
 
+              {carritoError}
+
               <div className="space-y-6 py-4">
                 <div className="flex gap-4">
                   <Card
@@ -1011,7 +1119,7 @@ export default function VentasPage() {
                         {tipoVenta === "registrada" ? "Cliente Registrado" : "Nombre del Cliente"}
                       </Label>
                       {tipoVenta === "registrada" ? (
-                        <Select value={clienteSeleccionado} onValueChange={setClienteSeleccionado}>
+                        <Select value={clienteSeleccionado} onValueChange={handleClienteSeleccionadoChange}>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar cliente registrado" />
                           </SelectTrigger>
@@ -1027,8 +1135,14 @@ export default function VentasPage() {
                         <Input
                           placeholder="Nombre del cliente"
                           value={clienteCasual}
-                          onChange={(e) => setClienteCasual(e.target.value)}
+                          onChange={(e) => handleClienteCasualChange(e.target.value)}
                         />
+                      )}
+                      {formErrors.clienteSeleccionado && (
+                        <p className="text-sm text-red-500 mt-1">{formErrors.clienteSeleccionado}</p>
+                      )}
+                      {formErrors.clienteCasual && (
+                        <p className="text-sm text-red-500 mt-1">{formErrors.clienteCasual}</p>
                       )}
                     </div>
 
@@ -1090,7 +1204,7 @@ export default function VentasPage() {
                     {/* Método de Pago */}
                     <div>
                       <Label htmlFor="metodoPago">Método de Pago *</Label>
-                      <Select value={metodoPago} onValueChange={setMetodoPago}>
+                      <Select value={metodoPago} onValueChange={handleMetodoPagoChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccionar método" />
                         </SelectTrigger>
@@ -1101,6 +1215,9 @@ export default function VentasPage() {
                           <SelectItem value="mercadopago">Mercado Pago</SelectItem>
                         </SelectContent>
                       </Select>
+                      {formErrors.metodoPago && (
+                        <p className="text-sm text-red-500 mt-1">{formErrors.metodoPago}</p>
+                      )}
                     </div>
 
                     {/* Notas */}
@@ -1173,11 +1290,12 @@ export default function VentasPage() {
                             id="nombrePersonalizado"
                             placeholder="Descripción del producto personalizado"
                             value={productoPersonalizado.nombre}
-                            onChange={(e) =>
-                              setProductoPersonalizado({ ...productoPersonalizado, nombre: e.target.value })
-                            }
+                            onChange={(e) => handleProductoPersonalizadoChange('nombre', e.target.value)}
                             className="text-sm"
                           />
+                          {formErrors.productoPersonalizado?.nombre && (
+                            <p className="text-sm text-red-500 mt-1">{formErrors.productoPersonalizado.nombre}</p>
+                          )}
                         </div>
                         <div>
                           <Label htmlFor="precioPersonalizado" className="text-xs">
@@ -1188,11 +1306,12 @@ export default function VentasPage() {
                             type="number"
                             placeholder="15000"
                             value={productoPersonalizado.precio}
-                            onChange={(e) =>
-                              setProductoPersonalizado({ ...productoPersonalizado, precio: e.target.value })
-                            }
+                            onChange={(e) => handleProductoPersonalizadoChange('precio', e.target.value)}
                             className="text-sm"
                           />
+                          {formErrors.productoPersonalizado?.precio && (
+                            <p className="text-sm text-red-500 mt-1">{formErrors.productoPersonalizado.precio}</p>
+                          )}
                         </div>
                         <Button
                           onClick={agregarProductoPersonalizado}

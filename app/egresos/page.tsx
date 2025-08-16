@@ -45,6 +45,55 @@ interface EgresoFormData {
   notas: string
 }
 
+interface EgresoFormErrors {
+  descripcion?: string
+  categoria?: string
+  monto?: string
+  proveedor?: string
+  metodo_pago?: string
+  notas?: string
+}
+
+// Función de validación para egresos
+const validateEgresoForm = (formData: EgresoFormData): EgresoFormErrors => {
+  const errors: EgresoFormErrors = {}
+
+  // Validar descripción
+  if (!formData.descripcion.trim()) {
+    errors.descripcion = "La descripción es obligatoria"
+  } else if (formData.descripcion.trim().length < 5) {
+    errors.descripcion = "La descripción debe tener al menos 5 caracteres"
+  }
+
+  // Validar categoría
+  if (!formData.categoria.trim()) {
+    errors.categoria = "La categoría es obligatoria"
+  }
+
+  // Validar monto
+  if (!formData.monto.trim()) {
+    errors.monto = "El monto es obligatorio"
+  } else if (!/^\d+(\.\d{1,2})?$/.test(formData.monto.trim())) {
+    errors.monto = "El monto debe ser un número válido (máximo 2 decimales)"
+  } else if (parseFloat(formData.monto) <= 0) {
+    errors.monto = "El monto debe ser mayor a 0"
+  }
+
+  // Validar proveedor
+  if (!formData.proveedor.trim()) {
+    errors.proveedor = "El proveedor es obligatorio"
+  } else if (formData.proveedor.trim().length < 2) {
+    errors.proveedor = "El proveedor debe tener al menos 2 caracteres"
+  }
+
+  // Validar método de pago
+  if (!formData.metodo_pago.trim()) {
+    errors.metodo_pago = "El método de pago es obligatorio"
+  }
+
+  return errors
+}
+
 const categorias = [
   "Proveedores",
   "Alquiler",
@@ -66,10 +115,21 @@ export default function EgresosPage() {
   const [dialogAbierto, setDialogAbierto] = useState(false)
   const [editandoEgreso, setEditandoEgreso] = useState<Egreso | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [formErrors, setFormErrors] = useState<EgresoFormErrors>({})
+  const [editFormErrors, setEditFormErrors] = useState<EgresoFormErrors>({})
   const { toast } = useToast()
 
   // Estado del formulario
   const [formData, setFormData] = useState<EgresoFormData>({
+    descripcion: "",
+    categoria: "",
+    monto: "",
+    proveedor: "",
+    metodo_pago: "",
+    notas: "",
+  })
+
+  const [editFormData, setEditFormData] = useState<EgresoFormData>({
     descripcion: "",
     categoria: "",
     monto: "",
@@ -123,37 +183,77 @@ export default function EgresosPage() {
   // Manejar cambios en el formulario
   const handleInputChange = (field: keyof EgresoFormData, value: string): void => {
     setFormData((prev) => ({ ...prev, [field]: value }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (formErrors[field]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
+  }
+
+  const handleEditInputChange = (field: keyof EgresoFormData, value: string): void => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (editFormErrors[field]) {
+      setEditFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
+  }
+
+  const handleOpenDialog = () => {
+    setDialogAbierto(true)
+    // Limpiar errores previos
+    setFormErrors({})
+  }
+
+  const handleOpenEditDialog = (egreso: Egreso) => {
+    setEditandoEgreso(egreso)
+    setEditFormData({
+      descripcion: egreso.descripcion,
+      categoria: egreso.categoria,
+      monto: egreso.monto.toString(),
+      proveedor: egreso.proveedor,
+      metodo_pago: egreso.metodo_pago,
+      notas: egreso.notas || "",
+    })
+    // Limpiar errores previos
+    setEditFormErrors({})
+    setDialogAbierto(true)
   }
 
   const agregarEgreso = async (): Promise<void> => {
-    if (
-      !formData.descripcion ||
-      !formData.categoria ||
-      !formData.monto ||
-      !formData.proveedor ||
-      !formData.metodo_pago
-    ) {
-      toast({
-        title: "Error",
-        description: "Por favor completa todos los campos obligatorios",
-        variant: "destructive",
-      })
-      return
-    }
-
     try {
+      // Validar formulario
+      const errors = validateEgresoForm(formData)
+      
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors)
+        toast({
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Limpiar errores previos
+      setFormErrors({})
+
       const supabase = createClient()
       const { data, error } = await supabase
         .from("egresos")
         .insert([
           {
             fecha_egreso: new Date().toISOString().split("T")[0],
-            descripcion: formData.descripcion,
+            descripcion: formData.descripcion.trim(),
             categoria: formData.categoria,
             monto: Number.parseFloat(formData.monto),
-            proveedor: formData.proveedor,
+            proveedor: formData.proveedor.trim(),
             metodo_pago: formData.metodo_pago,
-            notas: formData.notas,
+            notas: formData.notas.trim() || null,
           },
         ])
         .select()
@@ -175,10 +275,12 @@ export default function EgresosPage() {
         notas: "",
       })
 
+      // Cerrar diálogo
       setDialogAbierto(false)
+
       toast({
-        title: "Egreso agregado",
-        description: "El egreso se registró correctamente",
+        title: "Éxito",
+        description: "Egreso agregado correctamente",
       })
     } catch (error) {
       console.error("Error agregando egreso:", error)
@@ -298,17 +400,8 @@ export default function EgresosPage() {
             <Dialog open={dialogAbierto} onOpenChange={setDialogAbierto}>
               <DialogTrigger asChild>
                 <Button
-                  onClick={() => {
-                    setEditandoEgreso(null)
-                    setFormData({
-                      descripcion: "",
-                      categoria: "",
-                      monto: "",
-                      proveedor: "",
-                      metodo_pago: "",
-                      notas: "",
-                    })
-                  }}
+                  onClick={handleOpenDialog}
+                  className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Nuevo Egreso
@@ -330,8 +423,9 @@ export default function EgresosPage() {
                       id="descripcion"
                       value={formData.descripcion}
                       onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                                              placeholder="Concepto del egreso"
+                      placeholder="Concepto del egreso"
                     />
+                    {formErrors.descripcion && <p className="text-xs text-red-500 mt-1">{formErrors.descripcion}</p>}
                   </div>
 
                   <div>
@@ -348,6 +442,7 @@ export default function EgresosPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {formErrors.categoria && <p className="text-xs text-red-500 mt-1">{formErrors.categoria}</p>}
                   </div>
 
                   <div>
@@ -359,6 +454,7 @@ export default function EgresosPage() {
                       onChange={(e) => handleInputChange("monto", e.target.value)}
                       placeholder="0"
                     />
+                    {formErrors.monto && <p className="text-xs text-red-500 mt-1">{formErrors.monto}</p>}
                   </div>
 
                   <div>
@@ -369,6 +465,7 @@ export default function EgresosPage() {
                       onChange={(e) => handleInputChange("proveedor", e.target.value)}
                       placeholder="Nombre del proveedor"
                     />
+                    {formErrors.proveedor && <p className="text-xs text-red-500 mt-1">{formErrors.proveedor}</p>}
                   </div>
 
                   <div>
@@ -388,6 +485,7 @@ export default function EgresosPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                    {formErrors.metodo_pago && <p className="text-xs text-red-500 mt-1">{formErrors.metodo_pago}</p>}
                   </div>
 
                   <div>

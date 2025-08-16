@@ -47,6 +47,77 @@ interface ClienteFormData {
   notas: string
 }
 
+interface ClienteFormErrors {
+  nombre?: string
+  email?: string
+  telefono?: string
+  direccion?: string
+  ciudad?: string
+  provincia?: string
+  codigo_postal?: string
+  notas?: string
+}
+
+// Función de validación
+const validateClienteForm = (formData: ClienteFormData): ClienteFormErrors => {
+  const errors: ClienteFormErrors = {}
+
+  // Validar nombre
+  if (!formData.nombre.trim()) {
+    errors.nombre = "El nombre es obligatorio"
+  } else if (formData.nombre.trim().length < 2) {
+    errors.nombre = "El nombre debe tener al menos 2 caracteres"
+  } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.nombre.trim())) {
+    errors.nombre = "El nombre solo puede contener letras y espacios"
+  }
+
+  // Validar email
+  if (!formData.email.trim()) {
+    errors.email = "El email es obligatorio"
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+    errors.email = "Formato de email inválido"
+  }
+
+  // Validar teléfono
+  if (!formData.telefono.trim()) {
+    errors.telefono = "El teléfono es obligatorio"
+  } else if (!/^[\+]?[0-9\s\-\(\)]+$/.test(formData.telefono.trim())) {
+    errors.telefono = "El teléfono solo puede contener números, espacios, guiones y paréntesis"
+  } else if (formData.telefono.trim().replace(/[\s\-\(\)]/g, '').length < 8) {
+    errors.telefono = "El teléfono debe tener al menos 8 dígitos"
+  }
+
+  // Validar dirección
+  if (!formData.direccion.trim()) {
+    errors.direccion = "La dirección es obligatoria"
+  } else if (formData.direccion.trim().length < 5) {
+    errors.direccion = "La dirección debe tener al menos 5 caracteres"
+  }
+
+  // Validar ciudad
+  if (!formData.ciudad.trim()) {
+    errors.ciudad = "La ciudad es obligatoria"
+  } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.ciudad.trim())) {
+    errors.ciudad = "La ciudad solo puede contener letras y espacios"
+  }
+
+  // Validar provincia
+  if (!formData.provincia.trim()) {
+    errors.provincia = "La provincia es obligatoria"
+  } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(formData.provincia.trim())) {
+    errors.provincia = "La provincia solo puede contener letras y espacios"
+  }
+
+  // Validar código postal
+  if (!formData.codigo_postal.trim()) {
+    errors.codigo_postal = "El código postal es obligatorio"
+  } else if (!/^\d{4,5}$/.test(formData.codigo_postal.trim())) {
+    errors.codigo_postal = "El código postal debe tener 4 o 5 dígitos numéricos"
+  }
+
+  return errors
+}
+
 export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
@@ -58,6 +129,8 @@ export default function ClientesPage() {
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null)
   const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [formErrors, setFormErrors] = useState<ClienteFormErrors>({})
+  const [editFormErrors, setEditFormErrors] = useState<ClienteFormErrors>({})
   const { toast } = useToast()
 
   const [newClienteForm, setNewClienteForm] = useState<ClienteFormData>({
@@ -106,35 +179,31 @@ export default function ClientesPage() {
 
   const handleAddCliente = async () => {
     try {
-      // Validar que el nombre no esté vacío
-      if (!newClienteForm.nombre.trim()) {
+      // Validar formulario
+      const errors = validateClienteForm(newClienteForm)
+      
+      if (Object.keys(errors).length > 0) {
+        setFormErrors(errors)
         toast({
-          title: "Error",
-          description: "El nombre del cliente es obligatorio",
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
           variant: "destructive",
         })
         return
       }
 
-      // Validar formato de email si se proporciona
-      if (newClienteForm.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newClienteForm.email)) {
-        toast({
-          title: "Error",
-          description: "El formato del email no es válido",
-          variant: "destructive",
-        })
-        return
-      }
+      // Limpiar errores previos
+      setFormErrors({})
 
       const clienteData = {
-        nombre: newClienteForm.nombre,
-        email: newClienteForm.email || null,
-        telefono: newClienteForm.telefono || null,
-        direccion: newClienteForm.direccion || null,
-        ciudad: newClienteForm.ciudad || null,
-        provincia: newClienteForm.provincia || null,
-        codigo_postal: newClienteForm.codigo_postal || null,
-        notas: newClienteForm.notas || null,
+        nombre: newClienteForm.nombre.trim(),
+        email: newClienteForm.email.trim() || null,
+        telefono: newClienteForm.telefono.trim() || null,
+        direccion: newClienteForm.direccion.trim() || null,
+        ciudad: newClienteForm.ciudad.trim() || null,
+        provincia: newClienteForm.provincia.trim() || null,
+        codigo_postal: newClienteForm.codigo_postal.trim() || null,
+        notas: newClienteForm.notas.trim() || null,
         fecha_registro: new Date().toISOString(),
         estado: "Activo",
       }
@@ -174,7 +243,7 @@ export default function ClientesPage() {
       if (error instanceof Error) {
         errorMessage = error.message
       } else if (typeof error === 'object' && error !== null && 'message' in error) {
-        errorMessage = String(error.message)
+        errorMessage = String((error as any).message)
       }
       
       toast({
@@ -240,6 +309,13 @@ export default function ClientesPage() {
       ...prev,
       [field]: value,
     }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (editFormErrors[field as keyof ClienteFormErrors]) {
+      setEditFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
   }
 
   const handleNewClienteFormChange = (field: string, value: string): void => {
@@ -247,6 +323,13 @@ export default function ClientesPage() {
       ...prev,
       [field]: value,
     }))
+    // Limpiar error del campo cuando el usuario empiece a escribir
+    if (formErrors[field as keyof ClienteFormErrors]) {
+      setFormErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }))
+    }
   }
 
   const handleEditCliente = (cliente: Cliente) => {
@@ -261,13 +344,37 @@ export default function ClientesPage() {
       codigo_postal: cliente.codigo_postal,
       notas: cliente.notas,
     })
+    // Limpiar errores previos
+    setEditFormErrors({})
     setIsEditDialogOpen(true)
+  }
+
+  const handleOpenAddDialog = () => {
+    setIsAddDialogOpen(true)
+    // Limpiar errores previos
+    setFormErrors({})
   }
 
   const handleSaveEdit = async () => {
     if (!editingCliente) return
 
     try {
+      // Validar formulario de edición
+      const errors = validateClienteForm(editForm)
+      
+      if (Object.keys(errors).length > 0) {
+        setEditFormErrors(errors)
+        toast({
+          title: "Error de validación",
+          description: "Por favor, corrige los errores en el formulario",
+          variant: "destructive",
+        })
+        return
+      }
+
+      // Limpiar errores previos
+      setEditFormErrors({})
+
       const { data, error } = await supabase.from("clientes").update(editForm).eq("id", editingCliente.id).select()
 
       if (error) throw error
@@ -325,7 +432,7 @@ export default function ClientesPage() {
                   <p className="text-sm text-blue-600">Administra tu base de clientes</p>
                 </div>
               </div>
-              <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Nuevo Cliente
               </Button>
@@ -554,6 +661,7 @@ export default function ClientesPage() {
                       value={newClienteForm.nombre}
                       onChange={(e) => handleNewClienteFormChange("nombre", e.target.value)}
                     />
+                    {formErrors.nombre && <p className="text-red-500 text-xs mt-1">{formErrors.nombre}</p>}
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -564,6 +672,7 @@ export default function ClientesPage() {
                       value={newClienteForm.email}
                       onChange={(e) => handleNewClienteFormChange("email", e.target.value)}
                     />
+                    {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
                   </div>
                   <div>
                     <Label htmlFor="telefono">Teléfono</Label>
@@ -573,6 +682,7 @@ export default function ClientesPage() {
                       value={newClienteForm.telefono}
                       onChange={(e) => handleNewClienteFormChange("telefono", e.target.value)}
                     />
+                    {formErrors.telefono && <p className="text-red-500 text-xs mt-1">{formErrors.telefono}</p>}
                   </div>
                   <div>
                     <Label htmlFor="ciudad">Ciudad</Label>
@@ -582,6 +692,7 @@ export default function ClientesPage() {
                       value={newClienteForm.ciudad}
                       onChange={(e) => handleNewClienteFormChange("ciudad", e.target.value)}
                     />
+                    {formErrors.ciudad && <p className="text-red-500 text-xs mt-1">{formErrors.ciudad}</p>}
                   </div>
                 </div>
                 <div className="space-y-4">
@@ -593,6 +704,7 @@ export default function ClientesPage() {
                       value={newClienteForm.direccion}
                       onChange={(e) => handleNewClienteFormChange("direccion", e.target.value)}
                     />
+                    {formErrors.direccion && <p className="text-red-500 text-xs mt-1">{formErrors.direccion}</p>}
                   </div>
                   <div>
                     <Label htmlFor="provincia">Provincia</Label>
@@ -602,6 +714,7 @@ export default function ClientesPage() {
                       value={newClienteForm.provincia}
                       onChange={(e) => handleNewClienteFormChange("provincia", e.target.value)}
                     />
+                    {formErrors.provincia && <p className="text-red-500 text-xs mt-1">{formErrors.provincia}</p>}
                   </div>
                   <div>
                     <Label htmlFor="codigo_postal">Código Postal</Label>
@@ -611,6 +724,7 @@ export default function ClientesPage() {
                       value={newClienteForm.codigo_postal}
                       onChange={(e) => handleNewClienteFormChange("codigo_postal", e.target.value)}
                     />
+                    {formErrors.codigo_postal && <p className="text-red-500 text-xs mt-1">{formErrors.codigo_postal}</p>}
                   </div>
                   <div>
                     <Label htmlFor="notas">Notas</Label>
@@ -620,6 +734,7 @@ export default function ClientesPage() {
                       value={newClienteForm.notas}
                       onChange={(e) => handleNewClienteFormChange("notas", e.target.value)}
                     />
+                    {formErrors.notas && <p className="text-red-500 text-xs mt-1">{formErrors.notas}</p>}
                   </div>
                 </div>
               </div>
@@ -651,6 +766,7 @@ export default function ClientesPage() {
                         value={editForm.nombre}
                         onChange={(e) => handleEditFormChange("nombre", e.target.value)}
                       />
+                      {editFormErrors.nombre && <p className="text-red-500 text-xs mt-1">{editFormErrors.nombre}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-email">Email</Label>
@@ -660,6 +776,7 @@ export default function ClientesPage() {
                         value={editForm.email}
                         onChange={(e) => handleEditFormChange("email", e.target.value)}
                       />
+                      {editFormErrors.email && <p className="text-red-500 text-xs mt-1">{editFormErrors.email}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-telefono">Teléfono</Label>
@@ -668,6 +785,7 @@ export default function ClientesPage() {
                         value={editForm.telefono}
                         onChange={(e) => handleEditFormChange("telefono", e.target.value)}
                       />
+                      {editFormErrors.telefono && <p className="text-red-500 text-xs mt-1">{editFormErrors.telefono}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-ciudad">Ciudad</Label>
@@ -676,6 +794,7 @@ export default function ClientesPage() {
                         value={editForm.ciudad}
                         onChange={(e) => handleEditFormChange("ciudad", e.target.value)}
                       />
+                      {editFormErrors.ciudad && <p className="text-red-500 text-xs mt-1">{editFormErrors.ciudad}</p>}
                     </div>
                   </div>
                   <div className="space-y-4">
@@ -686,6 +805,7 @@ export default function ClientesPage() {
                         value={editForm.direccion}
                         onChange={(e) => handleEditFormChange("direccion", e.target.value)}
                       />
+                      {editFormErrors.direccion && <p className="text-red-500 text-xs mt-1">{editFormErrors.direccion}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-provincia">Provincia</Label>
@@ -694,6 +814,7 @@ export default function ClientesPage() {
                         value={editForm.provincia}
                         onChange={(e) => handleEditFormChange("provincia", e.target.value)}
                       />
+                      {editFormErrors.provincia && <p className="text-red-500 text-xs mt-1">{editFormErrors.provincia}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-codigo_postal">Código Postal</Label>
@@ -702,6 +823,7 @@ export default function ClientesPage() {
                         value={editForm.codigo_postal}
                         onChange={(e) => handleEditFormChange("codigo_postal", e.target.value)}
                       />
+                      {editFormErrors.codigo_postal && <p className="text-red-500 text-xs mt-1">{editFormErrors.codigo_postal}</p>}
                     </div>
                     <div>
                       <Label htmlFor="edit-notas">Notas</Label>
@@ -710,6 +832,7 @@ export default function ClientesPage() {
                         value={editForm.notas}
                         onChange={(e) => handleEditFormChange("notas", e.target.value)}
                       />
+                      {editFormErrors.notas && <p className="text-red-500 text-xs mt-1">{editFormErrors.notas}</p>}
                     </div>
                   </div>
                 </div>

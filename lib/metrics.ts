@@ -325,9 +325,8 @@ export class MetricsService {
   }
 
   async getMetricasReporte(periodo: "hoy" | "semana" | "mes" | "año"): Promise<{
-    ventasHoy: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
-    ventasSemana: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
-    ventasMes: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
+    ventasTotales: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
+    pedidos: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
     clientesNuevos: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
     ticketPromedio: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
     tasaConversion: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
@@ -416,20 +415,15 @@ export class MetricsService {
       const cambioTicket = ticketPromedioAyer > 0 ? ((ticketPromedio - ticketPromedioAyer) / ticketPromedioAyer) * 100 : 0
 
       return {
-        ventasHoy: {
-          valor: totalVentasHoy,
-          cambio: Math.round(cambioVentasHoy * 100) / 100,
-          tipo: cambioVentasHoy >= 0 ? "aumento" : "disminucion",
-        },
-        ventasSemana: {
-          valor: totalVentasEstaSemana,
-          cambio: Math.round(cambioVentasSemana * 100) / 100,
-          tipo: cambioVentasSemana >= 0 ? "aumento" : "disminucion",
-        },
-        ventasMes: {
+        ventasTotales: {
           valor: totalVentasEsteMes,
           cambio: Math.round(cambioVentasMes * 100) / 100,
           tipo: cambioVentasMes >= 0 ? "aumento" : "disminucion",
+        },
+        pedidos: {
+          valor: ventasHoy.data?.length || 0,
+          cambio: Math.round(cambioVentasHoy * 100) / 100,
+          tipo: cambioVentasHoy >= 0 ? "aumento" : "disminucion",
         },
         clientesNuevos: {
           valor: totalClientesEstaSemana,
@@ -450,9 +444,8 @@ export class MetricsService {
     } catch (error) {
       console.error("Error obteniendo métricas del reporte:", error)
       return {
-        ventasHoy: { valor: 0, cambio: 0, tipo: "aumento" },
-        ventasSemana: { valor: 0, cambio: 0, tipo: "aumento" },
-        ventasMes: { valor: 0, cambio: 0, tipo: "aumento" },
+        ventasTotales: { valor: 0, cambio: 0, tipo: "aumento" },
+        pedidos: { valor: 0, cambio: 0, tipo: "aumento" },
         clientesNuevos: { valor: 0, cambio: 0, tipo: "aumento" },
         ticketPromedio: { valor: 0, cambio: 0, tipo: "aumento" },
         tasaConversion: { valor: 0, cambio: 0, tipo: "aumento" },
