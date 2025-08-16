@@ -54,6 +54,7 @@ interface Cliente {
 
 interface Producto {
   id: string
+  sku: string
   nombre: string
   descripcion: string | null
   categoria: string
@@ -117,9 +118,6 @@ interface VentaSupabase {
 interface ProductoCarrito extends Producto {
   cantidad: number
   esPersonalizado?: boolean
-  categoria: string
-  descripcion: string | null
-  imagen_url: string | null
 }
 
 interface ProductoSupabase {
@@ -293,6 +291,7 @@ export default function VentasPage() {
     } else {
       const nuevoItem: ProductoCarrito = {
         id: producto.id,
+        sku: producto.sku,
         nombre: producto.nombre,
         precio: producto.precio,
         cantidad: 1,
@@ -359,6 +358,7 @@ export default function VentasPage() {
 
     const nuevoProducto: Producto = {
       id: `custom_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      sku: `CUSTOM-${Date.now()}`,
       nombre: nombre,
       descripcion: "Producto personalizado",
       categoria: "Personalizado",
