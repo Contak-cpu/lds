@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Navigation } from "@/components/navigation"
 import {
   Settings,
@@ -29,6 +30,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
+import { CategoriasManager } from "@/components/categorias-manager"
 
 interface ConfiguracionData {
   clave: string
@@ -361,49 +363,57 @@ export default function ConfiguracionPage() {
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Información del Negocio */}
-            <Card className="lg:col-span-2 bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Store className="h-5 w-5 text-green-600" />
-                  <span>Información del Negocio</span>
-                </CardTitle>
-                <CardDescription>Datos básicos de tu growshop</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="nombreNegocio">Nombre del Negocio *</Label>
-                    <Input
-                      id="nombreNegocio"
-                      value={configuracion.nombreNegocio}
-                      onChange={(e) => handleInputChange("nombreNegocio", e.target.value)}
-                      className={!configuracion.nombreNegocio.trim() ? "border-red-300" : ""}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="cuit">CUIT</Label>
-                    <Input
-                      id="cuit"
-                      value={configuracion.cuit}
-                      onChange={(e) => handleInputChange("cuit", e.target.value)}
-                    />
-                  </div>
-                </div>
+          <Tabs defaultValue="general" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="general">General</TabsTrigger>
+              <TabsTrigger value="categorias">Categorías</TabsTrigger>
+              <TabsTrigger value="sistema">Sistema</TabsTrigger>
+            </TabsList>
 
-                <div>
-                  <Label htmlFor="direccion">Dirección</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="direccion"
-                      className="pl-10"
-                      value={configuracion.direccion}
-                      onChange={(e) => handleInputChange("direccion", e.target.value)}
-                    />
-                  </div>
-                </div>
+            <TabsContent value="general" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Información del Negocio */}
+                <Card className="lg:col-span-2 bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Store className="h-5 w-5 text-green-600" />
+                      <span>Información del Negocio</span>
+                    </CardTitle>
+                    <CardDescription>Datos básicos de tu growshop</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="nombreNegocio">Nombre del Negocio *</Label>
+                        <Input
+                          id="nombreNegocio"
+                          value={configuracion.nombreNegocio}
+                          onChange={(e) => handleInputChange("nombreNegocio", e.target.value)}
+                          className={!configuracion.nombreNegocio.trim() ? "border-red-300" : ""}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="cuit">CUIT</Label>
+                        <Input
+                          id="cuit"
+                          value={configuracion.cuit}
+                          onChange={(e) => handleInputChange("cuit", e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="direccion">Dirección</Label>
+                      <div className="relative">
+                        <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          id="direccion"
+                          className="pl-10"
+                          value={configuracion.direccion}
+                          onChange={(e) => handleInputChange("direccion", e.target.value)}
+                        />
+                      </div>
+                    </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
@@ -510,71 +520,83 @@ export default function ConfiguracionPage() {
               </CardContent>
             </Card>
 
-            {/* Configuración del Sistema */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5 text-purple-600" />
-                  <span>Sistema</span>
-                </CardTitle>
-                <CardDescription>Configuración avanzada</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="backupAutomatico">Backup Automático</Label>
-                    <p className="text-sm text-muted-foreground">Respaldo diario de datos</p>
-                  </div>
-                  <Switch
-                    id="backupAutomatico"
-                    checked={configuracion.backupAutomatico}
-                    onCheckedChange={(checked) => handleInputChange("backupAutomatico", checked)}
-                  />
-                </div>
 
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="registroActividad">Registro de Actividad</Label>
-                    <p className="text-sm text-muted-foreground">Guardar log de acciones</p>
-                  </div>
-                  <Switch
-                    id="registroActividad"
-                    checked={configuracion.registroActividad}
-                    onCheckedChange={(checked) => handleInputChange("registroActividad", checked)}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="modoMantenimiento">Modo Mantenimiento</Label>
-                    <p className="text-sm text-muted-foreground">Desactivar temporalmente</p>
-                  </div>
-                  <Switch
-                    id="modoMantenimiento"
-                    checked={configuracion.modoMantenimiento}
-                    onCheckedChange={(checked) => handleInputChange("modoMantenimiento", checked)}
-                  />
-                </div>
-
-                {configuracion.modoMantenimiento && (
-                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
-                        Mantenimiento Activo
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-amber-700 mt-1">
-                      El sistema está en modo mantenimiento. Los usuarios no podrán acceder.
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
+            </TabsContent>
+
+            <TabsContent value="categorias" className="space-y-6">
+              <CategoriasManager />
+            </TabsContent>
+
+            <TabsContent value="sistema" className="space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Configuración del Sistema */}
+                <Card className="bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Shield className="h-5 w-5 text-purple-600" />
+                      <span>Sistema</span>
+                    </CardTitle>
+                    <CardDescription>Configuración avanzada</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="backupAutomatico">Backup Automático</Label>
+                        <p className="text-sm text-muted-foreground">Respaldo diario de datos</p>
+                      </div>
+                      <Switch
+                        id="backupAutomatico"
+                        checked={configuracion.backupAutomatico}
+                        onCheckedChange={(checked) => handleInputChange("backupAutomatico", checked)}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="registroActividad">Registro de Actividad</Label>
+                        <p className="text-sm text-muted-foreground">Guardar log de acciones</p>
+                      </div>
+                      <Switch
+                        id="registroActividad"
+                        checked={configuracion.registroActividad}
+                        onCheckedChange={(checked) => handleInputChange("registroActividad", checked)}
+                      />
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="modoMantenimiento">Modo Mantenimiento</Label>
+                        <p className="text-sm text-muted-foreground">Desactivar temporalmente</p>
+                      </div>
+                      <Switch
+                        id="modoMantenimiento"
+                        checked={configuracion.modoMantenimiento}
+                        onCheckedChange={(checked) => handleInputChange("modoMantenimiento", checked)}
+                      />
+                    </div>
+
+                    {configuracion.modoMantenimiento && (
+                      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-300">
+                            Mantenimiento Activo
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-amber-700 mt-1">
+                          El sistema está en modo mantenimiento. Los usuarios no podrán acceder.
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
         </main>
       </div>
     </div>

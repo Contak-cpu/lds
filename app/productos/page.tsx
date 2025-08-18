@@ -19,6 +19,8 @@ import {
   Thermometer,
   Trash2,
 } from "lucide-react"
+import { useCategorias } from "@/hooks/use-categorias"
+import { CategoriaQuickAdd } from "@/components/categoria-quick-add"
 import {
   Dialog,
   DialogContent,
@@ -153,18 +155,9 @@ interface CategoriaInfo {
   icon: ComponentType<{ className?: string }>
 }
 
-const categorias: CategoriaInfo[] = [
-  { value: "todas", label: "Todas las categorías", icon: Package },
-  { value: "Kits", label: "Kits", icon: Package },
-  { value: "Semillas", label: "Semillas", icon: Leaf },
-  { value: "Fertilizantes", label: "Fertilizantes", icon: Droplets },
-  { value: "Iluminación", label: "Iluminación", icon: Lightbulb },
-  { value: "Hidroponía", label: "Hidroponía", icon: Thermometer },
-  { value: "Herramientas", label: "Herramientas", icon: Scissors },
-]
-
 export default function ProductosPage() {
   const { showError, showProductoCreated, showProductoUpdated, showProductoDeleted } = useNotifications()
+  const { categorias: categoriasDB, cargarCategorias: recargarCategorias } = useCategorias()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategoria, setFilterCategoria] = useState("todas")
   const [filterStock, setFilterStock] = useState("todos")
@@ -175,6 +168,16 @@ export default function ProductosPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [formErrors, setFormErrors] = useState<ProductoFormErrors>({})
   const [editFormErrors, setEditFormErrors] = useState<ProductoFormErrors>({})
+
+  // Convertir categorías de la base de datos al formato de la interfaz
+  const categorias: CategoriaInfo[] = [
+    { value: "todas", label: "Todas las categorías", icon: Package },
+    ...categoriasDB.map(cat => ({
+      value: cat.nombre,
+      label: cat.nombre,
+      icon: Package, // Icono por defecto, se puede mejorar después
+    }))
+  ]
 
   const [formData, setFormData] = useState<ProductoFormData>({
     nombre: "",
@@ -203,6 +206,13 @@ export default function ProductosPage() {
   useEffect(() => {
     cargarProductos()
   }, [])
+
+  const handleCategoriaCreada = (nombreCategoria: string) => {
+    // Recargar categorías y seleccionar la nueva
+    recargarCategorias()
+    setFormData(prev => ({ ...prev, categoria: nombreCategoria }))
+    setEditFormData(prev => ({ ...prev, categoria: nombreCategoria }))
+  }
 
   const cargarProductos = async () => {
     try {
@@ -911,18 +921,30 @@ export default function ProductosPage() {
                   </div>
                   <div>
                     <Label htmlFor="categoria">Categoría *</Label>
-                    <Select value={formData.categoria} onValueChange={(value) => handleCategoriaChange(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categorias.map((cat: CategoriaInfo) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Select value={formData.categoria} onValueChange={(value) => handleCategoriaChange(value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar categoría" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categorias.map((cat: CategoriaInfo) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <CategoriaQuickAdd 
+                        onCategoriaCreada={handleCategoriaCreada}
+                        trigger={
+                          <Button type="button" variant="outline" size="sm">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                     {formErrors.categoria && <p className="text-xs text-red-500 mt-1">{formErrors.categoria}</p>}
                   </div>
                   <div>
@@ -1047,18 +1069,30 @@ export default function ProductosPage() {
                   </div>
                   <div>
                     <Label htmlFor="edit-categoria">Categoría *</Label>
-                    <Select value={editFormData.categoria} onValueChange={(value) => handleEditCategoriaChange(value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar categoría" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categorias.map((cat: CategoriaInfo) => (
-                          <SelectItem key={cat.value} value={cat.value}>
-                            {cat.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <Select value={editFormData.categoria} onValueChange={(value) => handleEditCategoriaChange(value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar categoría" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categorias.map((cat: CategoriaInfo) => (
+                              <SelectItem key={cat.value} value={cat.value}>
+                                {cat.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <CategoriaQuickAdd 
+                        onCategoriaCreada={handleCategoriaCreada}
+                        trigger={
+                          <Button type="button" variant="outline" size="sm">
+                            <Plus className="w-4 h-4" />
+                          </Button>
+                        }
+                      />
+                    </div>
                     {editFormErrors.categoria && <p className="text-xs text-red-500 mt-1">{editFormErrors.categoria}</p>}
                   </div>
                   <div>
