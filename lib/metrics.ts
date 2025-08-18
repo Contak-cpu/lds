@@ -86,38 +86,29 @@ export class MetricsService {
         .eq("activo", true)
 
       if (errorProductos) {
-        throw new Error(`Error en productos stock: ${errorProductos.message}`)
+        throw new Error(`Error en productos en stock: ${errorProductos.message}`)
       }
 
-      // Productos con stock bajo
-      const { data: productosStockBajo, error: errorStockBajo } = await this.supabase
-        .from("productos")
-        .select("stock, stock_minimo")
-        .eq("activo", true)
-
-      if (errorStockBajo) {
-        throw new Error(`Error en productos stock bajo: ${errorStockBajo.message}`)
-      }
-
-      // Filtrar productos con stock bajo en JavaScript
-      const productosConStockBajo = productosStockBajo?.filter((p: { stock: number | null; stock_minimo: number | null }) => (p.stock || 0) < (p.stock_minimo || 0)) || []
-
-      // Nuevos clientes esta semana
-      const { data: nuevosClientes, error: errorNuevosClientes } = await this.supabase
-        .from("clientes")
-        .select("id")
-        .gte("fecha_registro", inicioSemana.toISOString())
-
-      if (errorNuevosClientes) {
-        throw new Error(`Error en nuevos clientes: ${errorNuevosClientes.message}`)
-      }
-
+      // Calcular totales
       const totalVentasHoy = ventasHoy?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
 
-      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string | null }) => v.cliente_id).filter((id: string | null): id is string => Boolean(id)))
       const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
+      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string }) => v.cliente_id))
+
+      // Nuevos clientes esta semana
+      const { data: nuevosClientes } = await this.supabase
+        .from("clientes")
+        .select("id")
+        .gte("fecha_registro", inicioSemana.toISOString())
+
+      // Productos con stock bajo
+      const { data: productosConStockBajo } = await this.supabase
+        .from("productos")
+        .select("id, stock, stock_minimo")
+        .eq("activo", true)
+        .lt("stock", "stock_minimo")
 
       const resultado = {
         ventasHoy: totalVentasHoy,
@@ -146,58 +137,77 @@ export class MetricsService {
     }
   }
 
-  async getVentasPorPeriodo(periodo: "hoy" | "semana" | "mes" | "año"): Promise<VentaPorPeriodo[]> {
+  async getVentasPorPeriodo(periodo: "hoy" | "semana" | "mes" | "año", fechaInicio?: Date, fechaFin?: Date): Promise<VentaPorPeriodo[]> {
     try {
-      const hoy = new Date()
-      let fechaInicio: Date
-      let formatoPeriodo: string
+      let query = this.supabase.from("ventas").select("total, fecha_venta")
+      
+      // Si se proporcionan fechas personalizadas, usarlas
+      if (fechaInicio && fechaFin) {
+        query = query
+          .gte("fecha_venta", fechaInicio.toISOString())
+          .lte("fecha_venta", fechaFin.toISOString())
+      } else {
+        // Usar el período predefinido
+        const hoy = new Date()
+        let fechaInicioPeriodo: Date
+        let formatoPeriodo: string
 
-      switch (periodo) {
-        case "hoy":
-          fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
-          formatoPeriodo = "HH:mm"
-          break
-        case "semana":
-          fechaInicio = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
-          formatoPeriodo = "EEE"
-          break
-        case "mes":
-          fechaInicio = new Date(hoy.getFullYear(), hoy.getMonth() - 1, hoy.getDate())
-          formatoPeriodo = "'Sem' W"
-          break
-        case "año":
-          fechaInicio = new Date(hoy.getFullYear(), 0, 1)
-          formatoPeriodo = "MMM"
-          break
-        default:
-          fechaInicio = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
-          formatoPeriodo = "EEE"
+        switch (periodo) {
+          case "hoy":
+            fechaInicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+            formatoPeriodo = "HH:mm"
+            break
+          case "semana":
+            fechaInicioPeriodo = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
+            formatoPeriodo = "EEE"
+            break
+          case "mes":
+            fechaInicioPeriodo = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+            formatoPeriodo = "dd"
+            break
+          case "año":
+            fechaInicioPeriodo = new Date(hoy.getFullYear(), 0, 1)
+            formatoPeriodo = "MMM"
+            break
+          default:
+            fechaInicioPeriodo = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
+            formatoPeriodo = "EEE"
+        }
+        
+        query = query.gte("fecha_venta", fechaInicioPeriodo.toISOString())
       }
 
-      const { data: ventas, error } = await this.supabase
-        .from("ventas")
-        .select("total, fecha_venta")
-        .gte("fecha_venta", fechaInicio.toISOString())
-        .order("fecha_venta", { ascending: true })
+      const { data: ventas, error } = await query
 
       if (error) throw error
 
-      // Agrupar ventas por período
       const ventasPorPeriodo = new Map<string, { ventas: number; pedidos: number }>()
 
       ventas?.forEach((venta: { total: number | null; fecha_venta: string }) => {
         const fecha = new Date(venta.fecha_venta)
         let periodoFormateado: string
 
-        if (periodo === "hoy") {
-          periodoFormateado = fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
-        } else if (periodo === "semana") {
-          periodoFormateado = fecha.toLocaleDateString("es-ES", { weekday: "short" })
-        } else if (periodo === "mes") {
-          const semana = Math.ceil((fecha.getDate() + fecha.getDay()) / 7)
-          periodoFormateado = `Sem ${semana}`
+        if (fechaInicio && fechaFin) {
+          // Para fechas personalizadas, usar el día
+          periodoFormateado = fecha.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit" })
         } else {
-          periodoFormateado = fecha.toLocaleDateString("es-ES", { month: "short" })
+          // Para períodos predefinidos, usar el formato original
+          switch (periodo) {
+            case "hoy":
+              periodoFormateado = fecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })
+              break
+            case "semana":
+              periodoFormateado = fecha.toLocaleDateString("es-ES", { weekday: "short" })
+              break
+            case "mes":
+              periodoFormateado = fecha.toLocaleDateString("es-ES", { day: "2-digit" })
+              break
+            case "año":
+              periodoFormateado = fecha.toLocaleDateString("es-ES", { month: "short" })
+              break
+            default:
+              periodoFormateado = fecha.toLocaleDateString("es-ES", { weekday: "short" })
+          }
         }
 
         const actual = ventasPorPeriodo.get(periodoFormateado) || { ventas: 0, pedidos: 0 }
@@ -217,12 +227,23 @@ export class MetricsService {
     }
   }
 
-  async getProductosMasVendidos(): Promise<ProductoMasVendido[]> {
+  async getProductosMasVendidos(fechaInicio?: Date, fechaFin?: Date): Promise<ProductoMasVendido[]> {
     try {
-      const { data: ventaItems, error } = await this.supabase
+      let query = this.supabase
         .from("venta_items")
-        .select("producto_nombre, cantidad, precio_unitario")
-        .gte("created_at", new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
+        .select("producto_nombre, cantidad, precio_unitario, created_at")
+
+      // Si se proporcionan fechas, filtrar por ellas
+      if (fechaInicio && fechaFin) {
+        query = query
+          .gte("created_at", fechaInicio.toISOString())
+          .lte("created_at", fechaFin.toISOString())
+      } else {
+        // Por defecto, últimos 30 días
+        query = query.gte("created_at", new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      }
+
+      const { data: ventaItems, error } = await query
 
       if (error) throw error
 
@@ -252,16 +273,28 @@ export class MetricsService {
     }
   }
 
-  async getVentasPorCategoria(): Promise<CategoriaVenta[]> {
+  async getVentasPorCategoria(fechaInicio?: Date, fechaFin?: Date): Promise<CategoriaVenta[]> {
     try {
-      const { data: ventaItems, error } = await this.supabase
+      let query = this.supabase
         .from("venta_items")
         .select(`
           cantidad,
           precio_unitario,
-          productos!inner(categoria)
+          productos!inner(categoria),
+          created_at
         `)
-        .gte("created_at", new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
+
+      // Si se proporcionan fechas, filtrar por ellas
+      if (fechaInicio && fechaFin) {
+        query = query
+          .gte("created_at", fechaInicio.toISOString())
+          .lte("created_at", fechaFin.toISOString())
+      } else {
+        // Por defecto, últimos 30 días
+        query = query.gte("created_at", new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000).toISOString())
+      }
+
+      const { data: ventaItems, error } = await query
 
       if (error) throw error
 
@@ -289,13 +322,23 @@ export class MetricsService {
     }
   }
 
-  async getVentasPorMes(): Promise<VentaPorMes[]> {
+  async getVentasPorMes(fechaInicio?: Date, fechaFin?: Date): Promise<VentaPorMes[]> {
     try {
-      const { data: ventas, error } = await this.supabase
+      let query = this.supabase
         .from("ventas")
         .select("total, fecha_venta, cliente_id")
-        .gte("fecha_venta", new Date(new Date().getFullYear(), 0, 1).toISOString())
-        .order("fecha_venta", { ascending: true })
+
+      // Si se proporcionan fechas, filtrar por ellas
+      if (fechaInicio && fechaFin) {
+        query = query
+          .gte("fecha_venta", fechaInicio.toISOString())
+          .lte("fecha_venta", fechaFin.toISOString())
+      } else {
+        // Por defecto, año actual
+        query = query.gte("fecha_venta", new Date(new Date().getFullYear(), 0, 1).toISOString())
+      }
+
+      const { data: ventas, error } = await query.order("fecha_venta", { ascending: true })
 
       if (error) throw error
 
@@ -303,9 +346,9 @@ export class MetricsService {
 
       ventas?.forEach((venta: { total: number | null; fecha_venta: string; cliente_id: string | null }) => {
         const fecha = new Date(venta.fecha_venta)
-        const mes = fecha.toLocaleDateString("es-ES", { month: "short" })
+        const mes = fecha.toLocaleDateString("es-ES", { month: "long" })
         
-        const actual = ventasPorMes.get(mes) || { ventas: 0, clientes: new Set() }
+        const actual = ventasPorMes.get(mes) || { ventas: 0, clientes: new Set<string>() }
         actual.ventas += venta.total || 0
         if (venta.cliente_id) {
           actual.clientes.add(venta.cliente_id)
@@ -324,7 +367,7 @@ export class MetricsService {
     }
   }
 
-  async getMetricasReporte(periodo: "hoy" | "semana" | "mes" | "año"): Promise<{
+  async getMetricasReporte(periodo: "hoy" | "semana" | "mes" | "año", fechaInicio?: Date, fechaFin?: Date): Promise<{
     ventasTotales: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
     pedidos: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
     clientesNuevos: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
@@ -332,101 +375,117 @@ export class MetricsService {
     tasaConversion: { valor: number; cambio: number; tipo: "aumento" | "disminucion" }
   }> {
     try {
-      const hoy = new Date()
-      const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
-      const ayer = new Date(inicioHoy.getTime() - 24 * 60 * 60 * 1000)
-      const inicioSemana = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
-      const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
-      const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+      let fechaInicioPeriodo: Date
+      let fechaFinPeriodo: Date
+      let fechaInicioAnterior: Date
+      let fechaFinAnterior: Date
 
-      // Ventas de hoy vs ayer
-      const [ventasHoy, ventasAyer] = await Promise.all([
+      if (fechaInicio && fechaFin) {
+        // Usar fechas personalizadas
+        fechaInicioPeriodo = fechaInicio
+        fechaFinPeriodo = fechaFin
+        
+        // Calcular período anterior de la misma duración
+        const duracionPeriodo = fechaFin.getTime() - fechaInicio.getTime()
+        fechaFinAnterior = fechaInicio
+        fechaInicioAnterior = new Date(fechaInicio.getTime() - duracionPeriodo)
+      } else {
+        // Usar períodos predefinidos
+        const hoy = new Date()
+        const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+        const ayer = new Date(inicioHoy.getTime() - 24 * 60 * 60 * 1000)
+        const inicioSemana = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
+        const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+        const inicioMesAnterior = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1)
+
+        switch (periodo) {
+          case "hoy":
+            fechaInicioPeriodo = inicioHoy
+            fechaFinPeriodo = new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000)
+            fechaInicioAnterior = ayer
+            fechaFinAnterior = inicioHoy
+            break
+          case "semana":
+            fechaInicioPeriodo = inicioSemana
+            fechaFinPeriodo = hoy
+            fechaInicioAnterior = new Date(inicioSemana.getTime() - 7 * 24 * 60 * 60 * 1000)
+            fechaFinAnterior = inicioSemana
+            break
+          case "mes":
+            fechaInicioPeriodo = inicioMes
+            fechaFinPeriodo = hoy
+            fechaInicioAnterior = inicioMesAnterior
+            fechaFinAnterior = inicioMes
+            break
+          case "año":
+            fechaInicioPeriodo = new Date(hoy.getFullYear(), 0, 1)
+            fechaFinPeriodo = hoy
+            fechaInicioAnterior = new Date(hoy.getFullYear() - 1, 0, 1)
+            fechaFinAnterior = new Date(hoy.getFullYear(), 0, 1)
+            break
+          default:
+            fechaInicioPeriodo = inicioSemana
+            fechaFinPeriodo = hoy
+            fechaInicioAnterior = new Date(inicioSemana.getTime() - 7 * 24 * 60 * 60 * 1000)
+            fechaFinAnterior = inicioSemana
+        }
+      }
+
+      // Ventas del período actual vs anterior
+      const [ventasPeriodoActual, ventasPeriodoAnterior] = await Promise.all([
         this.supabase
           .from("ventas")
           .select("total")
-          .gte("fecha_venta", inicioHoy.toISOString())
-          .lt("fecha_venta", new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000).toISOString()),
+          .gte("fecha_venta", fechaInicioPeriodo.toISOString())
+          .lte("fecha_venta", fechaFinPeriodo.toISOString()),
         this.supabase
           .from("ventas")
           .select("total")
-          .gte("fecha_venta", ayer.toISOString())
-          .lt("fecha_venta", inicioHoy.toISOString()),
+          .gte("fecha_venta", fechaInicioAnterior.toISOString())
+          .lte("fecha_venta", fechaFinAnterior.toISOString()),
       ])
 
-      // Ventas de esta semana vs semana anterior
-      const [ventasEstaSemana, ventasSemanaAnterior] = await Promise.all([
-        this.supabase
-          .from("ventas")
-          .select("total")
-          .gte("fecha_venta", inicioSemana.toISOString()),
-        this.supabase
-          .from("ventas")
-          .select("total")
-          .gte("fecha_venta", new Date(inicioSemana.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .lt("fecha_venta", inicioSemana.toISOString()),
-      ])
-
-      // Ventas de este mes vs mes anterior
-      const [ventasEsteMes, ventasMesAnterior] = await Promise.all([
-        this.supabase
-          .from("ventas")
-          .select("total")
-          .gte("fecha_venta", inicioMes.toISOString()),
-        this.supabase
-          .from("ventas")
-          .select("total")
-          .gte("fecha_venta", inicioMesAnterior.toISOString())
-          .lt("fecha_venta", inicioMes.toISOString()),
-      ])
-
-      // Clientes nuevos esta semana vs semana anterior
-      const [clientesEstaSemana, clientesSemanaAnterior] = await Promise.all([
+      // Clientes nuevos del período actual vs anterior
+      const [clientesPeriodoActual, clientesPeriodoAnterior] = await Promise.all([
         this.supabase
           .from("clientes")
           .select("id")
-          .gte("fecha_registro", inicioSemana.toISOString()),
+          .gte("fecha_registro", fechaInicioPeriodo.toISOString())
+          .lte("fecha_registro", fechaFinPeriodo.toISOString()),
         this.supabase
           .from("clientes")
           .select("id")
-          .gte("fecha_registro", new Date(inicioSemana.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString())
-          .lt("fecha_registro", inicioSemana.toISOString()),
+          .gte("fecha_registro", fechaInicioAnterior.toISOString())
+          .lte("fecha_registro", fechaFinAnterior.toISOString()),
       ])
 
       // Calcular totales y cambios
-      const totalVentasHoy = ventasHoy.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const totalVentasAyer = ventasAyer.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
+      const totalVentasActual = ventasPeriodoActual.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const totalVentasAnterior = ventasPeriodoAnterior.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const cambioVentas = totalVentasAnterior > 0 ? ((totalVentasActual - totalVentasAnterior) / totalVentasAnterior) * 100 : 0
 
-      const totalVentasEstaSemana = ventasEstaSemana.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const totalVentasSemanaAnterior = ventasSemanaAnterior.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const cambioVentasSemana = totalVentasSemanaAnterior > 0 ? ((totalVentasEstaSemana - totalVentasSemanaAnterior) / totalVentasSemanaAnterior) * 100 : 0
+      const totalClientesActual = clientesPeriodoActual.data?.length || 0
+      const totalClientesAnterior = clientesPeriodoAnterior.data?.length || 0
+      const cambioClientes = totalClientesAnterior > 0 ? ((totalClientesActual - totalClientesAnterior) / totalClientesAnterior) * 100 : 0
 
-      const totalVentasEsteMes = ventasEsteMes.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const totalVentasMesAnterior = ventasMesAnterior.data?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const cambioVentasMes = totalVentasMesAnterior > 0 ? ((totalVentasEsteMes - totalVentasMesAnterior) / totalVentasMesAnterior) * 100 : 0
-
-      const totalClientesEstaSemana = clientesEstaSemana.data?.length || 0
-      const totalClientesSemanaAnterior = clientesSemanaAnterior.data?.length || 0
-      const cambioClientes = totalClientesSemanaAnterior > 0 ? ((totalClientesEstaSemana - totalClientesSemanaAnterior) / totalClientesSemanaAnterior) * 100 : 0
-
-      // Ticket promedio (simplificado)
-      const ticketPromedio = totalVentasHoy > 0 ? totalVentasHoy / (ventasHoy.data?.length || 1) : 0
-      const ticketPromedioAyer = totalVentasAyer > 0 ? totalVentasAyer / (ventasAyer.data?.length || 1) : 0
-      const cambioTicket = ticketPromedioAyer > 0 ? ((ticketPromedio - ticketPromedioAyer) / ticketPromedioAyer) * 100 : 0
+      // Ticket promedio
+      const ticketPromedio = ventasPeriodoActual.data?.length > 0 ? totalVentasActual / ventasPeriodoActual.data.length : 0
+      const ticketPromedioAnterior = ventasPeriodoAnterior.data?.length > 0 ? totalVentasAnterior / ventasPeriodoAnterior.data.length : 0
+      const cambioTicket = ticketPromedioAnterior > 0 ? ((ticketPromedio - ticketPromedioAnterior) / ticketPromedioAnterior) * 100 : 0
 
       return {
         ventasTotales: {
-          valor: totalVentasEsteMes,
-          cambio: Math.round(cambioVentasMes * 100) / 100,
-          tipo: cambioVentasMes >= 0 ? "aumento" : "disminucion",
+          valor: totalVentasActual,
+          cambio: Math.round(cambioVentas * 100) / 100,
+          tipo: cambioVentas >= 0 ? "aumento" : "disminucion",
         },
         pedidos: {
-          valor: ventasHoy.data?.length || 0,
-          cambio: Math.round(cambioVentasHoy * 100) / 100,
-          tipo: cambioVentasHoy >= 0 ? "aumento" : "disminucion",
+          valor: ventasPeriodoActual.data?.length || 0,
+          cambio: Math.round(cambioVentas * 100) / 100,
+          tipo: cambioVentas >= 0 ? "aumento" : "disminucion",
         },
         clientesNuevos: {
-          valor: totalClientesEstaSemana,
+          valor: totalClientesActual,
           cambio: Math.round(cambioClientes * 100) / 100,
           tipo: cambioClientes >= 0 ? "aumento" : "disminucion",
         },

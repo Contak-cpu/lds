@@ -81,6 +81,16 @@ export default function ReportesPage() {
     const cargarDatos = async () => {
       try {
         setLoading(true)
+        
+        // Determinar qué fechas usar
+        let fechaInicio: Date | undefined
+        let fechaFin: Date | undefined
+        
+        if (usarFechaPersonalizada && fechaPersonalizada?.from && fechaPersonalizada?.to) {
+          fechaInicio = fechaPersonalizada.from
+          fechaFin = fechaPersonalizada.to
+        }
+        
         const [
           ventasPeriodo,
           ventasMes,
@@ -88,11 +98,11 @@ export default function ReportesPage() {
           categorias,
           metricasData
         ] = await Promise.all([
-          metricsService.getVentasPorPeriodo(periodoSeleccionado as any),
-          metricsService.getVentasPorMes(),
-          metricsService.getProductosMasVendidos(),
-          metricsService.getVentasPorCategoria(),
-          metricsService.getMetricasReporte(periodoSeleccionado as any)
+          metricsService.getVentasPorPeriodo(periodoSeleccionado as any, fechaInicio, fechaFin),
+          metricsService.getVentasPorMes(fechaInicio, fechaFin),
+          metricsService.getProductosMasVendidos(fechaInicio, fechaFin),
+          metricsService.getVentasPorCategoria(fechaInicio, fechaFin),
+          metricsService.getMetricasReporte(periodoSeleccionado as any, fechaInicio, fechaFin)
         ])
 
         setVentasPorPeriodo(ventasPeriodo)
@@ -113,7 +123,7 @@ export default function ReportesPage() {
     }
 
     cargarDatos()
-  }, [periodoSeleccionado, toast])
+  }, [periodoSeleccionado, usarFechaPersonalizada, fechaPersonalizada, toast])
 
   const getTrendIcon = (tipo: "aumento" | "disminucion"): JSX.Element => {
     return tipo === "aumento" ? (
@@ -234,11 +244,28 @@ export default function ReportesPage() {
                     } else {
                       setUsarFechaPersonalizada(false)
                       setPeriodoSeleccionado(value)
+                      // Limpiar fechas personalizadas cuando se usa un filtro rápido
+                      setFechaPersonalizada(undefined)
                     }
                   }}
                   selectedRange={fechaPersonalizada}
                   selectedQuickFilter={usarFechaPersonalizada ? "personalizado" : periodoSeleccionado}
                 />
+
+                {(usarFechaPersonalizada || periodoSeleccionado !== "semana") && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setUsarFechaPersonalizada(false)
+                      setPeriodoSeleccionado("semana")
+                      setFechaPersonalizada(undefined)
+                    }}
+                    className="bg-transparent text-xs"
+                  >
+                    Limpiar Filtros
+                  </Button>
+                )}
 
                 <Select value={formatoExportacion} onValueChange={setFormatoExportacion}>
                   <SelectTrigger className="w-full sm:w-28">
@@ -287,6 +314,21 @@ export default function ReportesPage() {
                 <Calendar className="inline h-4 w-4 mr-1" />
                 Mostrando datos desde {format(fechaPersonalizada.from, "dd/MM/yyyy", { locale: es })}
                 {fechaPersonalizada.to && <> hasta {format(fechaPersonalizada.to, "dd/MM/yyyy", { locale: es })}</>}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {!usarFechaPersonalizada && (
+          <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+            <div className="max-w-7xl mx-auto">
+              <p className="text-sm text-green-700">
+                <Calendar className="inline h-4 w-4 mr-1" />
+                Mostrando datos del período: <strong>{periodoSeleccionado === "hoy" ? "Hoy" : 
+                  periodoSeleccionado === "ayer" ? "Ayer" :
+                  periodoSeleccionado === "semana" ? "Esta Semana" :
+                  periodoSeleccionado === "mes" ? "Este Mes" :
+                  periodoSeleccionado === "año" ? "Este Año" : periodoSeleccionado}</strong>
               </p>
             </div>
           </div>
