@@ -560,10 +560,10 @@ export default function ProductosPage() {
 
   const filteredProductos = productos.filter((producto: Producto) => {
     const matchesSearch =
-      producto.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      producto.categoria.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (producto.categoria_id && producto.categoria_id.toLowerCase().includes(searchTerm.toLowerCase()))
+      (producto.nombre?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (producto.sku?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (producto.categoria?.toLowerCase() || "").includes(searchTerm.toLowerCase()) ||
+      (producto.categoria_id && (producto.categoria_id.toLowerCase() || "").includes(searchTerm.toLowerCase()))
     const matchesCategoria = filterCategoria === "todas" || producto.categoria === filterCategoria
     const matchesStock =
       filterStock === "todos" ||
