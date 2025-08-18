@@ -31,9 +31,19 @@ export default function Dashboard() {
     const cargarMetricas = async () => {
       try {
         setLoading(true)
+        
+        // Obtener el rango de fechas del filtro
+        const dateRange = dateFilter.getFilteredDateRange()
+        
         const [metricasData, productosData] = await Promise.all([
-          metricsService.getMetricasDashboard(),
-          metricsService.getProductosMasVendidos(),
+          metricsService.getMetricasDashboard(
+            dateRange?.from, 
+            dateRange?.to
+          ),
+          metricsService.getProductosMasVendidos(
+            dateRange?.from, 
+            dateRange?.to
+          ),
         ])
         setMetricas(metricasData)
         setProductosMasVendidos(productosData)
@@ -46,6 +56,37 @@ export default function Dashboard() {
 
     cargarMetricas()
   }, [])
+
+  // Recargar datos cuando cambien los filtros de fechas
+  useEffect(() => {
+    const cargarMetricas = async () => {
+      try {
+        setLoading(true)
+        
+        // Obtener el rango de fechas del filtro
+        const dateRange = dateFilter.getFilteredDateRange()
+        
+        const [metricasData, productosData] = await Promise.all([
+          metricsService.getMetricasDashboard(
+            dateRange?.from, 
+            dateRange?.to
+          ),
+          metricsService.getProductosMasVendidos(
+            dateRange?.from, 
+            dateRange?.to
+          ),
+        ])
+        setMetricas(metricasData)
+        setProductosMasVendidos(productosData)
+      } catch (error) {
+        console.error("Error cargando métricas:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    cargarMetricas()
+  }, [dateFilter.selectedQuickFilter, dateFilter.selectedRange])
 
   if (loading) {
     return (
@@ -112,6 +153,34 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {/* Indicador de filtro activo */}
+        {(() => {
+          const range = dateFilter.getFilteredDateRange()
+          if (range?.from) {
+            return (
+              <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+                <div className="max-w-7xl mx-auto">
+                  <p className="text-sm text-green-700">
+                    <span className="inline-block w-4 h-4 mr-1">📅</span>
+                    Mostrando datos del período: <strong>
+                      {dateFilter.selectedQuickFilter === "hoy" ? "Hoy" : 
+                       dateFilter.selectedQuickFilter === "ayer" ? "Ayer" :
+                       dateFilter.selectedQuickFilter === "semana" ? "Esta Semana" :
+                       dateFilter.selectedQuickFilter === "mes" ? "Este Mes" :
+                       dateFilter.selectedQuickFilter === "año" ? "Este Año" : 
+                       dateFilter.selectedQuickFilter}</strong>
+                    {range.from && (
+                      <> desde {range.from.toLocaleDateString("es-AR")}
+                      {range.to && <> hasta {range.to.toLocaleDateString("es-AR")}</>}</>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )
+          }
+          return null
+        })()}
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

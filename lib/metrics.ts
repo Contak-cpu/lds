@@ -39,33 +39,41 @@ export interface VentaPorMes {
 export class MetricsService {
   private supabase = createClient()
 
-  async getMetricasDashboard(): Promise<MetricasDashboard> {
+  async getMetricasDashboard(fechaInicio?: Date, fechaFin?: Date): Promise<MetricasDashboard> {
     try {
       const hoy = new Date()
       const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
       const ayer = new Date(inicioHoy.getTime() - 24 * 60 * 60 * 1000)
       const inicioSemana = new Date(hoy.getTime() - 7 * 24 * 60 * 60 * 1000)
 
-      // Ventas de hoy
-      const { data: ventasHoy, error: errorVentasHoy } = await this.supabase
+      // Si se proporcionan fechas personalizadas, usarlas para el cálculo
+      let fechaInicioCalculo = fechaInicio || inicioHoy
+      let fechaFinCalculo = fechaFin || new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000)
+
+      // Ventas del período seleccionado
+      const { data: ventasPeriodo, error: errorVentasPeriodo } = await this.supabase
         .from("ventas")
         .select("total")
-        .gte("fecha_venta", inicioHoy.toISOString())
-        .lt("fecha_venta", new Date(inicioHoy.getTime() + 24 * 60 * 60 * 1000).toISOString())
+        .gte("fecha_venta", fechaInicioCalculo.toISOString())
+        .lt("fecha_venta", fechaFinCalculo.toISOString())
 
-      if (errorVentasHoy) {
-        throw new Error(`Error en ventas de hoy: ${errorVentasHoy.message}`)
+      if (errorVentasPeriodo) {
+        throw new Error(`Error en ventas del período: ${errorVentasPeriodo.message}`)
       }
 
-      // Ventas de ayer
-      const { data: ventasAyer, error: errorVentasAyer } = await this.supabase
-        .from("ventas")
-        .select("total")
-        .gte("fecha_venta", ayer.toISOString())
-        .lt("fecha_venta", inicioHoy.toISOString())
+      // Ventas de ayer para comparación (si no es el período seleccionado)
+      let ventasAyer = 0
+      if (!fechaInicio || fechaInicio.toDateString() !== ayer.toDateString()) {
+        const { data: ventasAyerData, error: errorVentasAyer } = await this.supabase
+          .from("ventas")
+          .select("total")
+          .gte("fecha_venta", ayer.toISOString())
+          .lt("fecha_venta", inicioHoy.toISOString())
 
-      if (errorVentasAyer) {
-        throw new Error(`Error en ventas de ayer: ${errorVentasAyer.message}`)
+        if (errorVentasAyer) {
+          throw new Error(`Error en ventas de ayer: ${errorVentasAyer.message}`)
+        }
+        ventasAyer = ventasAyerData?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
       }
 
       // Clientes activos (con ventas en los últimos 30 días)
@@ -86,38 +94,21 @@ export class MetricsService {
         .eq("activo", true)
 
       if (errorProductos) {
-        throw new Error(`Error en productos en stock: ${errorProductos.message}`)
+        throw new Error(`Error en productos: ${errorProductos.message}`)
       }
 
-      // Calcular totales
-      const totalVentasHoy = ventasHoy?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const totalVentasAyer = ventasAyer?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
-      const cambioVentasHoy = totalVentasAyer > 0 ? ((totalVentasHoy - totalVentasAyer) / totalVentasAyer) * 100 : 0
-
-      const totalProductosStock = productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0
-      const clientesUnicos = new Set(clientesActivos?.map((v: { cliente_id: string }) => v.cliente_id))
-
-      // Nuevos clientes esta semana
-      const { data: nuevosClientes } = await this.supabase
-        .from("clientes")
-        .select("id")
-        .gte("fecha_registro", inicioSemana.toISOString())
-
-      // Productos con stock bajo
-      const { data: productosConStockBajo } = await this.supabase
-        .from("productos")
-        .select("id, stock, stock_minimo")
-        .eq("activo", true)
-        .lt("stock", "stock_minimo")
+      // Calcular métricas
+      const ventasPeriodoTotal = ventasPeriodo?.reduce((sum: number, v: { total: number | null }) => sum + (v.total || 0), 0) || 0
+      const cambioVentas = ventasAyer > 0 ? ((ventasPeriodoTotal - ventasAyer) / ventasAyer) * 100 : 0
 
       const resultado = {
-        ventasHoy: totalVentasHoy,
-        clientesActivos: clientesUnicos.size,
-        productosEnStock: totalProductosStock,
+        ventasHoy: ventasPeriodoTotal,
+        clientesActivos: new Set(clientesActivos?.map((v: { cliente_id: string }) => v.cliente_id)).size || 0,
+        productosEnStock: productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0,
         pedidosPendientes: 0, // Por implementar
-        cambioVentasHoy: Math.round(cambioVentasHoy * 100) / 100,
-        nuevosClientesSemana: nuevosClientes?.length || 0,
-        productosStockBajo: productosConStockBajo.length,
+        cambioVentasHoy: cambioVentas,
+        nuevosClientesSemana: 0, // Por implementar
+        productosStockBajo: productosStock?.filter((p: { stock: number | null }) => (p.stock || 0) < 10).length || 0,
         pedidosRequierenAtencion: 0, // Por implementar
       }
 

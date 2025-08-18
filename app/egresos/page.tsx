@@ -537,6 +537,34 @@ export default function EgresosPage() {
           </div>
         </div>
 
+        {/* Indicador de filtro activo */}
+        {(() => {
+          const range = dateFilter.getFilteredDateRange()
+          if (range?.from) {
+            return (
+              <div className="bg-green-50 border-b border-green-200 px-6 py-2">
+                <div className="max-w-7xl mx-auto">
+                  <p className="text-sm text-green-700">
+                    <span className="inline-block w-4 h-4 mr-1">📅</span>
+                    Mostrando datos del período: <strong>
+                      {dateFilter.selectedQuickFilter === "hoy" ? "Hoy" : 
+                       dateFilter.selectedQuickFilter === "ayer" ? "Ayer" :
+                       dateFilter.selectedQuickFilter === "semana" ? "Esta Semana" :
+                       dateFilter.selectedQuickFilter === "mes" ? "Este Mes" :
+                       dateFilter.selectedQuickFilter === "año" ? "Este Año" : 
+                       dateFilter.selectedQuickFilter}</strong>
+                    {range.from && (
+                      <> desde {range.from.toLocaleDateString("es-AR")}
+                      {range.to && <> hasta {range.to.toLocaleDateString("es-AR")}</>}</>
+                    )}
+                  </p>
+                </div>
+              </div>
+            )
+          }
+          return null
+        })()}
+
         <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
           {/* Estadísticas */}
                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
