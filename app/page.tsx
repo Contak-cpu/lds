@@ -16,7 +16,8 @@ export default function Dashboard() {
   const [metricas, setMetricas] = useState<MetricasDashboard>({
     ventasHoy: 0,
     clientesActivos: 0,
-    productosEnStock: 0,
+    totalProductos: 0,
+    stockTotal: 0,
     pedidosPendientes: 0,
     cambioVentasHoy: 0,
     nuevosClientesSemana: 0,
@@ -212,12 +213,12 @@ export default function Dashboard() {
 
             <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Productos en Stock</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Productos</CardTitle>
                 <Package className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{metricas.productosEnStock}</div>
-                <p className="text-xs text-amber-600 mt-1">{metricas.productosStockBajo} productos con stock bajo</p>
+                <div className="text-2xl font-bold text-card-foreground">{metricas.totalProductos}</div>
+                <p className="text-xs text-amber-600 mt-1">Stock total: {metricas.stockTotal} unidades</p>
               </CardContent>
             </Card>
 

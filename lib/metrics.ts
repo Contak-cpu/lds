@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/client"
 export interface MetricasDashboard {
   ventasHoy: number
   clientesActivos: number
-  productosEnStock: number
+  totalProductos: number
+  stockTotal: number
   pedidosPendientes: number
   cambioVentasHoy: number
   nuevosClientesSemana: number
@@ -104,7 +105,8 @@ export class MetricsService {
       const resultado = {
         ventasHoy: ventasPeriodoTotal,
         clientesActivos: new Set(clientesActivos?.map((v: { cliente_id: string }) => v.cliente_id)).size || 0,
-        productosEnStock: productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0,
+        totalProductos: productosStock?.length || 0,
+        stockTotal: productosStock?.reduce((sum: number, p: { stock: number | null }) => sum + (p.stock || 0), 0) || 0,
         pedidosPendientes: 0, // Por implementar
         cambioVentasHoy: cambioVentas,
         nuevosClientesSemana: 0, // Por implementar
@@ -118,7 +120,8 @@ export class MetricsService {
       return {
         ventasHoy: 0,
         clientesActivos: 0,
-        productosEnStock: 0,
+        totalProductos: 0,
+        stockTotal: 0,
         pedidosPendientes: 0,
         cambioVentasHoy: 0,
         nuevosClientesSemana: 0,
