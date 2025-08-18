@@ -221,6 +221,7 @@ export default function ProductosPage() {
 
       if (error) throw error
 
+      console.log(`Productos cargados: ${data?.length || 0}`)
       setProductos(data || [])
     } catch (error) {
       console.error("Error cargando productos:", error)
@@ -570,8 +571,17 @@ export default function ProductosPage() {
       (filterStock === "bajo" && producto.stock > 0 && producto.stock <= producto.stock_minimo) ||
       (filterStock === "agotado" && producto.stock === 0)
 
+    // Log para depuración
+    if (searchTerm && (matchesSearch || !matchesSearch)) {
+      console.log(`Búsqueda: "${searchTerm}" - Producto: "${producto.nombre}" - Coincide: ${matchesSearch}`)
+    }
+
     return matchesSearch && matchesCategoria && matchesStock
   })
+
+  useEffect(() => {
+    console.log(`Estado de búsqueda - searchTerm: "${searchTerm}", productos: ${productos.length}, filtrados: ${filteredProductos.length}`)
+  }, [searchTerm, productos, filteredProductos])
 
   const getCategoriaIcon = (categoria: string) => {
     const iconMap: Record<string, ComponentType<{ className?: string }>> = {

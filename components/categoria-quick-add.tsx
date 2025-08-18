@@ -255,20 +255,20 @@ export function CategoriaQuickAdd({ onCategoriaCreada, trigger }: CategoriaQuick
             <Label htmlFor="color" className="text-right">
               Color *
             </Label>
-            <div className="col-span-3 flex gap-2">
+            <div className="col-span-3 flex gap-2 items-center">
               <Input
                 id="color"
                 type="color"
                 value={formData.color}
                 onChange={(e) => handleInputChange("color", e.target.value)}
-                className="w-16 h-10"
+                className="w-16 h-10 flex-shrink-0"
               />
-              <div className="flex gap-1">
+              <div className="flex gap-1 flex-wrap max-w-48">
                 {coloresPredefinidos.map((color) => (
                   <button
                     key={color}
                     type="button"
-                    className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400"
+                    className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 flex-shrink-0"
                     style={{ backgroundColor: color }}
                     onClick={() => handleInputChange("color", color)}
                   />
