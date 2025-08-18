@@ -21,6 +21,8 @@ import { Navigation } from "@/components/navigation"
 import { Plus, Search, Filter, DollarSign, TrendingDown, Calendar, Receipt, User, Eye } from "lucide-react"
 import { useNotifications } from "@/hooks/use-notifications"
 import { createClient } from "@/lib/supabase/client"
+import { DateFilter } from "@/components/ui/date-filter"
+import { useDateFilter } from "@/hooks/use-date-filter"
 
 interface Egreso {
   id: string
@@ -113,6 +115,7 @@ export default function EgresosPage() {
   const [filtroCategoria, setFiltroCategoria] = useState<string>("todos")
   const [busqueda, setBusqueda] = useState("")
   const [dialogAbierto, setDialogAbierto] = useState(false)
+  const dateFilter = useDateFilter("todos")
   const [editandoEgreso, setEditandoEgreso] = useState<Egreso | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [formErrors, setFormErrors] = useState<EgresoFormErrors>({})
@@ -492,7 +495,32 @@ export default function EgresosPage() {
           </div>
         </header>
 
-                 <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+        {/* Filtro de fechas */}
+        <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-2">Filtrar por período:</h3>
+              <DateFilter
+                onDateRangeChange={dateFilter.setSelectedRange}
+                onQuickFilterChange={dateFilter.setSelectedQuickFilter}
+                selectedRange={dateFilter.selectedRange}
+                selectedQuickFilter={dateFilter.selectedQuickFilter}
+              />
+            </div>
+            {(() => {
+              const range = dateFilter.getFilteredDateRange()
+              return range?.from && (
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">Período seleccionado:</span>{" "}
+                  {range.from.toLocaleDateString("es-AR")}
+                  {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
+                </div>
+              )
+            })()}
+          </div>
+        </div>
+
+        <main className="flex-1 overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
           {/* Estadísticas */}
                      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
              <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">

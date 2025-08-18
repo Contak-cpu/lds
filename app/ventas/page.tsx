@@ -37,6 +37,8 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
 import { createClient } from "@/lib/supabase/client"
+import { DateFilter } from "@/components/ui/date-filter"
+import { useDateFilter } from "@/hooks/use-date-filter"
 
 interface Cliente {
   id: string
@@ -219,6 +221,7 @@ export default function VentasPage() {
   const [isNewSaleDialogOpen, setIsNewSaleDialogOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [formErrors, setFormErrors] = useState<VentaFormErrors>({})
+  const dateFilter = useDateFilter("todos")
 
   const supabase = createClient()
 
@@ -851,6 +854,33 @@ export default function VentasPage() {
             </div>
           </div>
         </header>
+
+        {/* Filtro de fechas */}
+        <div className="bg-muted/50 border-b border-border px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtrar por período:</h3>
+                <DateFilter
+                  onDateRangeChange={dateFilter.setSelectedRange}
+                  onQuickFilterChange={dateFilter.setSelectedQuickFilter}
+                  selectedRange={dateFilter.selectedRange}
+                  selectedQuickFilter={dateFilter.selectedQuickFilter}
+                />
+              </div>
+              {(() => {
+                const range = dateFilter.getFilteredDateRange()
+                return range?.from && (
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium">Período seleccionado:</span>{" "}
+                    {range.from.toLocaleDateString("es-AR")}
+                    {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+        </div>
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}

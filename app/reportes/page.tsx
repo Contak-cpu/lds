@@ -29,6 +29,7 @@ import { es } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
 import type { JSX } from "react/jsx-runtime"
 import { metricsService, type VentaPorPeriodo, type ProductoMasVendido, type CategoriaVenta, type VentaPorMes } from "@/lib/metrics"
+import { DateFilter } from "@/components/ui/date-filter"
 
 interface MetricaData {
   valor: number
@@ -225,63 +226,19 @@ export default function ReportesPage() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-                <div className="flex items-center space-x-2">
-                  <Select
-                    value={usarFechaPersonalizada ? "personalizado" : periodoSeleccionado}
-                    onValueChange={(value) => {
-                      if (value === "personalizado") {
-                        setUsarFechaPersonalizada(true)
-                      } else {
-                        setUsarFechaPersonalizada(false)
-                        setPeriodoSeleccionado(value)
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full sm:w-32">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="hoy">Hoy</SelectItem>
-                      <SelectItem value="semana">Semana</SelectItem>
-                      <SelectItem value="mes">Mes</SelectItem>
-                      <SelectItem value="año">Año</SelectItem>
-                      <SelectItem value="personalizado">Fecha personalizada</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  {usarFechaPersonalizada && (
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full sm:w-auto bg-transparent">
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {fechaPersonalizada?.from ? (
-                            fechaPersonalizada.to ? (
-                              <>
-                                {format(fechaPersonalizada.from, "dd/MM", { locale: es })} -{" "}
-                                {format(fechaPersonalizada.to, "dd/MM", { locale: es })}
-                              </>
-                            ) : (
-                              format(fechaPersonalizada.from, "dd/MM/yyyy", { locale: es })
-                            )
-                          ) : (
-                            "Seleccionar fechas"
-                          )}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          initialFocus
-                          mode="range"
-                          defaultMonth={fechaPersonalizada?.from}
-                          selected={fechaPersonalizada}
-                          onSelect={setFechaPersonalizada}
-                          numberOfMonths={2}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                </div>
+                <DateFilter
+                  onDateRangeChange={setFechaPersonalizada}
+                  onQuickFilterChange={(value) => {
+                    if (value === "personalizado") {
+                      setUsarFechaPersonalizada(true)
+                    } else {
+                      setUsarFechaPersonalizada(false)
+                      setPeriodoSeleccionado(value)
+                    }
+                  }}
+                  selectedRange={fechaPersonalizada}
+                  selectedQuickFilter={usarFechaPersonalizada ? "personalizado" : periodoSeleccionado}
+                />
 
                 <Select value={formatoExportacion} onValueChange={setFormatoExportacion}>
                   <SelectTrigger className="w-full sm:w-28">

@@ -8,6 +8,9 @@ import { Users, Package, TrendingUp, ShoppingCart, Leaf, Droplets, Sun } from "l
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { metricsService, type MetricasDashboard, type ProductoMasVendido } from "@/lib/metrics"
+import { DateFilter } from "@/components/ui/date-filter"
+import { CurrentDateTime } from "@/components/ui/current-datetime"
+import { useDateFilter } from "@/hooks/use-date-filter"
 
 export default function Dashboard() {
   const [metricas, setMetricas] = useState<MetricasDashboard>({
@@ -22,6 +25,7 @@ export default function Dashboard() {
   })
   const [productosMasVendidos, setProductosMasVendidos] = useState<ProductoMasVendido[]>([])
   const [loading, setLoading] = useState(true)
+  const dateFilter = useDateFilter("hoy")
 
   useEffect(() => {
     const cargarMetricas = async () => {
@@ -62,12 +66,13 @@ export default function Dashboard() {
         {/* Header */}
         <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4 sm:gap-0">
               <div>
                 <h1 className="text-xl font-bold text-card-foreground">Dashboard de Ventas</h1>
                 <p className="text-sm text-green-600">Gestiona tu negocio de cultivo de manera eficiente</p>
+                <CurrentDateTime />
               </div>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <Badge variant="outline" className="bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200 dark:border-green-700">
                   Activo
                 </Badge>
@@ -80,6 +85,33 @@ export default function Dashboard() {
             </div>
           </div>
         </header>
+
+        {/* Filtro de fechas */}
+        <div className="bg-muted/50 border-b border-border px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtrar por período:</h3>
+                <DateFilter
+                  onDateRangeChange={dateFilter.setSelectedRange}
+                  onQuickFilterChange={dateFilter.setSelectedQuickFilter}
+                  selectedRange={dateFilter.selectedRange}
+                  selectedQuickFilter={dateFilter.selectedQuickFilter}
+                />
+              </div>
+              {(() => {
+                const range = dateFilter.getFilteredDateRange()
+                return range?.from && (
+                  <div className="text-sm text-muted-foreground">
+                    <span className="font-medium">Período seleccionado:</span>{" "}
+                    {range.from.toLocaleDateString("es-AR")}
+                    {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+        </div>
 
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
