@@ -145,10 +145,27 @@ export default function EgresosPage() {
     cargarEgresos()
   }, [])
 
+  // Recargar datos cuando cambien los filtros de fechas
+  useEffect(() => {
+    cargarEgresos()
+  }, [dateFilter.selectedQuickFilter, dateFilter.selectedRange])
+
   const cargarEgresos = async () => {
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.from("egresos").select("*").order("fecha_egreso", { ascending: false })
+      
+      // Obtener el rango de fechas del filtro
+      const dateRange = dateFilter.getFilteredDateRange()
+      let egresosQuery = supabase.from("egresos").select("*").order("fecha_egreso", { ascending: false })
+
+      // Aplicar filtro de fechas si está configurado
+      if (dateRange?.from && dateRange?.to) {
+        egresosQuery = egresosQuery
+          .gte("fecha_egreso", dateRange.from.toISOString().split('T')[0])
+          .lte("fecha_egreso", dateRange.to.toISOString().split('T')[0])
+      }
+
+      const { data, error } = await egresosQuery
 
       if (error) throw error
 

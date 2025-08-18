@@ -34,30 +34,47 @@ export function DateFilter({
     switch (filter) {
       case "hoy":
         const hoy = new Date()
+        const inicioHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate())
+        const finHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate(), 23, 59, 59, 999)
         range = {
-          from: startOfDay(hoy),
-          to: endOfDay(hoy)
+          from: inicioHoy,
+          to: finHoy
         }
         break
       case "ayer":
         const ayer = subDays(new Date(), 1)
+        const inicioAyer = new Date(ayer.getFullYear(), ayer.getMonth(), ayer.getDate())
+        const finAyer = new Date(ayer.getFullYear(), ayer.getMonth(), ayer.getDate(), 23, 59, 59, 999)
         range = {
-          from: startOfDay(ayer),
-          to: endOfDay(ayer)
+          from: inicioAyer,
+          to: finAyer
         }
         break
       case "semana":
         const ahora = new Date()
+        const inicioSemana = startOfWeek(ahora, { weekStartsOn: 1 })
+        const finSemana = endOfWeek(ahora, { weekStartsOn: 1 })
         range = {
-          from: startOfWeek(ahora, { weekStartsOn: 1 }),
-          to: endOfWeek(ahora, { weekStartsOn: 1 })
+          from: inicioSemana,
+          to: finSemana
         }
         break
       case "mes":
         const mesActual = new Date()
+        const inicioMes = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1)
+        const finMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0, 23, 59, 59, 999)
         range = {
-          from: new Date(mesActual.getFullYear(), mesActual.getMonth(), 1),
-          to: new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0)
+          from: inicioMes,
+          to: finMes
+        }
+        break
+      case "año":
+        const añoActual = new Date()
+        const inicioAño = new Date(añoActual.getFullYear(), 0, 1)
+        const finAño = new Date(añoActual.getFullYear(), 11, 31, 23, 59, 59, 999)
+        range = {
+          from: inicioAño,
+          to: finAño
         }
         break
       case "personalizado":

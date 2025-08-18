@@ -231,27 +231,38 @@ export default function VentasPage() {
     try {
       setLoading(true)
 
+      // Obtener el rango de fechas del filtro
+      const dateRange = dateFilter.getFilteredDateRange()
+      let ventasQuery = supabase
+        .from("ventas")
+        .select(`
+          *,
+          venta_items (
+            id,
+            venta_id,
+            producto_id,
+            producto_nombre,
+            cantidad,
+            precio_unitario,
+            subtotal,
+            categoria,
+            descripcion,
+            imagen_url,
+            created_at,
+            updated_at
+          )
+        `)
+        .order("created_at", { ascending: false })
+
+      // Aplicar filtro de fechas si está configurado
+      if (dateRange?.from && dateRange?.to) {
+        ventasQuery = ventasQuery
+          .gte("created_at", dateRange.from.toISOString())
+          .lte("created_at", dateRange.to.toISOString())
+      }
+
       const [ventasResponse, productosResponse, clientesResponse] = await Promise.all([
-        supabase
-          .from("ventas")
-          .select(`
-            *,
-            venta_items (
-              id,
-              venta_id,
-              producto_id,
-              producto_nombre,
-              cantidad,
-              precio_unitario,
-              subtotal,
-              categoria,
-              descripcion,
-              imagen_url,
-              created_at,
-              updated_at
-            )
-          `)
-          .order("created_at", { ascending: false }),
+        ventasQuery,
 
         supabase.from("productos").select("*").eq("activo", true).order("nombre"),
 
@@ -355,6 +366,11 @@ export default function VentasPage() {
   useEffect(() => {
     cargarDatos()
   }, [])
+
+  // Recargar datos cuando cambien los filtros de fechas
+  useEffect(() => {
+    cargarDatos()
+  }, [dateFilter.selectedQuickFilter, dateFilter.selectedRange])
 
   const agregarAlCarrito = (producto: Producto): void => {
     if (!producto.nombre || producto.precio <= 0) {

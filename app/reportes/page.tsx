@@ -60,6 +60,7 @@ export default function ReportesPage() {
   const [periodoSeleccionado, setPeriodoSeleccionado] = useState("semana")
   const [categoriaFiltro, setCategoriaFiltro] = useState("todas")
   const [fechaPersonalizada, setFechaPersonalizada] = useState<DateRange | undefined>()
+  const [fechaFiltroRapido, setFechaFiltroRapido] = useState<DateRange | undefined>()
   const [usarFechaPersonalizada, setUsarFechaPersonalizada] = useState(false)
   const [formatoExportacion, setFormatoExportacion] = useState("json")
   const [loading, setLoading] = useState(true)
@@ -89,6 +90,9 @@ export default function ReportesPage() {
         if (usarFechaPersonalizada && fechaPersonalizada?.from && fechaPersonalizada?.to) {
           fechaInicio = fechaPersonalizada.from
           fechaFin = fechaPersonalizada.to
+        } else if (fechaFiltroRapido?.from && fechaFiltroRapido?.to) {
+          fechaInicio = fechaFiltroRapido.from
+          fechaFin = fechaFiltroRapido.to
         }
         
         const [
@@ -123,7 +127,7 @@ export default function ReportesPage() {
     }
 
     cargarDatos()
-  }, [periodoSeleccionado, usarFechaPersonalizada, fechaPersonalizada, toast])
+  }, [periodoSeleccionado, usarFechaPersonalizada, fechaPersonalizada, fechaFiltroRapido, toast])
 
   const getTrendIcon = (tipo: "aumento" | "disminucion"): JSX.Element => {
     return tipo === "aumento" ? (
@@ -237,10 +241,17 @@ export default function ReportesPage() {
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
                 <DateFilter
-                  onDateRangeChange={setFechaPersonalizada}
+                  onDateRangeChange={(range) => {
+                    if (usarFechaPersonalizada) {
+                      setFechaPersonalizada(range)
+                    } else {
+                      setFechaFiltroRapido(range)
+                    }
+                  }}
                   onQuickFilterChange={(value) => {
                     if (value === "personalizado") {
                       setUsarFechaPersonalizada(true)
+                      setFechaFiltroRapido(undefined)
                     } else {
                       setUsarFechaPersonalizada(false)
                       setPeriodoSeleccionado(value)
@@ -248,7 +259,7 @@ export default function ReportesPage() {
                       setFechaPersonalizada(undefined)
                     }
                   }}
-                  selectedRange={fechaPersonalizada}
+                  selectedRange={usarFechaPersonalizada ? fechaPersonalizada : fechaFiltroRapido}
                   selectedQuickFilter={usarFechaPersonalizada ? "personalizado" : periodoSeleccionado}
                 />
 
@@ -260,6 +271,7 @@ export default function ReportesPage() {
                       setUsarFechaPersonalizada(false)
                       setPeriodoSeleccionado("semana")
                       setFechaPersonalizada(undefined)
+                      setFechaFiltroRapido(undefined)
                     }}
                     className="bg-transparent text-xs"
                   >
@@ -319,7 +331,7 @@ export default function ReportesPage() {
           </div>
         )}
 
-        {!usarFechaPersonalizada && (
+        {!usarFechaPersonalizada && fechaFiltroRapido?.from && (
           <div className="bg-green-50 border-b border-green-200 px-4 py-2">
             <div className="max-w-7xl mx-auto">
               <p className="text-sm text-green-700">
@@ -329,6 +341,10 @@ export default function ReportesPage() {
                   periodoSeleccionado === "semana" ? "Esta Semana" :
                   periodoSeleccionado === "mes" ? "Este Mes" :
                   periodoSeleccionado === "año" ? "Este Año" : periodoSeleccionado}</strong>
+                {fechaFiltroRapido.from && (
+                  <> desde {format(fechaFiltroRapido.from, "dd/MM/yyyy", { locale: es })}
+                  {fechaFiltroRapido.to && <> hasta {format(fechaFiltroRapido.to, "dd/MM/yyyy", { locale: es })}</>}</>
+                )}
               </p>
             </div>
           </div>
