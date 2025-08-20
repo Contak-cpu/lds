@@ -451,7 +451,6 @@ export default function ClientesPage() {
       showError("Error", "No se pudieron guardar los cambios")
     }
   }
- main
 
   if (loading) {
     return (
