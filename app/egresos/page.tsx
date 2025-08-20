@@ -150,7 +150,11 @@ export default function EgresosPage() {
       if (dateRange?.from && dateRange?.to) {
         egresosData = egresosData.filter(egreso => {
           const fechaEgreso = new Date(egreso.fecha_egreso)
-          return fechaEgreso >= dateRange.from && fechaEgreso <= dateRange.to
+          // Verificar que las fechas sean válidas antes de comparar
+          if (dateRange.from && dateRange.to) {
+            return fechaEgreso >= dateRange.from && fechaEgreso <= dateRange.to
+          }
+          return true
         })
       }
       

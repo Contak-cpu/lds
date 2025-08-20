@@ -256,9 +256,11 @@ export default function VentasPage() {
 
       // Aplicar filtro de fechas si está configurado
       if (dateRange?.from && dateRange?.to) {
+        const fromDate = dateRange.from
+        const toDate = dateRange.to
         ventasQuery = ventasQuery
-          .gte("created_at", dateRange.from.toISOString())
-          .lte("created_at", dateRange.to.toISOString())
+          .gte("created_at", fromDate.toISOString())
+          .lte("created_at", toDate.toISOString())
       }
 
       const [ventasResponse, productosResponse, clientesResponse] = await Promise.all([
