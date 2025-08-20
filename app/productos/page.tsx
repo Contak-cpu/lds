@@ -45,6 +45,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
 import { useNotifications } from "@/hooks/use-notifications"
+
+main
 import type { ComponentType } from "react"
 
 interface Producto {
@@ -85,6 +87,74 @@ interface ProductoFormErrors {
   descripcion?: string
   imagen_url?: string
 }
+
+// Datos mock por defecto
+const productosMock: Producto[] = [
+  {
+    id: "1",
+    sku: "SEM-001",
+    categoria_id: "1",
+    nombre: "Semillas OG Kush Feminizadas",
+    descripcion: "Semillas premium de cannabis OG Kush, variedad feminizada de alta calidad",
+    categoria: "Semillas",
+    precio: 2500,
+    costo: 1500,
+    stock: 50,
+    stock_minimo: 10,
+    imagen_url: "/public/cannabis-seeds-pack.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    sku: "FERT-001",
+    categoria_id: "2",
+    nombre: "Fertilizante Orgánico Premium",
+    descripcion: "Nutriente completo para todas las etapas del cultivo, 100% orgánico",
+    categoria: "Fertilizantes",
+    precio: 1800,
+    costo: 900,
+    stock: 25,
+    stock_minimo: 5,
+    imagen_url: "/public/placeholder-ivbba.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "3",
+    sku: "LED-001",
+    categoria_id: "3",
+    nombre: "Panel LED 600W Full Spectrum",
+    descripcion: "Sistema de iluminación LED profesional para cultivo interior",
+    categoria: "Iluminación",
+    precio: 45000,
+    costo: 30000,
+    stock: 8,
+    stock_minimo: 2,
+    imagen_url: "/public/hydroponic-dwc-system.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "4",
+    sku: "SUST-001",
+    categoria_id: "4",
+    nombre: "Sustrato Premium Mix",
+    descripcion: "Mezcla especializada de tierras para cultivo de cannabis",
+    categoria: "Sustratos",
+    precio: 1200,
+    costo: 600,
+    stock: 30,
+    stock_minimo: 8,
+    imagen_url: "/public/placeholder-s06h6.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
 
 // Función de validación para productos
 const validateProductoForm = (formData: ProductoFormData): ProductoFormErrors => {
@@ -272,9 +342,13 @@ export default function ProductosPage() {
       
       console.log(`Productos cargados: ${productos.length}`)
       setProductos(productos)
+        
+main
     } catch (error) {
       console.error("Error cargando productos:", error)
-      showError("Error", "No se pudieron cargar los productos")
+      showError("Error al cargar productos")
+      // En caso de error, usar datos mock
+      setProductos(productosMock)
     } finally {
       setIsLoading(false)
     }
@@ -422,6 +496,7 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setFormErrors({})
 
+
       // Generar SKU automáticamente
       const sku = await generateSKU(formData.categoria)
       
@@ -433,6 +508,7 @@ export default function ProductosPage() {
         descripcion: formData.descripcion.trim() || null,
         categoria: formData.categoria,
         marca: formData.marca || "Sin marca",
+main
         precio: parseFloat(formData.precio),
         costo: parseFloat(formData.costo),
         stock: parseInt(formData.stock) || 0,
@@ -442,18 +518,23 @@ export default function ProductosPage() {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
+        updated_at: new Date().toISOString(),
+      }
 
-      // Guardar en localStorage y actualizar estado
-      const productosActualizados = [nuevoProducto, ...productos]
-      localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
+      // Actualizar localStorage
+      const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
+      const productosActualizados = [nuevoProducto, ...productosActuales]
+      localStorage.setItem('crm-productos', JSON.stringify(productosActualizados))
+
+      // Actualizar el estado local
       setProductos(productosActualizados)
-      
+main
       resetForm()
       setIsAddDialogOpen(false)
       showProductoCreated()
     } catch (error) {
       console.error("Error adding product:", error)
-      showError("Error", "No se pudo agregar el producto")
+      showError("Error al agregar producto")
     }
   }
 
@@ -490,6 +571,7 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setEditFormErrors({})
 
+
       // Actualizar producto (modo mock)
       const productoActualizado = {
         ...editingProduct,
@@ -511,6 +593,8 @@ export default function ProductosPage() {
       localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
       setProductos(productosActualizados)
       
+
+main
       setIsEditDialogOpen(false)
       setEditingProduct(null)
       showProductoUpdated()
@@ -522,14 +606,16 @@ export default function ProductosPage() {
 
   const handleDeleteProduct = async (productId: string) => {
     try {
+feature/fix
       // Eliminar producto (modo mock)
       const productosActualizados = productos.filter(producto => producto.id !== productId)
       localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
       setProductos(productosActualizados)
+ main
       showProductoDeleted()
     } catch (error) {
       console.error("Error eliminando producto:", error)
-      showError("Error", "No se pudo eliminar el producto")
+      showError("Error al eliminar producto")
     }
   }
 
