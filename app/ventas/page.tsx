@@ -295,10 +295,7 @@ export default function VentasPage() {
         // Usar clientes mock si no hay en localStorage
         setClientes([])
       }
-            clienteEmail: venta.cliente_id
-              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.email || ""
-              : "",
-            fecha: fecha.toISOString().split("T")[0],
+
       console.log("Datos mock cargados exitosamente")
     } catch (error) {
       console.error("Error cargando datos:", error)
