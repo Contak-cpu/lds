@@ -20,23 +20,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
 import { Plus, Search, Filter, DollarSign, TrendingDown, Calendar, Receipt, User, Eye } from "lucide-react"
 import { useNotifications } from "@/hooks/use-notifications"
-import { createClient } from "@/lib/supabase/client"
+import { mockDataService, type Egreso } from "@/lib/mock-data"
 import { DateFilter } from "@/components/ui/date-filter"
 import { useDateFilter } from "@/hooks/use-date-filter"
 
-interface Egreso {
-  id: string
-  fecha_egreso: string
-  descripcion: string
-  categoria: string
-  monto: number
-  proveedor: string
-  metodo_pago: string
-  notas: string
-  comprobante_url?: string
-  created_at?: string
-  updated_at?: string
-}
+// La interfaz Egreso ya está importada desde mock-data
 
 interface EgresoFormData {
   descripcion: string
@@ -152,24 +140,24 @@ export default function EgresosPage() {
 
   const cargarEgresos = async () => {
     try {
-      const supabase = createClient()
-      
       // Obtener el rango de fechas del filtro
       const dateRange = dateFilter.getFilteredDateRange()
-      let egresosQuery = supabase.from("egresos").select("*").order("fecha_egreso", { ascending: false })
-
+      
+      // Obtener todos los egresos del servicio mock
+      let egresosData = await mockDataService.getEgresos()
+      
       // Aplicar filtro de fechas si está configurado
       if (dateRange?.from && dateRange?.to) {
-        egresosQuery = egresosQuery
-          .gte("fecha_egreso", dateRange.from.toISOString().split('T')[0])
-          .lte("fecha_egreso", dateRange.to.toISOString().split('T')[0])
+        egresosData = egresosData.filter(egreso => {
+          const fechaEgreso = new Date(egreso.fecha_egreso)
+          return fechaEgreso >= dateRange.from && fechaEgreso <= dateRange.to
+        })
       }
-
-      const { data, error } = await egresosQuery
-
-      if (error) throw error
-
-      setEgresos(data || [])
+      
+      // Ordenar por fecha descendente
+      egresosData.sort((a, b) => new Date(b.fecha_egreso).getTime() - new Date(a.fecha_egreso).getTime())
+      
+      setEgresos(egresosData)
     } catch (error) {
       console.error("Error cargando egresos:", error)
       showError("Error", "No se pudieron cargar los egresos")
@@ -262,28 +250,19 @@ export default function EgresosPage() {
       // Limpiar errores previos
       setFormErrors({})
 
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("egresos")
-        .insert([
-          {
-            fecha_egreso: new Date().toISOString().split("T")[0],
-            descripcion: formData.descripcion.trim(),
-            categoria: formData.categoria,
-            monto: Number.parseFloat(formData.monto),
-            proveedor: formData.proveedor.trim(),
-            metodo_pago: formData.metodo_pago,
-            notas: formData.notas.trim() || null,
-          },
-        ])
-        .select()
-
-      if (error) throw error
+      // Crear nuevo egreso usando el servicio mock
+      const newEgreso = await mockDataService.createEgreso({
+        fecha_egreso: new Date().toISOString().split("T")[0],
+        descripcion: formData.descripcion.trim(),
+        categoria: formData.categoria,
+        monto: Number.parseFloat(formData.monto),
+        proveedor: formData.proveedor.trim(),
+        metodo_pago: formData.metodo_pago,
+        notas: formData.notas.trim() || undefined,
+      })
 
       // Actualizar la lista local
-      if (data && data[0]) {
-        setEgresos([data[0], ...egresos])
-      }
+      setEgresos([newEgreso, ...egresos])
 
       // Limpiar formulario
       setFormData({
@@ -309,25 +288,19 @@ export default function EgresosPage() {
     if (!editandoEgreso) return
 
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("egresos")
-        .update({
-          descripcion: formData.descripcion,
-          categoria: formData.categoria,
-          monto: Number.parseFloat(formData.monto),
-          proveedor: formData.proveedor,
-          metodo_pago: formData.metodo_pago,
-          notas: formData.notas,
-        })
-        .eq("id", editandoEgreso.id)
-        .select()
+      // Actualizar egreso usando el servicio mock
+      const updatedEgreso = await mockDataService.updateEgreso(editandoEgreso.id, {
+        descripcion: formData.descripcion,
+        categoria: formData.categoria,
+        monto: Number.parseFloat(formData.monto),
+        proveedor: formData.proveedor,
+        metodo_pago: formData.metodo_pago,
+        notas: formData.notas,
+      })
 
-      if (error) throw error
-
-      // Actualizar la lista local
-      if (data && data[0]) {
-        setEgresos(egresos.map((egreso: Egreso) => (egreso.id === editandoEgreso.id ? data[0] : egreso)))
+      if (updatedEgreso) {
+        // Actualizar la lista local
+        setEgresos(egresos.map((egreso: Egreso) => (egreso.id === editandoEgreso.id ? updatedEgreso : egreso)))
       }
 
       setEditandoEgreso(null)
@@ -353,17 +326,18 @@ export default function EgresosPage() {
     setDialogAbierto(true)
   }
 
-  const eliminarEgreso = async (id: string): Promise<void> => {
+  const eliminarEgreso = async (id: number): Promise<void> => {
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from("egresos").delete().eq("id", id)
+      // Eliminar egreso usando el servicio mock
+      const success = await mockDataService.deleteEgreso(id)
 
-      if (error) throw error
-
-      // Actualizar la lista local
-      setEgresos(egresos.filter((egreso: Egreso) => egreso.id !== id))
-
-      showEgresoDeleted()
+      if (success) {
+        // Actualizar la lista local
+        setEgresos(egresos.filter((egreso: Egreso) => egreso.id !== id))
+        showEgresoDeleted()
+      } else {
+        showError("Error", "No se pudo eliminar el egreso")
+      }
     } catch (error) {
       console.error("Error eliminando egreso:", error)
       showError("Error", "No se pudo eliminar el egreso")
@@ -607,32 +581,32 @@ export default function EgresosPage() {
                </CardContent>
              </Card>
 
-                         <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                         <Card className="bg-card border-border shadow-sm">
                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                 <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-300">Mayor Egreso</CardTitle>
+                 <CardTitle className="text-sm font-medium text-muted-foreground">Mayor Egreso</CardTitle>
                  <Receipt className="h-4 w-4 text-purple-600" />
                </CardHeader>
                <CardContent>
                  <div className="text-2xl font-bold text-purple-600">
                    ${mayorEgreso.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                  </div>
-                 <p className="text-xs text-gray-500 dark:text-gray-400">Registro más alto</p>
+                 <p className="text-xs text-muted-foreground">Registro más alto</p>
                </CardContent>
              </Card>
           </div>
 
           {/* Filtros */}
-                     <Card className="mb-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                     <Card className="mb-6 bg-card border-border shadow-sm">
              <CardContent className="pt-6">
                <div className="flex flex-col sm:flex-row gap-4">
                  <div className="flex-1">
                    <div className="relative">
-                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                      <Input
                        placeholder="Buscar por concepto o proveedor..."
                        value={busqueda}
                        onChange={(e) => setBusqueda(e.target.value)}
-                       className="pl-10 border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
+                       className="pl-10 focus:border-green-500 focus:ring-green-500"
                      />
                    </div>
                  </div>
@@ -658,19 +632,19 @@ export default function EgresosPage() {
           </Card>
 
           {/* Lista de Egresos */}
-                     <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm">
+                     <Card className="bg-card border-border shadow-sm">
              <CardHeader>
-               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+               <CardTitle className="text-lg font-semibold text-card-foreground">
                  Lista de Egresos ({egresosFiltrados.length})
                </CardTitle>
-               <CardDescription className="text-gray-600 dark:text-gray-300">Gestiona todos los gastos del negocio</CardDescription>
+               <CardDescription className="text-muted-foreground">Gestiona todos los gastos del negocio</CardDescription>
              </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {egresosFiltrados.map((egreso: Egreso) => (
                                      <div
                      key={egreso.id}
-                     className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
+                     className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent transition-colors bg-card"
                    >
                      <div className="flex items-center space-x-4">
                        <div className="bg-gradient-to-r from-red-500 to-orange-600 p-3 rounded-full shadow-sm">
@@ -678,25 +652,25 @@ export default function EgresosPage() {
                        </div>
                        <div className="flex-1">
                          <div className="flex items-center space-x-2 mb-1">
-                           <h3 className="font-semibold text-gray-900 dark:text-white">{egreso.descripcion}</h3>
-                           <Badge variant="outline" className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700">{egreso.categoria}</Badge>
+                           <h3 className="font-semibold text-card-foreground">{egreso.descripcion}</h3>
+                           <Badge variant="outline">{egreso.categoria}</Badge>
                          </div>
-                         <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+                         <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                            <div className="flex items-center space-x-1">
-                             <User className="h-4 w-4 text-gray-500" />
+                             <User className="h-4 w-4 text-muted-foreground" />
                              <span>{egreso.proveedor}</span>
                            </div>
                            <div className="flex items-center space-x-1">
-                             <Calendar className="h-4 w-4 text-gray-500" />
+                             <Calendar className="h-4 w-4 text-muted-foreground" />
                              <span>{new Date(egreso.fecha_egreso).toLocaleDateString("es-AR")}</span>
                            </div>
                            <div className="flex items-center space-x-1">
-                             <DollarSign className="h-4 w-4 text-gray-500" />
+                             <DollarSign className="h-4 w-4 text-muted-foreground" />
                              <span>{egreso.metodo_pago}</span>
                            </div>
                            {egreso.notas && (
                              <div className="flex items-center space-x-1">
-                               <span className="text-xs bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-2 py-1 rounded">
+                               <span className="text-xs bg-muted text-muted-foreground px-2 py-1 rounded">
                                  {egreso.notas}
                                </span>
                              </div>
@@ -783,7 +757,7 @@ export default function EgresosPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                                             <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)} className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                             <Button variant="outline" size="sm" onClick={() => abrirEdicion(egreso)}>
                          Editar
                        </Button>
                        <Button
@@ -799,8 +773,8 @@ export default function EgresosPage() {
                 ))}
 
                                  {egresosFiltrados.length === 0 && (
-                   <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                     <Receipt className="h-12 w-12 mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+                   <div className="text-center py-12 text-muted-foreground">
+                     <Receipt className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                      <p className="text-lg font-medium">No se encontraron egresos</p>
                      <p className="text-sm">No hay egresos que coincidan con los filtros aplicados</p>
                    </div>

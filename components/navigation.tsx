@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Leaf, Settings, TrendingDown } from "lucide-react"
+import { LayoutDashboard, Users, Package, ShoppingCart, BarChart3, Zap, Settings, TrendingDown } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 
 const navigation = [
@@ -24,11 +24,11 @@ export function Navigation() {
       <div className="p-6">
         <div className="flex items-center space-x-3 mb-8">
           <div className="bg-green-600 p-2 rounded-lg">
-            <Leaf className="h-6 w-6 text-white" />
+            <Zap className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-sidebar-foreground">GrowShop CRM</h1>
-            <p className="text-xs text-green-600">Tu cultivo optimizado</p>
+            <h1 className="text-lg font-bold text-sidebar-foreground">Los de Siempre Sneakers</h1>
+            <p className="text-xs text-green-600">Tu estilo deportivo</p>
           </div>
         </div>
 

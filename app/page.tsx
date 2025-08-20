@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Users, Package, TrendingUp, ShoppingCart, Leaf, Droplets, Sun } from "lucide-react"
+import { Users, Package, TrendingUp, ShoppingCart, Zap, Sun } from "lucide-react"
 import { Navigation } from "@/components/navigation"
 import Link from "next/link"
 import { metricsService, type MetricasDashboard, type ProductoMasVendido } from "@/lib/metrics"
@@ -111,7 +111,7 @@ export default function Dashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4 sm:gap-0">
               <div>
                 <h1 className="text-xl font-bold text-card-foreground">Dashboard de Ventas</h1>
-                <p className="text-sm text-green-600">Gestiona tu negocio de cultivo de manera eficiente</p>
+                <p className="text-sm text-green-600">Gestiona tu tienda de zapatillas deportivas de manera eficiente</p>
                 <CurrentDateTime />
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -341,7 +341,7 @@ export default function Dashboard() {
                   productosMasVendidos.slice(0, 3).map((producto, index) => (
                     <div key={index} className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
                       <div className="bg-green-600 p-3 rounded-lg">
-                        <Leaf className="h-6 w-6 text-white" />
+                        <Zap className="h-6 w-6 text-white" />
                       </div>
                       <div>
                         <h4 className="font-semibold text-card-foreground">{producto.nombre}</h4>

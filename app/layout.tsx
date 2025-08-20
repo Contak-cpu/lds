@@ -7,8 +7,8 @@ import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
 export const metadata: Metadata = {
-  title: "GrowShop CRM - Dashboard de Ventas",
-  description: "Sistema CRM especializado para growshops y tiendas de cultivo",
+  title: "Los de Siempre Sneakers CRM - Dashboard de Ventas",
+  description: "Sistema CRM especializado para tiendas de zapatillas deportivas",
   generator: "v0.app",
 }
 

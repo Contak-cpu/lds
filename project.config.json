@@ -1,0 +1,56 @@
+{
+  "project": {
+    "name": "Los de Siempre Sneakers CRM",
+    "version": "1.0.0",
+    "description": "Sistema CRM especializado para tiendas de zapatillas deportivas",
+    "type": "local-mock",
+    "developer": "pictoN",
+    "repository": "https://github.com/Contak-cpu/lds"
+  },
+  "features": {
+    "database": {
+      "type": "mock",
+      "description": "Datos simulados locales sin base de datos externa",
+      "persistence": "memory",
+      "migration_path": "scripts/"
+    },
+    "authentication": {
+      "enabled": false,
+      "type": "none"
+    },
+    "deployment": {
+      "platform": "vercel",
+      "requirements": ["node_modules", "npm run build"]
+    }
+  },
+  "data": {
+    "categories": 8,
+    "products": 24,
+    "clients": 10,
+    "sales": 10,
+    "expenses": 10,
+    "brands": ["Nike", "Adidas", "Puma", "New Balance", "Converse", "Vans", "Reebok", "Asics"]
+  },
+  "installation": {
+    "requirements": ["Node.js 18+", "npm"],
+    "steps": [
+      "git clone https://github.com/Contak-cpu/lds.git",
+      "cd lds",
+      "npm install",
+      "npm run dev"
+    ],
+    "time": "2 minutes",
+    "url": "http://localhost:3000"
+  },
+  "migration": {
+    "to_database": {
+      "enabled": true,
+      "steps": [
+        "Configure Supabase or other database",
+        "Run SQL scripts from scripts/ folder",
+        "Replace mock-data.ts with database services",
+        "Update environment variables"
+      ]
+    }
+  }
+}
