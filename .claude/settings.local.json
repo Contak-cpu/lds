@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(npm run build:*)",
-      "Bash(sed:*)"
+      "Bash(sed:*)",
+      "Bash(git add:*)",
+      "Bash(grep:*)",
+      "Bash(awk:*)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []

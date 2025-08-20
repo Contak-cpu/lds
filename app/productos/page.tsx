@@ -46,7 +46,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Navigation } from "@/components/navigation"
 import { useNotifications } from "@/hooks/use-notifications"
 
-main
 import type { ComponentType } from "react"
 
 interface Producto {
@@ -343,7 +342,6 @@ export default function ProductosPage() {
       console.log(`Productos cargados: ${productos.length}`)
       setProductos(productos)
         
-main
     } catch (error) {
       console.error("Error cargando productos:", error)
       showError("Error al cargar productos")
@@ -508,7 +506,6 @@ main
         descripcion: formData.descripcion.trim() || null,
         categoria: formData.categoria,
         marca: formData.marca || "Sin marca",
-main
         precio: parseFloat(formData.precio),
         costo: parseFloat(formData.costo),
         stock: parseInt(formData.stock) || 0,
@@ -518,8 +515,6 @@ main
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       }
-        updated_at: new Date().toISOString(),
-      }
 
       // Actualizar localStorage
       const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
@@ -528,7 +523,6 @@ main
 
       // Actualizar el estado local
       setProductos(productosActualizados)
-main
       resetForm()
       setIsAddDialogOpen(false)
       showProductoCreated()
@@ -594,7 +588,6 @@ main
       setProductos(productosActualizados)
       
 
-main
       setIsEditDialogOpen(false)
       setEditingProduct(null)
       showProductoUpdated()
@@ -606,12 +599,10 @@ main
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-feature/fix
       // Eliminar producto (modo mock)
       const productosActualizados = productos.filter(producto => producto.id !== productId)
       localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
       setProductos(productosActualizados)
- main
       showProductoDeleted()
     } catch (error) {
       console.error("Error eliminando producto:", error)

@@ -37,7 +37,6 @@ export default function ConfiguracionPage() {
   const [isLoading, setIsLoading] = useState(false)
 feature/fix
   const [isLoadingData, setIsLoadingData] = useState(false)
- main
 
   const [configuracion, setConfiguracion] = useState({
     // Información del negocio
@@ -96,7 +95,6 @@ feature/fix
             registroActividad: true,
             ...configParseada
           }
- main
           setConfiguracion(configCompleta)
           setConfiguracionOriginal(configCompleta)
         }
@@ -106,7 +104,6 @@ feature/fix
           title: "Info",
           description: "Usando configuración por defecto.",
           variant: "default",
-main
         })
       }
     }
@@ -154,7 +151,6 @@ main
 
       // Guardar en localStorage (modo mock)
       localStorage.setItem('configuracion-negocio', JSON.stringify(configuracion))
-main
       
       setConfiguracionOriginal(configuracion)
       setHasChanges(false)
@@ -184,7 +180,6 @@ main
       email: "info@losdesimpresneakers.com",
       cuit: "20-12345678-9",
       descripcion: "Tienda especializada en zapatillas deportivas de última generación",
-main
       moneda: "ARS",
       iva: "21",
       descuentoMaximo: "15",
