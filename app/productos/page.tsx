@@ -55,6 +55,7 @@ interface Producto {
   nombre: string
   descripcion: string | null
   categoria: string
+  marca: string
   precio: number
   costo: number
   stock: number
@@ -68,6 +69,7 @@ interface Producto {
 interface ProductoFormData {
   nombre: string
   categoria: string
+  marca: string
   precio: string
   costo: string
   stock: string
@@ -79,6 +81,7 @@ interface ProductoFormData {
 interface ProductoFormErrors {
   nombre?: string
   categoria?: string
+  marca?: string
   precio?: string
   costo?: string
   stock?: string
@@ -96,6 +99,7 @@ const productosMock: Producto[] = [
     nombre: "Semillas OG Kush Feminizadas",
     descripcion: "Semillas premium de cannabis OG Kush, variedad feminizada de alta calidad",
     categoria: "Semillas",
+    marca: "Premium Seeds",
     precio: 2500,
     costo: 1500,
     stock: 50,
@@ -112,6 +116,7 @@ const productosMock: Producto[] = [
     nombre: "Fertilizante Orgánico Premium",
     descripcion: "Nutriente completo para todas las etapas del cultivo, 100% orgánico",
     categoria: "Fertilizantes",
+    marca: "EcoGrow",
     precio: 1800,
     costo: 900,
     stock: 25,
@@ -128,6 +133,7 @@ const productosMock: Producto[] = [
     nombre: "Panel LED 600W Full Spectrum",
     descripcion: "Sistema de iluminación LED profesional para cultivo interior",
     categoria: "Iluminación",
+    marca: "GrowLight Pro",
     precio: 45000,
     costo: 30000,
     stock: 8,
@@ -144,6 +150,7 @@ const productosMock: Producto[] = [
     nombre: "Sustrato Premium Mix",
     descripcion: "Mezcla especializada de tierras para cultivo de cannabis",
     categoria: "Sustratos",
+    marca: "TerraMax",
     precio: 1200,
     costo: 600,
     stock: 30,
@@ -250,6 +257,7 @@ export default function ProductosPage() {
   const [formData, setFormData] = useState<ProductoFormData>({
     nombre: "",
     categoria: "",
+    marca: "",
     precio: "",
     costo: "",
     stock: "",
@@ -261,6 +269,7 @@ export default function ProductosPage() {
   const [editFormData, setEditFormData] = useState<ProductoFormData>({
     nombre: "",
     categoria: "",
+    marca: "",
     precio: "",
     costo: "",
     stock: "",
@@ -412,6 +421,7 @@ export default function ProductosPage() {
     setFormData({
       nombre: "",
       categoria: "",
+      marca: "",
       precio: "",
       costo: "",
       stock: "",
@@ -537,6 +547,7 @@ export default function ProductosPage() {
     setEditFormData({
       nombre: product.nombre,
       categoria: product.categoria,
+      marca: product.marca || "",
       precio: product.precio.toString(),
       costo: product.costo.toString(),
       stock: product.stock.toString(),
@@ -572,6 +583,7 @@ export default function ProductosPage() {
         nombre: editFormData.nombre.trim(),
         descripcion: editFormData.descripcion.trim() || null,
         categoria: editFormData.categoria,
+        marca: editFormData.marca.trim() || "Sin marca",
         precio: parseFloat(editFormData.precio),
         costo: parseFloat(editFormData.costo),
         stock: parseInt(editFormData.stock) || 0,

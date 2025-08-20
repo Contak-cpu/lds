@@ -61,6 +61,7 @@ interface Producto {
   nombre: string
   descripcion: string | null
   categoria: string
+  marca: string
   precio: number
   costo: number
   stock: number
@@ -215,6 +216,7 @@ export default function VentasPage() {
           nombre: "Nike Air Max 270",
           descripcion: "Zapatillas deportivas con amortiguación Air Max",
           categoria: "Running",
+          marca: "Nike",
           precio: 89999,
           costo: 45000,
           stock: 15,
@@ -230,6 +232,7 @@ export default function VentasPage() {
           nombre: "Adidas Ultraboost 22", 
           descripcion: "Zapatillas para running con tecnología Boost",
           categoria: "Running",
+          marca: "Adidas",
           precio: 95999,
           costo: 48000,
           stock: 8,
