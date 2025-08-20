@@ -222,136 +222,111 @@ export default function VentasPage() {
   const [formErrors, setFormErrors] = useState<VentaFormErrors>({})
   const dateFilter = useDateFilter("todos")
 
-  const supabase = createClient()
-
   const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
 
   const cargarDatos = async () => {
     try {
       setLoading(true)
 
-      // Obtener el rango de fechas del filtro
-      const dateRange = dateFilter.getFilteredDateRange()
-      let ventasQuery = supabase
-        .from("ventas")
-        .select(`
-          *,
-          venta_items (
-            id,
-            venta_id,
-            producto_id,
-            producto_nombre,
-            cantidad,
-            precio_unitario,
-            subtotal,
-            categoria,
-            descripcion,
-            imagen_url,
-            created_at,
-            updated_at
-          )
-        `)
-        .order("created_at", { ascending: false })
+      // Cargar datos mock desde localStorage
+      const ventasMock = [
+        {
+          id: "1",
+          numeroVenta: "V-2024-001",
+          cliente: "Juan Pérez",
+          clienteEmail: "juan@email.com",
+          fecha: "2024-01-15",
+          estado: "Completada" as const,
+          total: 89999,
+          metodoPago: "Tarjeta",
+          notas: "Entrega a domicilio",
+          esCasual: false,
+          productos: [
+            {
+              id: "1",
+              venta_id: "1",
+              producto_id: "1",
+              producto_nombre: "Nike Air Max 270",
+              cantidad: 1,
+              precio_unitario: 89999,
+              subtotal: 89999
+            }
+          ]
+        }
+      ]
+
+      const productosMock = [
+        {
+          id: "1",
+          sku: "NK-AIR-001", 
+          nombre: "Nike Air Max 270",
+          descripcion: "Zapatillas deportivas con amortiguación Air Max",
+          categoria: "Running",
+          marca: "Nike",
+          precio: 89999,
+          costo: 45000,
+          stock: 15,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null
+        },
+        {
+          id: "2",
+          sku: "AD-UB-002",
+          nombre: "Adidas Ultraboost 22", 
+          descripcion: "Zapatillas para running con tecnología Boost",
+          categoria: "Running",
+          marca: "Adidas",
+          precio: 95999,
+          costo: 48000,
+          stock: 8,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null
+        }
+      ]
+
+      const clientesMock = [
+        {
+          id: "1",
+          nombre: "Juan Pérez",
+          email: "juan@email.com",
+          telefono: "+54 11 1234-5678",
+          direccion: "Av. Corrientes 1234",
+          ciudad: "Buenos Aires",
+          provincia: "CABA"
+        }
+      ]
+
+      // Cargar desde localStorage o usar datos mock
+      const ventasGuardadas = localStorage.getItem('ventas-sneakers')
+      const productosGuardados = localStorage.getItem('productos-sneakers') 
+      const clientesGuardados = localStorage.getItem('clientes-sneakers')
+
+      const ventasData = ventasGuardadas ? JSON.parse(ventasGuardadas) : ventasMock
+      const productosData = productosGuardados ? JSON.parse(productosGuardados) : productosMock  
+      const clientesData = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
 
       // Aplicar filtro de fechas si está configurado
-      if (dateRange?.from && dateRange?.to) {
-        const fromDate = dateRange.from
-        const toDate = dateRange.to
-        ventasQuery = ventasQuery
-          .gte("created_at", fromDate.toISOString())
-          .lte("created_at", toDate.toISOString())
-      }
-
-      const [ventasResponse, productosResponse, clientesResponse] = await Promise.all([
-        ventasQuery,
-
-        supabase.from("productos").select("*").eq("activo", true).order("nombre"),
-
-        supabase.from("clientes").select("*").order("nombre"),
-      ])
-
-      if (ventasResponse.error) {
-        console.error("Error cargando ventas:", ventasResponse.error)
-        throw ventasResponse.error
-      }
-      if (productosResponse.error) {
-        console.error("Error cargando productos:", productosResponse.error)
-        throw productosResponse.error
-      }
-      if (clientesResponse.error) {
-        console.error("Error cargando clientes:", clientesResponse.error)
-        throw clientesResponse.error
-      }
-
-      const ventasTransformadas: Venta[] =
-        ventasResponse.data?.map((venta: VentaSupabase, index: number) => {
-          const fecha = new Date(venta.created_at)
-          const numeroSecuencial = ventasResponse.data!.length - index
-          const numeroVenta = `V-${fecha.getFullYear()}-${String(numeroSecuencial).padStart(3, "0")}`
-
-          return {
-            id: venta.id,
-            numeroVenta: numeroVenta,
-            cliente: venta.cliente_id
-              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.nombre ||
-                venta.cliente_nombre ||
-                "Cliente sin nombre"
-              : venta.cliente_casual || "Cliente sin nombre",
-            clienteEmail: venta.cliente_id
-              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.email || ""
-              : "",
-            fecha: fecha.toISOString().split("T")[0],
-            estado: venta.estado || "Pendiente",
-            total: venta.total || 0,
-            metodoPago: venta.metodo_pago || "No especificado",
-            notas: venta.notas || "",
-            esCasual: venta.cliente_id === null,
-            productos:
-              venta.venta_items?.map(
-                (item): VentaItem => ({
-                  id: item.id || undefined,
-                  venta_id: item.venta_id || undefined,
-                  producto_id: item.producto_id || undefined,
-                  producto_nombre: item.producto_nombre || "Producto sin nombre",
-                  cantidad: item.cantidad || 0,
-                  precio_unitario: item.precio_unitario || 0,
-                  subtotal: item.subtotal || (item.cantidad || 0) * (item.precio_unitario || 0),
-                  created_at: item.created_at || undefined,
-                  updated_at: item.updated_at || undefined,
-                  categoria: item.categoria || "Sin categoría",
-                  descripcion: item.descripcion || "",
-                  imagen_url: item.imagen_url || null,
-                }),
-              ) || [],
-          }
-        }) || []
-
-      console.log("Ventas cargadas:", ventasResponse.data?.length || 0)
-      setVentas(ventasTransformadas)
-
-      const productosTransformados: Producto[] =
-        productosResponse.data?.map((producto: ProductoSupabase) => ({
-          id: producto.id,
-          sku: producto.sku || `SKU-${producto.id.slice(0, 8)}`,
-          nombre: producto.nombre,
-          precio: producto.precio,
-          stock: producto.stock,
-          descripcion: producto.descripcion,
-          categoria: producto.categoria,
-          costo: producto.costo,
-          stock_minimo: producto.stock_minimo,
-          imagen_url: producto.imagen_url,
-          activo: producto.activo,
-          created_at: producto.created_at,
-          updated_at: producto.updated_at,
-        })) || []
-
-      console.log("Productos cargados:", productosResponse.data?.length || 0)
-      console.log("Productos activos:", productosTransformados.filter(p => p.activo).length)
-      setProductos(productosTransformados)
+      const dateRange = dateFilter.getFilteredDateRange()
+      let ventasFiltradas = ventasData
       
-      console.log("Clientes cargados:", clientesResponse.data?.length || 0)
-      setClientes(clientesResponse.data || [])
+      if (dateRange?.from && dateRange?.to) {
+        ventasFiltradas = ventasData.filter((venta: any) => {
+          const ventaDate = new Date(venta.fecha)
+          return ventaDate >= dateRange.from! && ventaDate <= dateRange.to!
+        })
+      }
+
+      console.log("Ventas cargadas:", ventasFiltradas.length)
+      setVentas(ventasFiltradas)
+
+      console.log("Productos cargados:", productosData.length)
+      console.log("Productos activos:", productosData.filter((p: any) => p.activo).length)
+      setProductos(productosData)
+      
+      console.log("Clientes cargados:", clientesData.length)
+      setClientes(clientesData)
     } catch (error) {
       console.error("Error cargando datos:", error)
       toast({
@@ -496,30 +471,10 @@ export default function VentasPage() {
 
   const eliminarVenta = async (ventaId: string): Promise<void> => {
     try {
-      // Primero eliminar los items de venta (se eliminan automáticamente por CASCADE)
-      const { error: itemsError } = await supabase
-        .from("venta_items")
-        .delete()
-        .eq("venta_id", ventaId)
-
-      if (itemsError) {
-        console.error("Error eliminando items de venta:", itemsError)
-        throw new Error(`Error al eliminar los items: ${itemsError.message}`)
-      }
-
-      // Luego eliminar la venta
-      const { error: ventaError } = await supabase
-        .from("ventas")
-        .delete()
-        .eq("id", ventaId)
-
-      if (ventaError) {
-        console.error("Error eliminando venta:", ventaError)
-        throw new Error(`Error al eliminar la venta: ${ventaError.message}`)
-      }
-
-      // Recargar datos
-      await cargarDatos()
+      // Eliminar venta (modo mock)
+      const ventasActualizadas = ventas.filter(venta => venta.id !== ventaId)
+      localStorage.setItem('ventas-sneakers', JSON.stringify(ventasActualizadas))
+      setVentas(ventasActualizadas)
 
       toast({
         title: "Venta eliminada exitosamente",
@@ -669,22 +624,20 @@ export default function VentasPage() {
 
       console.log("Creando venta con datos:", ventaData)
       
-      const { data: ventaCreada, error: ventaError } = await supabase.from("ventas").insert(ventaData).select().single()
-
-      if (ventaError) {
-        console.error("Error creando venta:", ventaError)
-        throw new Error(`Error al crear la venta: ${ventaError.message}`)
+      // Crear venta (modo mock)
+      const nuevaVenta = {
+        id: Date.now().toString(),
+        ...ventaData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
 
-      if (!ventaCreada) {
-        throw new Error("No se pudo crear la venta")
-      }
-
-      console.log("Venta creada exitosamente:", ventaCreada)
+      console.log("Venta creada exitosamente:", nuevaVenta)
 
       // Crear items de venta con validación
       const ventaItems = carrito.map((item: ProductoCarrito) => ({
-        venta_id: ventaCreada.id,
+        id: `${nuevaVenta.id}_${item.id || Date.now()}`,
+        venta_id: nuevaVenta.id,
         producto_id: item.esPersonalizado ? null : item.id,
         producto_nombre: item.nombre,
         cantidad: item.cantidad,
@@ -698,47 +651,49 @@ export default function VentasPage() {
       }))
 
       console.log("Creando items de venta:", ventaItems)
-      
-      const { error: itemsError } = await supabase.from("venta_items").insert(ventaItems)
-
-      if (itemsError) {
-        console.error("Error creando items:", itemsError)
-        throw new Error(`Error al crear los items: ${itemsError.message}`)
-      }
-
-      console.log("Items de venta creados exitosamente")
 
       // Actualizar stock de productos (solo para productos no personalizados)
-      const stockUpdates = []
       for (const item of carrito) {
         if (!item.esPersonalizado) {
-          const productoActual = productos.find((p) => p.id === item.id)
-          if (productoActual) {
-            const nuevoStock = productoActual.stock - item.cantidad
-            stockUpdates.push(supabase.from("productos").update({ stock: nuevoStock }).eq("id", item.id))
+          const productoIndex = productos.findIndex((p) => p.id === item.id)
+          if (productoIndex >= 0) {
+            const productosActualizados = [...productos]
+            productosActualizados[productoIndex].stock -= item.cantidad
+            setProductos(productosActualizados)
+            localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
           }
         }
       }
 
-      // Ejecutar actualizaciones de stock
-      if (stockUpdates.length > 0) {
-        const stockResults = await Promise.all(stockUpdates)
-        const stockErrors = stockResults.filter((result) => result.error)
-
-        if (stockErrors.length > 0) {
-          console.error("Errores actualizando stock:", stockErrors)
-          // No fallar la venta por errores de stock, solo advertir
-          toast({
-            title: "Advertencia",
-            description: "Venta creada pero hubo problemas actualizando el stock",
-            variant: "destructive",
-          })
-        }
+      // Crear venta completa para guardar
+      const ventaCompleta = {
+        ...nuevaVenta,
+        numeroVenta: `V-${new Date().getFullYear()}-${nuevaVenta.id.slice(-3)}`,
+        cliente: clienteNombre,
+        clienteEmail: tipoVenta === "registrada" ? 
+          clientes.find(c => c.id === clienteSeleccionado)?.email || "" : "",
+        fecha: new Date().toISOString().split("T")[0],
+        estado: "Completada" as const,
+        metodoPago: metodoPago,
+        notas: notasVenta.trim() || "",
+        esCasual: tipoVenta === "casual",
+        productos: ventaItems.map(item => ({
+          id: item.id,
+          venta_id: item.venta_id,
+          producto_id: item.producto_id,
+          producto_nombre: item.producto_nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio_unitario,
+          subtotal: item.subtotal
+        }))
       }
 
-      // Generar número de venta
-      const fecha = new Date(ventaCreada.created_at)
-      const numeroVenta = `V-${fecha.getFullYear()}-${ventaCreada.id.slice(-6).toUpperCase()}`
+      // Guardar en localStorage
+      const ventasActuales = JSON.parse(localStorage.getItem('ventas-sneakers') || '[]')
+      const ventasActualizadas = [ventaCompleta, ...ventasActuales]
+      localStorage.setItem('ventas-sneakers', JSON.stringify(ventasActualizadas))
+
+      const numeroVenta = ventaCompleta.numeroVenta
 
       // Limpiar formulario
       setCarrito([])

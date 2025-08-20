@@ -154,16 +154,48 @@ export default function ClientesPage() {
     notas: "",
   })
 
-  const supabase = createClient()
-
   const loadClientes = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase.from("clientes").select("*").order("created_at", { ascending: false })
+      
+      // Cargar clientes desde localStorage (modo mock)
+      const clientesMock = [
+        {
+          id: "1",
+          nombre: "Juan Pérez",
+          email: "juan@email.com",
+          telefono: "+54 11 1234-5678",
+          direccion: "Av. Corrientes 1234",
+          ciudad: "Buenos Aires",
+          provincia: "CABA",
+          codigo_postal: "C1043AAZ",
+          fecha_registro: "2024-01-15",
+          notas: "Cliente frecuente",
+          estado: "activo",
+          created_at: "2024-01-15T10:00:00Z",
+          updated_at: "2024-01-15T10:00:00Z"
+        },
+        {
+          id: "2", 
+          nombre: "María González",
+          email: "maria@email.com",
+          telefono: "+54 11 9876-5432",
+          direccion: "Av. Santa Fe 5678",
+          ciudad: "Buenos Aires",
+          provincia: "CABA",
+          codigo_postal: "C1425FOD",
+          fecha_registro: "2024-01-10",
+          notas: "Prefiere zapatillas deportivas",
+          estado: "activo",
+          created_at: "2024-01-10T14:30:00Z",
+          updated_at: "2024-01-10T14:30:00Z"
+        }
+      ]
 
-      if (error) throw error
+      const clientesGuardados = localStorage.getItem('clientes-sneakers')
+      const clientesData = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
 
-      setClientes(data || [])
+      setClientes(clientesData)
     } catch (error) {
       console.error("Error loading clientes:", error)
       showError("Error", "No se pudieron cargar los clientes")
@@ -201,15 +233,18 @@ export default function ClientesPage() {
 
       console.log("Datos del cliente a insertar:", clienteData)
 
-      const { data, error } = await supabase
-        .from("clientes")
-        .insert([clienteData])
-        .select()
+      // Crear cliente (modo mock)
+      const nuevoCliente = {
+        id: Date.now().toString(),
+        ...clienteData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
 
-      if (error) throw error
-
-      if (data) {
-        setClientes((prev: Cliente[]) => [data[0], ...prev])
+      // Guardar en localStorage y actualizar estado
+      const clientesActualizados = [nuevoCliente, ...clientes]
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
+      setClientes(clientesActualizados)
         setNewClienteForm({
           nombre: "",
           email: "",
@@ -240,14 +275,10 @@ export default function ClientesPage() {
 
   const handleDeleteCliente = async (clienteId: string) => {
     try {
-      const { error } = await supabase
-        .from("clientes")
-        .delete()
-        .eq("id", clienteId)
-
-      if (error) throw error
-
-      setClientes((prev: Cliente[]) => prev.filter((c: Cliente) => c.id !== clienteId))
+      // Eliminar cliente (modo mock)
+      const clientesActualizados = clientes.filter(c => c.id !== clienteId)
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
+      setClientes(clientesActualizados)
       setIsDeleteDialogOpen(false)
       setClienteToDelete(null)
       showClienteDeleted()
@@ -348,18 +379,22 @@ export default function ClientesPage() {
       // Limpiar errores previos
       setEditFormErrors({})
 
-      const { data, error } = await supabase.from("clientes").update(editForm).eq("id", editingCliente.id).select()
-
-      if (error) throw error
-
-      if (data) {
-        setClientes((prev: Cliente[]) =>
-          prev.map((cliente: Cliente) => (cliente.id === editingCliente.id ? data[0] : cliente)),
-        )
-        setIsEditDialogOpen(false)
-        setEditingCliente(null)
-        showClienteUpdated()
+      // Actualizar cliente (modo mock)
+      const clienteActualizado = {
+        ...editingCliente,
+        ...editForm,
+        updated_at: new Date().toISOString()
       }
+
+      // Guardar en localStorage y actualizar estado
+      const clientesActualizados = clientes.map(cliente => 
+        cliente.id === editingCliente.id ? clienteActualizado : cliente
+      )
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
+      setClientes(clientesActualizados)
+      setIsEditDialogOpen(false)
+      setEditingCliente(null)
+      showClienteUpdated()
     } catch (error) {
       console.error("Error updating cliente:", error)
       showError("Error", "No se pudieron guardar los cambios")

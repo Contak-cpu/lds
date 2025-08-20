@@ -73,8 +73,28 @@ export default function ConfiguracionPage() {
         const configGuardada = localStorage.getItem('configuracion-negocio')
         if (configGuardada) {
           const configParseada = JSON.parse(configGuardada)
-          setConfiguracion({ ...configuracion, ...configParseada })
-          setConfiguracionOriginal({ ...configuracion, ...configParseada })
+          const configCompleta = {
+            nombreNegocio: "Los de Siempre Sneakers",
+            direccion: "Av. Corrientes 1234, CABA",
+            telefono: "+54 11 4567-8900",
+            email: "info@losdesimpresneakers.com",
+            cuit: "20-12345678-9",
+            descripcion: "Tienda especializada en zapatillas deportivas de última generación",
+            moneda: "ARS",
+            iva: "21",
+            descuentoMaximo: "15",
+            stockMinimo: "5",
+            notificarStockBajo: true,
+            notificarNuevasVentas: true,
+            notificarNuevosClientes: false,
+            emailNotificaciones: true,
+            backupAutomatico: true,
+            modoMantenimiento: false,
+            registroActividad: true,
+            ...configParseada
+          }
+          setConfiguracion(configCompleta)
+          setConfiguracionOriginal(configCompleta)
         }
       } catch (error) {
         console.error("Error cargando configuración:", error)

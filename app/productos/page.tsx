@@ -215,13 +215,63 @@ export default function ProductosPage() {
 
   const cargarProductos = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.from("productos").select("*").order("created_at", { ascending: false })
-
-      if (error) throw error
-
-      console.log(`Productos cargados: ${data?.length || 0}`)
-      setProductos(data || [])
+      // Cargar productos desde localStorage (modo mock)
+      const productosMock = [
+        {
+          id: "1",
+          sku: "NK-AIR-001",
+          nombre: "Nike Air Max 270",
+          descripcion: "Zapatillas deportivas con amortiguación Air Max",
+          categoria: "Running",
+          marca: "Nike",
+          precio: 89999,
+          costo: 45000,
+          stock: 15,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "2", 
+          sku: "AD-UB-002",
+          nombre: "Adidas Ultraboost 22",
+          descripcion: "Zapatillas para running con tecnología Boost",
+          categoria: "Running",
+          marca: "Adidas",
+          precio: 95999,
+          costo: 48000,
+          stock: 8,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "3",
+          sku: "JD-1-003", 
+          nombre: "Air Jordan 1 Mid",
+          descripcion: "Zapatillas de basketball clásicas",
+          categoria: "Basketball",
+          marca: "Nike",
+          precio: 119999,
+          costo: 60000,
+          stock: 12,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        }
+      ]
+      
+      const productosGuardados = localStorage.getItem('productos-sneakers')
+      const productos = productosGuardados ? JSON.parse(productosGuardados) : productosMock
+      
+      console.log(`Productos cargados: ${productos.length}`)
+      setProductos(productos)
     } catch (error) {
       console.error("Error cargando productos:", error)
       showError("Error", "No se pudieron cargar los productos")
@@ -308,124 +358,52 @@ export default function ProductosPage() {
 
   const generateSKU = async (categoria: string): Promise<string> => {
     try {
-      const supabase = createClient()
+      // Generar SKU basado en categoría (modo mock)
+      let prefix = 'SNK'
       
-      // Obtener el último SKU numérico de la base de datos
-      const { data: lastProduct, error } = await supabase
-        .from("productos")
-        .select("sku")
-        .order("sku", { ascending: false })
-        .limit(1)
+      switch (categoria.toLowerCase()) {
+        case 'running':
+          prefix = 'RUN'
+          break
+        case 'basketball':
+          prefix = 'BSK'
+          break
+        case 'lifestyle':
+          prefix = 'LST'
+          break
+        case 'football':
+          prefix = 'FTB'
+          break
+        default:
+          prefix = 'SNK'
+          break
+      }
       
-      if (error) throw error
-      
+      // Obtener siguiente número
+      const productosActuales = productos.filter(p => p.sku.startsWith(prefix))
       let nextNumber = 1
       
-      if (lastProduct && lastProduct.length > 0) {
-        // Extraer el número del último SKU (asumiendo formato numérico)
-        const lastSKU = lastProduct[0].sku
-        const lastNumber = parseInt(lastSKU) || 0
-        nextNumber = lastNumber + 1
+      if (productosActuales.length > 0) {
+        const numeros = productosActuales.map(p => {
+          const match = p.sku.match(/-(\d+)$/)
+          return match ? parseInt(match[1]) : 0
+        })
+        nextNumber = Math.max(...numeros) + 1
       }
       
-      // Verificar que el SKU no exista (por si acaso)
-      let skuExists = true
-      let attempts = 0
-      const maxAttempts = 100
-      
-      while (skuExists && attempts < maxAttempts) {
-        const testSKU = nextNumber.toString()
-        
-        const { data: existingProduct } = await supabase
-          .from("productos")
-          .select("id")
-          .eq("sku", testSKU)
-          .single()
-        
-        if (!existingProduct) {
-          skuExists = false
-        } else {
-          nextNumber++
-          attempts++
-        }
-      }
-      
-      if (attempts >= maxAttempts) {
-        throw new Error("No se pudo generar un SKU único después de múltiples intentos")
-      }
-      
-      return nextNumber.toString()
+      return `${prefix}-${nextNumber.toString().padStart(3, '0')}`
     } catch (error) {
       console.error("Error generando SKU:", error)
-      // Fallback: usar timestamp como SKU
-      return Date.now().toString()
+      return `SNK-${Date.now().toString().slice(-6)}`
     }
   }
 
   const generateCategoriaId = async (categoria: string): Promise<string> => {
     try {
-      const supabase = createClient()
-      
-      // Definir prefijos para cada categoría
-      let categoriaPrefix = 'PRO' // Producto genérico por defecto
-      
-      switch (categoria.toLowerCase()) {
-        case 'semillas':
-          categoriaPrefix = 'SEM'
-          break
-        case 'fertilizantes':
-          categoriaPrefix = 'FER'
-          break
-        case 'herramientas':
-          categoriaPrefix = 'HER'
-          break
-        case 'sustratos':
-          categoriaPrefix = 'SUS'
-          break
-        case 'iluminacion':
-        case 'iluminación':
-          categoriaPrefix = 'ILU'
-          break
-        case 'hidroponia':
-        case 'hidroponía':
-          categoriaPrefix = 'HID'
-          break
-        case 'kits':
-          categoriaPrefix = 'KIT'
-          break
-        case 'accesorios':
-          categoriaPrefix = 'ACC'
-          break
-        default:
-          categoriaPrefix = 'PRO'
-      }
-      
-      // Obtener el último número para esta categoría
-      const { data: lastProduct, error } = await supabase
-        .from("productos")
-        .select("categoria_id")
-        .like("categoria_id", `${categoriaPrefix}-%`)
-        .order("categoria_id", { ascending: false })
-        .limit(1)
-      
-      if (error) throw error
-      
-      let nextNumber = 1
-      
-      if (lastProduct && lastProduct.length > 0) {
-        // Extraer el número del último categoria_id (ej: SEM-001 -> 1)
-        const lastCategoriaId = lastProduct[0].categoria_id
-        const match = lastCategoriaId.match(new RegExp(`${categoriaPrefix}-(\\d+)`))
-        if (match) {
-          nextNumber = parseInt(match[1]) + 1
-        }
-      }
-      
-      // Formatear el ID con ceros a la izquierda (ej: SEM-001, SEM-002)
-      return `${categoriaPrefix}-${nextNumber.toString().padStart(3, '0')}`
+      // Simplificado para modo mock
+      return `${categoria.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-3)}`
     } catch (error) {
       console.error("Error generando categoria_id:", error)
-      // Fallback: usar timestamp como categoria_id
       return `PRO-${Date.now().toString().slice(-3)}`
     }
   }
@@ -444,32 +422,35 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setFormErrors({})
 
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("productos")
-        .insert([
-          {
-            nombre: formData.nombre.trim(),
-            descripcion: formData.descripcion.trim() || null,
-            categoria: formData.categoria,
-            precio: parseFloat(formData.precio),
-            costo: parseFloat(formData.costo),
-            stock: parseInt(formData.stock) || 0,
-            stock_minimo: parseInt(formData.stock_minimo) || 5,
-            imagen_url: formData.imagen_url.trim() || null,
-            activo: true,
-          },
-        ])
-        .select()
-
-      if (error) throw error
-
-      if (data) {
-        setProductos((prev) => [data[0], ...prev])
-        resetForm()
-        setIsAddDialogOpen(false)
-        showProductoCreated()
+      // Generar SKU automáticamente
+      const sku = await generateSKU(formData.categoria)
+      
+      // Crear nuevo producto (modo mock)
+      const nuevoProducto = {
+        id: Date.now().toString(),
+        sku,
+        nombre: formData.nombre.trim(),
+        descripcion: formData.descripcion.trim() || null,
+        categoria: formData.categoria,
+        marca: formData.marca || "Sin marca",
+        precio: parseFloat(formData.precio),
+        costo: parseFloat(formData.costo),
+        stock: parseInt(formData.stock) || 0,
+        stock_minimo: parseInt(formData.stock_minimo) || 5,
+        imagen_url: formData.imagen_url.trim() || null,
+        activo: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }
+
+      // Guardar en localStorage y actualizar estado
+      const productosActualizados = [nuevoProducto, ...productos]
+      localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
+      setProductos(productosActualizados)
+      
+      resetForm()
+      setIsAddDialogOpen(false)
+      showProductoCreated()
     } catch (error) {
       console.error("Error adding product:", error)
       showError("Error", "No se pudo agregar el producto")
@@ -509,32 +490,30 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setEditFormErrors({})
 
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("productos")
-        .update({
-          nombre: editFormData.nombre.trim(),
-          descripcion: editFormData.descripcion.trim() || null,
-          categoria: editFormData.categoria,
-          precio: parseFloat(editFormData.precio),
-          costo: parseFloat(editFormData.costo),
-          stock: parseInt(editFormData.stock) || 0,
-          stock_minimo: parseInt(editFormData.stock_minimo) || 5,
-          imagen_url: editFormData.imagen_url.trim() || null,
-        })
-        .eq("id", editingProduct.id)
-        .select()
-
-      if (error) throw error
-
-      if (data) {
-        setProductos((prev) =>
-          prev.map((product) => (product.id === editingProduct.id ? data[0] : product)),
-        )
-        setIsEditDialogOpen(false)
-        setEditingProduct(null)
-        showProductoUpdated()
+      // Actualizar producto (modo mock)
+      const productoActualizado = {
+        ...editingProduct,
+        nombre: editFormData.nombre.trim(),
+        descripcion: editFormData.descripcion.trim() || null,
+        categoria: editFormData.categoria,
+        precio: parseFloat(editFormData.precio),
+        costo: parseFloat(editFormData.costo),
+        stock: parseInt(editFormData.stock) || 0,
+        stock_minimo: parseInt(editFormData.stock_minimo) || 5,
+        imagen_url: editFormData.imagen_url.trim() || null,
+        updated_at: new Date().toISOString()
       }
+
+      // Actualizar en localStorage y estado
+      const productosActualizados = productos.map(product => 
+        product.id === editingProduct.id ? productoActualizado : product
+      )
+      localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
+      setProductos(productosActualizados)
+      
+      setIsEditDialogOpen(false)
+      setEditingProduct(null)
+      showProductoUpdated()
     } catch (error) {
       console.error("Error updating product:", error)
       showError("Error", "No se pudieron guardar los cambios")
@@ -543,13 +522,10 @@ export default function ProductosPage() {
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from("productos").delete().eq("id", productId)
-
-      if (error) throw error
-
-      // Actualizar la lista local
-      setProductos(productos.filter((producto: Producto) => producto.id !== productId))
+      // Eliminar producto (modo mock)
+      const productosActualizados = productos.filter(producto => producto.id !== productId)
+      localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
+      setProductos(productosActualizados)
       showProductoDeleted()
     } catch (error) {
       console.error("Error eliminando producto:", error)
@@ -632,7 +608,7 @@ export default function ProductosPage() {
                 </div>
                 <div>
                   <h1 className="text-xl font-bold text-card-foreground">Catálogo de Productos</h1>
-                  <p className="text-sm text-amber-600">Gestiona tu inventario de cultivo</p>
+                  <p className="text-sm text-amber-600">Gestiona tu inventario de zapatillas</p>
                 </div>
               </div>
               <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700">
