@@ -421,6 +421,13 @@ export default function ClientesPage() {
     setIsEditDialogOpen(false)
   }
 
+  const filteredClientes = clientes.filter((cliente) =>
+    cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (cliente.email && cliente.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (cliente.telefono && cliente.telefono.includes(searchTerm)) ||
+    (cliente.ciudad && cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase()))
+  )
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
