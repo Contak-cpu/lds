@@ -111,7 +111,6 @@ export function useCategorias() {
       const categoriasData = categoriasSaved ? JSON.parse(categoriasSaved) : categoriasMock
       
       setCategorias(categoriasData.filter((cat: Categoria) => cat.activo))
-main
     } catch (err) {
       console.error("Error cargando categorías:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
