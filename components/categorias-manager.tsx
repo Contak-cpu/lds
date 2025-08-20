@@ -1,19 +1,17 @@
-"use client"
-
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import React, { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
 import {
   AlertDialog,
@@ -24,7 +22,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import {
   Select,
@@ -34,7 +31,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, Edit, Trash2, Settings } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useNotifications } from "@/hooks/use-notifications"
 
 interface Categoria {
@@ -93,6 +89,54 @@ const coloresPredefinidos = [
   "#6B7280", // Gris
 ]
 
+// Datos mock por defecto
+const categoriasMock: Categoria[] = [
+  {
+    id: "1",
+    nombre: "Semillas",
+    descripcion: "Variedades de semillas de cannabis",
+    icono: "🌱",
+    color: "#10B981",
+    activo: true,
+    orden: 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    nombre: "Fertilizantes",
+    descripcion: "Nutrientes para el cultivo",
+    icono: "🌿",
+    color: "#059669",
+    activo: true,
+    orden: 2,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "3",
+    nombre: "Iluminación",
+    descripcion: "Sistemas de iluminación LED",
+    icono: "💡",
+    color: "#F59E0B",
+    activo: true,
+    orden: 3,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "4",
+    nombre: "Sustratos",
+    descripcion: "Tierras y mezclas especializadas",
+    icono: "🪴",
+    color: "#8B5CF6",
+    activo: true,
+    orden: 4,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
+
 export function CategoriasManager() {
   const { showError, showSuccess } = useNotifications()
   const [categorias, setCategorias] = useState<Categoria[]>([])
@@ -121,89 +165,194 @@ export function CategoriasManager() {
 
   const cargarCategorias = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("categorias")
-        .select("*")
-        .order("orden", { ascending: true })
-
-      if (error) throw error
-
-      setCategorias(data || [])
+      // En modo mock, cargar desde localStorage o usar datos por defecto
+      const categoriasGuardadas = localStorage.getItem('crm-categorias')
+      if (categoriasGuardadas) {
+        setCategorias(JSON.parse(categoriasGuardadas))
+      } else {
+        // Primera vez: guardar datos mock
+        localStorage.setItem('crm-categorias', JSON.stringify(categoriasMock))
+        setCategorias(categoriasMock)
+      }
     } catch (error) {
       console.error("Error cargando categorías:", error)
-      showError("Error", "No se pudieron cargar las categorías")
+      showError("Error al cargar categorías")
+      // En caso de error, usar datos mock
+      setCategorias(categoriasMock)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const validateForm = (data: CategoriaFormData): CategoriaFormErrors => {
+  const validarFormulario = (data: CategoriaFormData): CategoriaFormErrors => {
     const errors: CategoriaFormErrors = {}
 
     if (!data.nombre.trim()) {
-      errors.nombre = "El nombre de la categoría es obligatorio"
-    } else if (data.nombre.trim().length < 2) {
-      errors.nombre = "El nombre debe tener al menos 2 caracteres"
+      errors.nombre = "El nombre es obligatorio"
     }
 
-    if (data.descripcion.trim().length > 500) {
-      errors.descripcion = "La descripción no puede exceder 500 caracteres"
+    if (!data.descripcion.trim()) {
+      errors.descripcion = "La descripción es obligatoria"
     }
 
     if (!data.icono) {
-      errors.icono = "Debe seleccionar un icono"
+      errors.icono = "Selecciona un icono"
     }
 
     if (!data.color) {
-      errors.color = "Debe seleccionar un color"
+      errors.color = "Selecciona un color"
     }
 
     return errors
   }
 
-  const handleInputChange = (field: keyof CategoriaFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    if (formErrors[field]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }))
+  const agregarCategoria = async () => {
+    const errors = validarFormulario(formData)
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors)
+      return
+    }
+
+    try {
+      // Generar ID único
+      const id = Date.now().toString()
+      const now = new Date().toISOString()
+      
+      // Obtener el siguiente orden
+      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
+      const lastCategoria = categoriasActuales[categoriasActuales.length - 1]
+      const nextOrden = (lastCategoria?.orden || 0) + 1
+
+      const nuevaCategoria: Categoria = {
+        id,
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        icono: formData.icono,
+        color: formData.color,
+        activo: true,
+        orden: nextOrden,
+        created_at: now,
+        updated_at: now,
+      }
+
+      // Actualizar localStorage
+      const categoriasActualizadas = [...categoriasActuales, nuevaCategoria]
+      localStorage.setItem('crm-categorias', JSON.stringify(categoriasActualizadas))
+
+      // Actualizar el estado local
+      setCategorias(categoriasActualizadas)
+      setFormData({
+        nombre: "",
+        descripcion: "",
+        icono: "Package",
+        color: "#3B82F6",
+      })
+      setFormErrors({})
+      setIsAddDialogOpen(false)
+
+      showSuccess("Categoría agregada correctamente")
+    } catch (error) {
+      console.error("Error agregando categoría:", error)
+      showError("Error al agregar categoría")
     }
   }
 
-  const handleEditInputChange = (field: keyof CategoriaFormData, value: string) => {
-    setEditFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    if (editFormErrors[field]) {
-      setEditFormErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }))
+  const editarCategoria = async () => {
+    if (!editingCategoria) return
+
+    const errors = validarFormulario(editFormData)
+    if (Object.keys(errors).length > 0) {
+      setEditFormErrors(errors)
+      return
+    }
+
+    try {
+      const now = new Date().toISOString()
+      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
+      
+      const categoriaActualizada = categoriasActuales.map((cat: Categoria) => 
+        cat.id === editingCategoria.id 
+          ? { 
+              ...cat, 
+              nombre: editFormData.nombre,
+              descripcion: editFormData.descripcion,
+              icono: editFormData.icono,
+              color: editFormData.color,
+              updated_at: now 
+            }
+          : cat
+      )
+
+      // Actualizar localStorage
+      localStorage.setItem('crm-categorias', JSON.stringify(categoriaActualizada))
+
+      // Actualizar el estado local
+      setCategorias(categoriaActualizada)
+      setEditingCategoria(null)
+      setIsEditDialogOpen(false)
+
+      showSuccess("Categoría actualizada correctamente")
+    } catch (error) {
+      console.error("Error actualizando categoría:", error)
+      showError("Error al actualizar categoría")
     }
   }
 
-  const resetForm = () => {
-    setFormData({
-      nombre: "",
-      descripcion: "",
-      icono: "Package",
-      color: "#3B82F6",
-    })
-    setFormErrors({})
+  const eliminarCategoria = async (id: string) => {
+    try {
+      // Verificar si hay productos usando esta categoría
+      const productosGuardados = localStorage.getItem('crm-productos')
+      if (productosGuardados) {
+        const productos = JSON.parse(productosGuardados)
+        const productosEnCategoria = productos.filter((prod: any) => prod.categoria_id === id)
+        
+        if (productosEnCategoria.length > 0) {
+          showError("No se puede eliminar: hay productos usando esta categoría")
+          return
+        }
+      }
+
+      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
+      const categoriasFiltradas = categoriasActuales.filter((cat: Categoria) => cat.id !== id)
+
+      // Actualizar localStorage
+      localStorage.setItem('crm-categorias', JSON.stringify(categoriasFiltradas))
+
+      // Actualizar el estado local
+      setCategorias(categoriasFiltradas)
+
+      showSuccess("Categoría eliminada correctamente")
+    } catch (error) {
+      console.error("Error eliminando categoría:", error)
+      showError("Error al eliminar categoría")
+    }
   }
 
-  const handleOpenAddDialog = () => {
-    setIsAddDialogOpen(true)
-    resetForm()
+  const toggleActivo = async (id: string, activo: boolean) => {
+    try {
+      const now = new Date().toISOString()
+      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
+      
+      const categoriaActualizada = categoriasActuales.map((cat: Categoria) => 
+        cat.id === id 
+          ? { ...cat, activo, updated_at: now }
+          : cat
+      )
+
+      // Actualizar localStorage
+      localStorage.setItem('crm-categorias', JSON.stringify(categoriaActualizada))
+
+      // Actualizar el estado local
+      setCategorias(categoriaActualizada)
+
+      showSuccess(`Categoría ${activo ? 'activada' : 'desactivada'} correctamente`)
+    } catch (error) {
+      console.error("Error cambiando estado de categoría:", error)
+      showError("Error al cambiar estado de categoría")
+    }
   }
 
-  const handleOpenEditDialog = (categoria: Categoria) => {
+  const abrirDialogoEdicion = (categoria: Categoria) => {
     setEditingCategoria(categoria)
     setEditFormData({
       nombre: categoria.nombre,
@@ -215,456 +364,304 @@ export function CategoriasManager() {
     setIsEditDialogOpen(true)
   }
 
-  const handleSubmit = async () => {
-    const errors = validateForm(formData)
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors)
-      return
-    }
-
-    try {
-      const supabase = createClient()
-      
-      // Verificar si la categoría ya existe
-      const { data: existingCategoria } = await supabase
-        .from("categorias")
-        .select("id")
-        .eq("nombre", formData.nombre.trim())
-        .single()
-
-      if (existingCategoria) {
-        showError("Error", "Ya existe una categoría con ese nombre")
-        return
-      }
-
-      // Obtener el siguiente orden
-      const { data: lastCategoria } = await supabase
-        .from("categorias")
-        .select("orden")
-        .order("orden", { ascending: false })
-        .limit(1)
-
-      const nextOrden = (lastCategoria?.[0]?.orden || 0) + 1
-
-      const { error } = await supabase.from("categorias").insert({
-        nombre: formData.nombre.trim(),
-        descripcion: formData.descripcion.trim() || null,
-        icono: formData.icono,
-        color: formData.color,
-        orden: nextOrden,
-      })
-
-      if (error) throw error
-
-      showSuccess("Éxito", "Categoría creada correctamente")
-      setIsAddDialogOpen(false)
-      resetForm()
-      cargarCategorias()
-    } catch (error) {
-      console.error("Error creando categoría:", error)
-      showError("Error", "No se pudo crear la categoría")
-    }
+  const cerrarDialogoEdicion = () => {
+    setEditingCategoria(null)
+    setEditFormData({
+      nombre: "",
+      descripcion: "",
+      icono: "Package",
+      color: "#3B82F6",
+    })
+    setEditFormErrors({})
+    setIsEditDialogOpen(false)
   }
 
-  const handleEdit = async () => {
-    const errors = validateForm(editFormData)
-    if (Object.keys(errors).length > 0) {
-      setEditFormErrors(errors)
-      return
-    }
-
-    if (!editingCategoria) return
-
-    try {
-      const supabase = createClient()
-      
-      // Verificar si la categoría ya existe (excluyendo la actual)
-      const { data: existingCategoria } = await supabase
-        .from("categorias")
-        .select("id")
-        .eq("nombre", editFormData.nombre.trim())
-        .neq("id", editingCategoria.id)
-        .single()
-
-      if (existingCategoria) {
-        showError("Error", "Ya existe una categoría con ese nombre")
-        return
-      }
-
-      const { error } = await supabase
-        .from("categorias")
-        .update({
-          nombre: editFormData.nombre.trim(),
-          descripcion: editFormData.descripcion.trim() || null,
-          icono: editFormData.icono,
-          color: editFormData.color,
-        })
-        .eq("id", editingCategoria.id)
-
-      if (error) throw error
-
-      showSuccess("Éxito", "Categoría actualizada correctamente")
-      setIsEditDialogOpen(false)
-      setEditingCategoria(null)
-      cargarCategorias()
-    } catch (error) {
-      console.error("Error actualizando categoría:", error)
-      showError("Error", "No se pudo actualizar la categoría")
-    }
-  }
-
-  const handleDelete = async (categoria: Categoria) => {
-    try {
-      const supabase = createClient()
-      
-      // Verificar si hay productos usando esta categoría
-      const { data: productosCount, error: productosError } = await supabase
-        .from("productos")
-        .select("id", { count: "exact" })
-        .eq("categoria", categoria.nombre)
-
-      if (productosError) throw productosError
-
-      if (productosCount && productosCount.length > 0) {
-        showError(
-          "Error", 
-          `No se puede eliminar la categoría porque hay ${productosCount.length} producto(s) que la utilizan`
-        )
-        return
-      }
-
-      const { error } = await supabase
-        .from("categorias")
-        .delete()
-        .eq("id", categoria.id)
-
-      if (error) throw error
-
-      showSuccess("Éxito", "Categoría eliminada correctamente")
-      cargarCategorias()
-    } catch (error) {
-      console.error("Error eliminando categoría:", error)
-      showError("Error", "No se pudo eliminar la categoría")
-    }
-  }
-
-  const toggleActivo = async (categoria: Categoria) => {
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("categorias")
-        .update({ activo: !categoria.activo })
-        .eq("id", categoria.id)
-
-      if (error) throw error
-
-      showSuccess("Éxito", `Categoría ${categoria.activo ? "desactivada" : "activada"} correctamente`)
-      cargarCategorias()
-    } catch (error) {
-      console.error("Error cambiando estado de categoría:", error)
-      showError("Error", "No se pudo cambiar el estado de la categoría")
-    }
+  const resetearFormulario = () => {
+    setFormData({
+      nombre: "",
+      descripcion: "",
+      icono: "Package",
+      color: "#3B82F6",
+    })
+    setFormErrors({})
   }
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Cargando categorías...</CardTitle>
-        </CardHeader>
-      </Card>
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-muted-foreground">Cargando categorías...</p>
+        </div>
+      </div>
     )
   }
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Gestión de Categorías</h2>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={handleOpenAddDialog}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva Categoría
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Crear Nueva Categoría</DialogTitle>
-              <DialogDescription>
-                Agrega una nueva categoría para organizar mejor tus productos.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="nombre" className="text-right">
-                  Nombre *
-                </Label>
-                <Input
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => handleInputChange("nombre", e.target.value)}
-                  className="col-span-3"
-                  placeholder="Ej: Accesorios"
-                />
-                {formErrors.nombre && (
-                  <span className="col-span-3 text-sm text-red-500">
-                    {formErrors.nombre}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="descripcion" className="text-right">
-                  Descripción
-                </Label>
-                <Textarea
-                  id="descripcion"
-                  value={formData.descripcion}
-                  onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                  className="col-span-3"
-                  placeholder="Descripción opcional de la categoría"
-                  rows={3}
-                />
-                {formErrors.descripcion && (
-                  <span className="col-span-3 text-sm text-red-500">
-                    {formErrors.descripcion}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="icono" className="text-right">
-                  Icono *
-                </Label>
-                <Select value={formData.icono} onValueChange={(value) => handleInputChange("icono", value)}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {iconosDisponibles.map((icono) => (
-                      <SelectItem key={icono.value} value={icono.value}>
-                        <span className="mr-2">{icono.icon}</span>
-                        {icono.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {formErrors.icono && (
-                  <span className="col-span-3 text-sm text-red-500">
-                    {formErrors.icono}
-                  </span>
-                )}
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="color" className="text-right">
-                  Color *
-                </Label>
-                <div className="col-span-3 flex gap-2 items-center">
-                  <Input
-                    id="color"
-                    type="color"
-                    value={formData.color}
-                    onChange={(e) => handleInputChange("color", e.target.value)}
-                    className="w-16 h-10 flex-shrink-0"
-                  />
-                  <div className="flex gap-1 flex-wrap max-w-48">
-                    {coloresPredefinidos.map((color) => (
-                      <button
-                        key={color}
-                        type="button"
-                        className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 flex-shrink-0"
-                        style={{ backgroundColor: color }}
-                        onClick={() => handleInputChange("color", color)}
-                      />
-                    ))}
-                  </div>
-                </div>
-                {formErrors.color && (
-                  <span className="col-span-3 text-sm text-red-500">
-                    {formErrors.color}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={handleSubmit}>Crear Categoría</Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">Gestión de Categorías</h2>
+          <p className="text-muted-foreground">
+            Administra las categorías de productos de tu growshop
+          </p>
+        </div>
+        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+          <Plus className="mr-2 h-4 w-4" />
+          Nueva Categoría
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* Lista de Categorías */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categorias.map((categoria) => (
           <Card key={categoria.id} className="relative">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <div
-                    className="w-8 h-8 rounded flex items-center justify-center text-white"
-                    style={{ backgroundColor: categoria.color }}
-                  >
-                    {iconosDisponibles.find(i => i.value === categoria.icono)?.icon || "📦"}
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">{categoria.icono}</span>
+                  <div>
+                    <CardTitle className="text-lg">{categoria.nombre}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {categoria.descripcion}
+                    </CardDescription>
                   </div>
-                  {categoria.nombre}
-                </CardTitle>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleOpenEditDialog(categoria)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          ¿Estás seguro de que quieres eliminar la categoría "{categoria.nombre}"? 
-                          Esta acción no se puede deshacer.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(categoria)}>
-                          Eliminar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                 </div>
+                <Badge
+                  variant={categoria.activo ? "default" : "secondary"}
+                  className={`${
+                    categoria.activo
+                      ? "bg-green-100 text-green-800 border-green-300"
+                      : "bg-gray-100 text-gray-800 border-gray-300"
+                  }`}
+                >
+                  {categoria.activo ? "Activa" : "Inactiva"}
+                </Badge>
               </div>
             </CardHeader>
             <CardContent>
-              {categoria.descripcion && (
-                <p className="text-sm text-gray-600 mb-3">{categoria.descripcion}</p>
-              )}
               <div className="flex items-center justify-between">
-                <Badge variant={categoria.activo ? "default" : "secondary"}>
-                  {categoria.activo ? "Activa" : "Inactiva"}
-                </Badge>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => toggleActivo(categoria)}
-                >
-                  {categoria.activo ? "Desactivar" : "Activar"}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
+                    style={{ backgroundColor: categoria.color }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    Orden: {categoria.orden}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleActivo(categoria.id, !categoria.activo)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => abrirDialogoEdicion(categoria)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => eliminarCategoria(categoria.id)}
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Dialog para editar categoría */}
+      {/* Dialogo Agregar Categoría */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Nueva Categoría</DialogTitle>
+            <DialogDescription>
+              Crea una nueva categoría para organizar tus productos
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="nombre">Nombre *</Label>
+              <Input
+                id="nombre"
+                value={formData.nombre}
+                onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                className={formErrors.nombre ? "border-red-500" : ""}
+              />
+              {formErrors.nombre && (
+                <p className="text-sm text-red-500">{formErrors.nombre}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="descripcion">Descripción *</Label>
+              <Textarea
+                id="descripcion"
+                value={formData.descripcion}
+                onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
+                className={formErrors.descripcion ? "border-red-500" : ""}
+              />
+              {formErrors.descripcion && (
+                <p className="text-sm text-red-500">{formErrors.descripcion}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="icono">Icono *</Label>
+              <Select
+                value={formData.icono}
+                onValueChange={(value) => setFormData({ ...formData, icono: value })}
+              >
+                <SelectTrigger className={formErrors.icono ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Selecciona un icono" />
+                </SelectTrigger>
+                <SelectContent>
+                  {iconosDisponibles.map((icono) => (
+                    <SelectItem key={icono.value} value={icono.value}>
+                      <div className="flex items-center space-x-2">
+                        <span>{icono.icon}</span>
+                        <span>{icono.label}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {formErrors.icono && (
+                <p className="text-sm text-red-500">{formErrors.icono}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="color">Color *</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {coloresPredefinidos.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, color })}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      formData.color === color
+                        ? "border-gray-800 scale-110"
+                        : "border-gray-300 hover:scale-105"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              {formErrors.color && (
+                <p className="text-sm text-red-500">{formErrors.color}</p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={resetearFormulario}>
+              Resetear
+            </Button>
+            <Button onClick={agregarCategoria} className="bg-green-600 hover:bg-green-700">
+              Crear Categoría
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialogo Editar Categoría */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Editar Categoría</DialogTitle>
             <DialogDescription>
-              Modifica los datos de la categoría seleccionada.
+              Modifica los datos de la categoría seleccionada
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-nombre" className="text-right">
-                Nombre *
-              </Label>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-nombre">Nombre *</Label>
               <Input
                 id="edit-nombre"
                 value={editFormData.nombre}
-                onChange={(e) => handleEditInputChange("nombre", e.target.value)}
-                className="col-span-3"
+                onChange={(e) => setEditFormData({ ...editFormData, nombre: e.target.value })}
+                className={editFormErrors.nombre ? "border-red-500" : ""}
               />
               {editFormErrors.nombre && (
-                <span className="col-span-3 text-sm text-red-500">
-                  {editFormErrors.nombre}
-                </span>
+                <p className="text-sm text-red-500">{editFormErrors.nombre}</p>
               )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-descripcion" className="text-right">
-                Descripción
-              </Label>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-descripcion">Descripción *</Label>
               <Textarea
                 id="edit-descripcion"
                 value={editFormData.descripcion}
-                onChange={(e) => handleEditInputChange("descripcion", e.target.value)}
-                className="col-span-3"
-                rows={3}
+                onChange={(e) => setEditFormData({ ...editFormData, descripcion: e.target.value })}
+                className={editFormErrors.descripcion ? "border-red-500" : ""}
               />
               {editFormErrors.descripcion && (
-                <span className="col-span-3 text-sm text-red-500">
-                  {editFormErrors.descripcion}
-                </span>
+                <p className="text-sm text-red-500">{editFormErrors.descripcion}</p>
               )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-icono" className="text-right">
-                Icono *
-              </Label>
-              <Select value={editFormData.icono} onValueChange={(value) => handleEditInputChange("icono", value)}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue />
+            <div className="grid gap-2">
+              <Label htmlFor="edit-icono">Icono *</Label>
+              <Select
+                value={editFormData.icono}
+                onValueChange={(value) => setEditFormData({ ...editFormData, icono: value })}
+              >
+                <SelectTrigger className={editFormErrors.icono ? "border-red-500" : ""}>
+                  <SelectValue placeholder="Selecciona un icono" />
                 </SelectTrigger>
                 <SelectContent>
                   {iconosDisponibles.map((icono) => (
                     <SelectItem key={icono.value} value={icono.value}>
-                      <span className="mr-2">{icono.icon}</span>
-                      {icono.label}
+                      <div className="flex items-center space-x-2">
+                        <span>{icono.icon}</span>
+                        <span>{icono.label}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {editFormErrors.icono && (
-                <span className="col-span-3 text-sm text-red-500">
-                  {editFormErrors.icono}
-                </span>
+                <p className="text-sm text-red-500">{editFormErrors.icono}</p>
               )}
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="edit-color" className="text-right">
-                Color *
-              </Label>
-              <div className="col-span-3 flex gap-2 items-center">
-                <Input
-                  id="edit-color"
-                  type="color"
-                  value={editFormData.color}
-                  onChange={(e) => handleEditInputChange("color", e.target.value)}
-                  className="w-16 h-10 flex-shrink-0"
-                />
-                <div className="flex gap-1 flex-wrap max-w-48">
-                  {coloresPredefinidos.map((color) => (
-                    <button
-                      key={color}
-                      type="button"
-                      className="w-8 h-8 rounded border-2 border-gray-300 hover:border-gray-400 flex-shrink-0"
-                      style={{ backgroundColor: color }}
-                      onClick={() => handleEditInputChange("color", color)}
-                    />
-                  ))}
-                </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-color">Color *</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {coloresPredefinidos.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setEditFormData({ ...editFormData, color })}
+                    className={`w-8 h-8 rounded-full border-2 transition-all ${
+                      editFormData.color === color
+                        ? "border-gray-800 scale-110"
+                        : "border-gray-300 hover:scale-105"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
               </div>
               {editFormErrors.color && (
-                <span className="col-span-3 text-sm text-red-500">
-                  {editFormErrors.color}
-                </span>
+                <p className="text-sm text-red-500">{editFormErrors.color}</p>
               )}
             </div>
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter>
+            <Button variant="outline" onClick={cerrarDialogoEdicion}>
               Cancelar
             </Button>
-            <Button onClick={handleEdit}>Actualizar Categoría</Button>
-          </div>
+            <Button onClick={editarCategoria} className="bg-green-600 hover:bg-green-700">
+              Guardar Cambios
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

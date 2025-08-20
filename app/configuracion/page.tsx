@@ -29,7 +29,6 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase/client"
 import { CategoriasManager } from "@/components/categorias-manager"
 
 interface ConfiguracionData {
@@ -42,7 +41,6 @@ export default function ConfiguracionPage() {
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isLoadingData, setIsLoadingData] = useState(true)
-  const supabase = createClient()
 
   const [configuracion, setConfiguracion] = useState({
     // Información del negocio
@@ -76,34 +74,18 @@ export default function ConfiguracionPage() {
   useEffect(() => {
     const cargarConfiguracion = async () => {
       try {
-        const { data, error } = await supabase.from("configuracion").select("clave, valor")
-
-        if (error) {
-          console.error("Error cargando configuración:", error)
-          toast({
-            title: "Error al cargar configuración",
-            description: "Se usarán valores por defecto.",
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (data && data.length > 0) {
-          const configCompleta = { ...configuracion }
-
-          data.forEach((item: ConfiguracionData) => {
-            const valores = item.valor
-            Object.assign(configCompleta, valores)
-          })
-
+        // En modo mock, cargar desde localStorage o usar valores por defecto
+        const configGuardada = localStorage.getItem('crm-configuracion')
+        if (configGuardada) {
+          const configCompleta = { ...configuracion, ...JSON.parse(configGuardada) }
           setConfiguracion(configCompleta)
           setConfiguracionOriginal(configCompleta)
         }
       } catch (error) {
-        console.error("Error:", error)
+        console.error("Error cargando configuración:", error)
         toast({
-          title: "Error de conexión",
-          description: "No se pudo cargar la configuración.",
+          title: "Error al cargar configuración",
+          description: "Se usarán valores por defecto.",
           variant: "destructive",
         })
       } finally {
@@ -151,63 +133,9 @@ export default function ConfiguracionPage() {
     }
 
     try {
-      // Preparar datos para Supabase
-      const updates = [
-        {
-          clave: "negocio",
-          valor: {
-            nombreNegocio: configuracion.nombreNegocio,
-            direccion: configuracion.direccion,
-            telefono: configuracion.telefono,
-            email: configuracion.email,
-            cuit: configuracion.cuit,
-            descripcion: configuracion.descripcion,
-          },
-        },
-        {
-          clave: "ventas",
-          valor: {
-            moneda: configuracion.moneda,
-            iva: configuracion.iva,
-            descuentoMaximo: configuracion.descuentoMaximo,
-            stockMinimo: configuracion.stockMinimo,
-          },
-        },
-        {
-          clave: "notificaciones",
-          valor: {
-            notificarStockBajo: configuracion.notificarStockBajo,
-            notificarNuevasVentas: configuracion.notificarNuevasVentas,
-            notificarNuevosClientes: configuracion.notificarNuevosClientes,
-            emailNotificaciones: configuracion.emailNotificaciones,
-          },
-        },
-        {
-          clave: "sistema",
-          valor: {
-            backupAutomatico: configuracion.backupAutomatico,
-            modoMantenimiento: configuracion.modoMantenimiento,
-            registroActividad: configuracion.registroActividad,
-          },
-        },
-      ]
-
-      for (const update of updates) {
-        const { error } = await supabase.from("configuracion").upsert(
-          {
-            clave: update.clave,
-            valor: update.valor,
-          },
-          {
-            onConflict: "clave",
-          },
-        )
-
-        if (error) {
-          throw error
-        }
-      }
-
+      // En modo mock, guardar en localStorage
+      localStorage.setItem('crm-configuracion', JSON.stringify(configuracion))
+      
       setConfiguracionOriginal(configuracion)
       setHasChanges(false)
 
@@ -229,12 +157,12 @@ export default function ConfiguracionPage() {
 
   const resetearConfiguracion = () => {
     const configDefault = {
-          nombreNegocio: "",
-    direccion: "",
-              telefono: "",
-        email: "",
-              cuit: "",
-        descripcion: "",
+      nombreNegocio: "",
+      direccion: "",
+      telefono: "",
+      email: "",
+      cuit: "",
+      descripcion: "",
       moneda: "ARS",
       iva: "21",
       descuentoMaximo: "15",
@@ -249,6 +177,7 @@ export default function ConfiguracionPage() {
     }
 
     setConfiguracion(configDefault)
+    localStorage.removeItem('crm-configuracion')
     toast({
       title: "Configuración restablecida",
       description: "Se han restaurado los valores por defecto.",
@@ -415,113 +344,111 @@ export default function ConfiguracionPage() {
                       </div>
                     </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="telefono">Teléfono</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="telefono"
-                        className="pl-10"
-                        value={configuracion.telefono}
-                        onChange={(e) => handleInputChange("telefono", e.target.value)}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="telefono">Teléfono</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="telefono"
+                            className="pl-10"
+                            value={configuracion.telefono}
+                            onChange={(e) => handleInputChange("telefono", e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <Label htmlFor="email">Email *</Label>
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            id="email"
+                            className={`pl-10 ${!configuracion.email.includes("@") ? "border-red-300" : ""}`}
+                            value={configuracion.email}
+                            onChange={(e) => handleInputChange("email", e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="descripcion">Descripción del Negocio</Label>
+                      <Textarea
+                        id="descripcion"
+                        rows={3}
+                        value={configuracion.descripcion}
+                        onChange={(e) => handleInputChange("descripcion", e.target.value)}
                       />
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        className={`pl-10 ${!configuracion.email.includes("@") ? "border-red-300" : ""}`}
-                        value={configuracion.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
+                  </CardContent>
+                </Card>
+
+                {/* Notificaciones */}
+                <Card className="lg:col-span-2 bg-card border-border">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-2">
+                      <Bell className="h-5 w-5 text-amber-600" />
+                      <span>Notificaciones</span>
+                    </CardTitle>
+                    <CardDescription>Configura las alertas del sistema</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="notificarStockBajo">Notificar Stock Bajo</Label>
+                        <p className="text-sm text-muted-foreground">Recibe alertas cuando el stock esté por debajo del mínimo</p>
+                      </div>
+                      <Switch
+                        id="notificarStockBajo"
+                        checked={configuracion.notificarStockBajo}
+                        onCheckedChange={(checked) => handleInputChange("notificarStockBajo", checked)}
                       />
                     </div>
-                  </div>
-                </div>
 
-                <div>
-                  <Label htmlFor="descripcion">Descripción del Negocio</Label>
-                  <Textarea
-                    id="descripcion"
-                    rows={3}
-                    value={configuracion.descripcion}
-                    onChange={(e) => handleInputChange("descripcion", e.target.value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+                    <Separator />
 
-            {/* Notificaciones */}
-            <Card className="lg:col-span-2 bg-card border-border">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Bell className="h-5 w-5 text-amber-600" />
-                  <span>Notificaciones</span>
-                </CardTitle>
-                <CardDescription>Configura las alertas del sistema</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="notificarStockBajo">Notificar Stock Bajo</Label>
-                    <p className="text-sm text-muted-foreground">Recibe alertas cuando el stock esté por debajo del mínimo</p>
-                  </div>
-                  <Switch
-                    id="notificarStockBajo"
-                    checked={configuracion.notificarStockBajo}
-                    onCheckedChange={(checked) => handleInputChange("notificarStockBajo", checked)}
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="notificarNuevasVentas">Notificar Nuevas Ventas</Label>
+                        <p className="text-sm text-muted-foreground">Recibe alertas por cada nueva venta realizada</p>
+                      </div>
+                      <Switch
+                        id="notificarNuevasVentas"
+                        checked={configuracion.notificarNuevasVentas}
+                        onCheckedChange={(checked) => handleInputChange("notificarNuevasVentas", checked)}
+                      />
+                    </div>
 
-                <Separator />
+                    <Separator />
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="notificarNuevasVentas">Notificar Nuevas Ventas</Label>
-                    <p className="text-sm text-muted-foreground">Recibe alertas por cada nueva venta realizada</p>
-                  </div>
-                  <Switch
-                    id="notificarNuevasVentas"
-                    checked={configuracion.notificarNuevasVentas}
-                    onCheckedChange={(checked) => handleInputChange("notificarNuevasVentas", checked)}
-                  />
-                </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="notificarNuevosClientes">Notificar Nuevos Clientes</Label>
+                        <p className="text-sm text-muted-foreground">Recibe alertas cuando se registre un nuevo cliente</p>
+                      </div>
+                      <Switch
+                        id="notificarNuevosClientes"
+                        checked={configuracion.notificarNuevosClientes}
+                        onCheckedChange={(checked) => handleInputChange("notificarNuevosClientes", checked)}
+                      />
+                    </div>
 
-                <Separator />
+                    <Separator />
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="notificarNuevosClientes">Notificar Nuevos Clientes</Label>
-                    <p className="text-sm text-muted-foreground">Recibe alertas cuando se registre un nuevo cliente</p>
-                  </div>
-                  <Switch
-                    id="notificarNuevosClientes"
-                    checked={configuracion.notificarNuevosClientes}
-                    onCheckedChange={(checked) => handleInputChange("notificarNuevosClientes", checked)}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="emailNotificaciones">Notificaciones por Email</Label>
-                    <p className="text-sm text-muted-foreground">Enviar notificaciones también por correo electrónico</p>
-                  </div>
-                  <Switch
-                    id="emailNotificaciones"
-                    checked={configuracion.emailNotificaciones}
-                    onCheckedChange={(checked) => handleInputChange("emailNotificaciones", checked)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-
-          </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label htmlFor="emailNotificaciones">Notificaciones por Email</Label>
+                        <p className="text-sm text-muted-foreground">Enviar notificaciones también por correo electrónico</p>
+                      </div>
+                      <Switch
+                        id="emailNotificaciones"
+                        checked={configuracion.emailNotificaciones}
+                        onCheckedChange={(checked) => handleInputChange("emailNotificaciones", checked)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="categorias" className="space-y-6">
