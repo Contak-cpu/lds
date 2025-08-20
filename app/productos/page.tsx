@@ -45,7 +45,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
 import { useNotifications } from "@/hooks/use-notifications"
-import { createClient } from "@/lib/supabase/client"
 import type { ComponentType } from "react"
 
 interface Producto {

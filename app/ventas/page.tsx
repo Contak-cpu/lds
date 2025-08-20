@@ -36,7 +36,6 @@ import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase/client"
 import { DateFilter } from "@/components/ui/date-filter"
 import { useDateFilter } from "@/hooks/use-date-filter"
 

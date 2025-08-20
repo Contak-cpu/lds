@@ -34,7 +34,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, Edit, Trash2, Settings } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { useNotifications } from "@/hooks/use-notifications"
 
 interface Categoria {
@@ -65,18 +64,18 @@ interface CategoriaFormErrors {
 
 // Iconos disponibles de Lucide
 const iconosDisponibles = [
-  { value: "Package", label: "Paquete", icon: "📦" },
-  { value: "Leaf", label: "Hoja", icon: "🍃" },
-  { value: "Droplets", label: "Gotas", icon: "💧" },
-  { value: "Lightbulb", label: "Bombilla", icon: "💡" },
-  { value: "Thermometer", label: "Termómetro", icon: "🌡️" },
-  { value: "Scissors", label: "Tijeras", icon: "✂️" },
-  { value: "Sprout", label: "Brote", icon: "🌱" },
+  { value: "Package", label: "Zapatilla", icon: "👟" },
+  { value: "ShoppingBag", label: "Bolsa", icon: "🛍️" },
+  { value: "Star", label: "Estrella", icon: "⭐" },
+  { value: "Zap", label: "Rayo", icon: "⚡" },
+  { value: "Crown", label: "Corona", icon: "👑" },
+  { value: "Award", label: "Premio", icon: "🏆" },
+  { value: "Target", label: "Objetivo", icon: "🎯" },
   { value: "Settings", label: "Configuración", icon: "⚙️" },
-  { value: "Seedling", label: "Plántula", icon: "🌿" },
-  { value: "Flower", label: "Flor", icon: "🌸" },
-  { value: "Tree", label: "Árbol", icon: "🌳" },
-  { value: "Garden", label: "Jardín", icon: "🏡" },
+  { value: "Flame", label: "Fuego", icon: "🔥" },
+  { value: "Heart", label: "Corazón", icon: "❤️" },
+  { value: "Diamond", label: "Diamante", icon: "💎" },
+  { value: "Rocket", label: "Cohete", icon: "🚀" },
 ]
 
 // Colores predefinidos
@@ -121,15 +120,47 @@ export function CategoriasManager() {
 
   const cargarCategorias = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("categorias")
-        .select("*")
-        .order("orden", { ascending: true })
-
-      if (error) throw error
-
-      setCategorias(data || [])
+      // Cargar categorías desde localStorage (modo mock)
+      const categoriasMock: Categoria[] = [
+        {
+          id: "1",
+          nombre: "Running",
+          descripcion: "Zapatillas para correr y entrenar",
+          icono: "Zap",
+          color: "#3B82F6",
+          activo: true,
+          orden: 1,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "2",
+          nombre: "Basketball",
+          descripcion: "Zapatillas de básquet profesionales",
+          icono: "Target",
+          color: "#F59E0B",
+          activo: true,
+          orden: 2,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "3",
+          nombre: "Lifestyle",
+          descripcion: "Zapatillas casuales para el día a día",
+          icono: "Heart",
+          color: "#10B981",
+          activo: true,
+          orden: 3,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        }
+      ]
+      
+      const categoriasSaved = localStorage.getItem('categorias-sneakers')
+      const categoriasData = categoriasSaved ? JSON.parse(categoriasSaved) : categoriasMock
+      
+      setCategorias(categoriasData)
     } catch (error) {
       console.error("Error cargando categorías:", error)
       showError("Error", "No se pudieron cargar las categorías")

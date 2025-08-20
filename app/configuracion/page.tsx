@@ -29,29 +29,22 @@ import {
   AlertTriangle,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase/client"
 import { CategoriasManager } from "@/components/categorias-manager"
-
-interface ConfiguracionData {
-  clave: string
-  valor: any
-}
 
 export default function ConfiguracionPage() {
   const { toast } = useToast()
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingData, setIsLoadingData] = useState(true)
-  const supabase = createClient()
+  const [isLoadingData, setIsLoadingData] = useState(false)
 
   const [configuracion, setConfiguracion] = useState({
     // Información del negocio
-    nombreNegocio: "",
-    direccion: "",
-    telefono: "",
-    email: "",
-    cuit: "",
-    descripcion: "",
+    nombreNegocio: "Los de Siempre Sneakers",
+    direccion: "Av. Corrientes 1234, CABA",
+    telefono: "+54 11 4567-8900",
+    email: "info@losdesimpresneakers.com",
+    cuit: "20-12345678-9",
+    descripcion: "Tienda especializada en zapatillas deportivas de última generación",
 
     // Configuración de ventas
     moneda: "ARS",
@@ -74,40 +67,22 @@ export default function ConfiguracionPage() {
   const [configuracionOriginal, setConfiguracionOriginal] = useState(configuracion)
 
   useEffect(() => {
-    const cargarConfiguracion = async () => {
+    // Cargar configuración desde localStorage (modo mock)
+    const cargarConfiguracion = () => {
       try {
-        const { data, error } = await supabase.from("configuracion").select("clave, valor")
-
-        if (error) {
-          console.error("Error cargando configuración:", error)
-          toast({
-            title: "Error al cargar configuración",
-            description: "Se usarán valores por defecto.",
-            variant: "destructive",
-          })
-          return
-        }
-
-        if (data && data.length > 0) {
-          const configCompleta = { ...configuracion }
-
-          data.forEach((item: ConfiguracionData) => {
-            const valores = item.valor
-            Object.assign(configCompleta, valores)
-          })
-
-          setConfiguracion(configCompleta)
-          setConfiguracionOriginal(configCompleta)
+        const configGuardada = localStorage.getItem('configuracion-negocio')
+        if (configGuardada) {
+          const configParseada = JSON.parse(configGuardada)
+          setConfiguracion({ ...configuracion, ...configParseada })
+          setConfiguracionOriginal({ ...configuracion, ...configParseada })
         }
       } catch (error) {
-        console.error("Error:", error)
+        console.error("Error cargando configuración:", error)
         toast({
-          title: "Error de conexión",
-          description: "No se pudo cargar la configuración.",
-          variant: "destructive",
+          title: "Info",
+          description: "Usando configuración por defecto.",
+          variant: "default",
         })
-      } finally {
-        setIsLoadingData(false)
       }
     }
 
@@ -151,63 +126,9 @@ export default function ConfiguracionPage() {
     }
 
     try {
-      // Preparar datos para Supabase
-      const updates = [
-        {
-          clave: "negocio",
-          valor: {
-            nombreNegocio: configuracion.nombreNegocio,
-            direccion: configuracion.direccion,
-            telefono: configuracion.telefono,
-            email: configuracion.email,
-            cuit: configuracion.cuit,
-            descripcion: configuracion.descripcion,
-          },
-        },
-        {
-          clave: "ventas",
-          valor: {
-            moneda: configuracion.moneda,
-            iva: configuracion.iva,
-            descuentoMaximo: configuracion.descuentoMaximo,
-            stockMinimo: configuracion.stockMinimo,
-          },
-        },
-        {
-          clave: "notificaciones",
-          valor: {
-            notificarStockBajo: configuracion.notificarStockBajo,
-            notificarNuevasVentas: configuracion.notificarNuevasVentas,
-            notificarNuevosClientes: configuracion.notificarNuevosClientes,
-            emailNotificaciones: configuracion.emailNotificaciones,
-          },
-        },
-        {
-          clave: "sistema",
-          valor: {
-            backupAutomatico: configuracion.backupAutomatico,
-            modoMantenimiento: configuracion.modoMantenimiento,
-            registroActividad: configuracion.registroActividad,
-          },
-        },
-      ]
-
-      for (const update of updates) {
-        const { error } = await supabase.from("configuracion").upsert(
-          {
-            clave: update.clave,
-            valor: update.valor,
-          },
-          {
-            onConflict: "clave",
-          },
-        )
-
-        if (error) {
-          throw error
-        }
-      }
-
+      // Guardar en localStorage (modo mock)
+      localStorage.setItem('configuracion-negocio', JSON.stringify(configuracion))
+      
       setConfiguracionOriginal(configuracion)
       setHasChanges(false)
 
@@ -229,12 +150,12 @@ export default function ConfiguracionPage() {
 
   const resetearConfiguracion = () => {
     const configDefault = {
-          nombreNegocio: "",
-    direccion: "",
-              telefono: "",
-        email: "",
-              cuit: "",
-        descripcion: "",
+      nombreNegocio: "Los de Siempre Sneakers",
+      direccion: "Av. Corrientes 1234, CABA",
+      telefono: "+54 11 4567-8900",
+      email: "info@losdesimpresneakers.com",
+      cuit: "20-12345678-9",
+      descripcion: "Tienda especializada en zapatillas deportivas de última generación",
       moneda: "ARS",
       iva: "21",
       descuentoMaximo: "15",
@@ -249,6 +170,7 @@ export default function ConfiguracionPage() {
     }
 
     setConfiguracion(configDefault)
+    localStorage.removeItem('configuracion-negocio')
     toast({
       title: "Configuración restablecida",
       description: "Se han restaurado los valores por defecto.",
@@ -261,7 +183,7 @@ export default function ConfiguracionPage() {
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "growshop-config.json"
+    link.download = "sneakers-config.json"
     link.click()
 
     toast({
@@ -321,7 +243,7 @@ export default function ConfiguracionPage() {
                 <Settings className="h-6 w-6 text-green-600" />
                 <div>
                   <h1 className="text-xl font-bold text-card-foreground">Configuración</h1>
-                  <p className="text-sm text-green-600">Personaliza tu CRM de growshop</p>
+                  <p className="text-sm text-green-600">Personaliza tu CRM de zapatillas</p>
                 </div>
                 {hasChanges && (
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700">
@@ -379,7 +301,7 @@ export default function ConfiguracionPage() {
                       <Store className="h-5 w-5 text-green-600" />
                       <span>Información del Negocio</span>
                     </CardTitle>
-                    <CardDescription>Datos básicos de tu growshop</CardDescription>
+                    <CardDescription>Datos básicos de tu tienda de zapatillas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

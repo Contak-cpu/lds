@@ -17,7 +17,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { useNotifications } from "@/hooks/use-notifications"
 
 interface Cliente {

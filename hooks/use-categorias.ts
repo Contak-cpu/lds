@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
 
 export interface Categoria {
   id: string
@@ -23,16 +22,47 @@ export function useCategorias() {
       setIsLoading(true)
       setError(null)
       
-      const supabase = createClient()
-      const { data, error: supabaseError } = await supabase
-        .from("categorias")
-        .select("*")
-        .eq("activo", true)
-        .order("orden", { ascending: true })
-
-      if (supabaseError) throw supabaseError
-
-      setCategorias(data || [])
+      // Cargar categorías desde localStorage (modo mock)
+      const categoriasMock: Categoria[] = [
+        {
+          id: "1",
+          nombre: "Running",
+          descripcion: "Zapatillas para correr y entrenar",
+          icono: "Zap",
+          color: "#3B82F6",
+          activo: true,
+          orden: 1,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "2",
+          nombre: "Basketball",
+          descripcion: "Zapatillas de básquet profesionales",
+          icono: "Target",
+          color: "#F59E0B",
+          activo: true,
+          orden: 2,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "3",
+          nombre: "Lifestyle",
+          descripcion: "Zapatillas casuales para el día a día",
+          icono: "Heart",
+          color: "#10B981",
+          activo: true,
+          orden: 3,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        }
+      ]
+      
+      const categoriasSaved = localStorage.getItem('categorias-sneakers')
+      const categoriasData = categoriasSaved ? JSON.parse(categoriasSaved) : categoriasMock
+      
+      setCategorias(categoriasData.filter((cat: Categoria) => cat.activo))
     } catch (err) {
       console.error("Error cargando categorías:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
@@ -43,31 +73,25 @@ export function useCategorias() {
 
   const agregarCategoria = async (categoriaData: Omit<Categoria, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const supabase = createClient()
+      // Generar nuevo ID y orden
+      const newId = Date.now().toString()
+      const nextOrden = Math.max(...categorias.map(c => c.orden), 0) + 1
       
-      // Obtener el siguiente orden
-      const { data: lastCategoria } = await supabase
-        .from("categorias")
-        .select("orden")
-        .order("orden", { ascending: false })
-        .limit(1)
+      const newCategoria: Categoria = {
+        ...categoriaData,
+        id: newId,
+        orden: nextOrden,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
 
-      const nextOrden = (lastCategoria?.[0]?.orden || 0) + 1
-
-      const { data, error } = await supabase
-        .from("categorias")
-        .insert({
-          ...categoriaData,
-          orden: nextOrden,
-        })
-        .select()
-        .single()
-
-      if (error) throw error
-
+      // Guardar en localStorage
+      const updatedCategorias = [...categorias, newCategoria]
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
       // Actualizar el estado local
-      setCategorias(prev => [...prev, data])
-      return data
+      setCategorias(updatedCategorias)
+      return newCategoria
     } catch (err) {
       console.error("Error agregando categoría:", err)
       throw err
@@ -76,22 +100,20 @@ export function useCategorias() {
 
   const actualizarCategoria = async (id: string, categoriaData: Partial<Categoria>) => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("categorias")
-        .update(categoriaData)
-        .eq("id", id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // Actualizar el estado local
-      setCategorias(prev => 
-        prev.map(cat => cat.id === id ? data : cat)
+      // Actualizar categoria local
+      const updatedCategorias = categorias.map(cat => 
+        cat.id === id 
+          ? { ...cat, ...categoriaData, updated_at: new Date().toISOString() }
+          : cat
       )
       
-      return data
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
+      // Actualizar el estado local
+      setCategorias(updatedCategorias)
+      
+      return updatedCategorias.find(cat => cat.id === id)!
     } catch (err) {
       console.error("Error actualizando categoría:", err)
       throw err
@@ -100,16 +122,14 @@ export function useCategorias() {
 
   const eliminarCategoria = async (id: string) => {
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("categorias")
-        .delete()
-        .eq("id", id)
-
-      if (error) throw error
-
+      // Filtrar categoria eliminada
+      const updatedCategorias = categorias.filter(cat => cat.id !== id)
+      
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
       // Actualizar el estado local
-      setCategorias(prev => prev.filter(cat => cat.id !== id))
+      setCategorias(updatedCategorias)
     } catch (err) {
       console.error("Error eliminando categoría:", err)
       throw err
@@ -118,22 +138,20 @@ export function useCategorias() {
 
   const toggleActivo = async (id: string, activo: boolean) => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("categorias")
-        .update({ activo })
-        .eq("id", id)
-        .select()
-        .single()
-
-      if (error) throw error
-
-      // Actualizar el estado local
-      setCategorias(prev => 
-        prev.map(cat => cat.id === id ? data : cat)
+      // Actualizar estado activo
+      const updatedCategorias = categorias.map(cat => 
+        cat.id === id 
+          ? { ...cat, activo, updated_at: new Date().toISOString() }
+          : cat
       )
       
-      return data
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
+      // Actualizar el estado local
+      setCategorias(updatedCategorias.filter(cat => cat.activo))
+      
+      return updatedCategorias.find(cat => cat.id === id)!
     } catch (err) {
       console.error("Error cambiando estado de categoría:", err)
       throw err

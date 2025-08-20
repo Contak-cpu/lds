@@ -1,8 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuración para Vercel
-  output: 'standalone',
-  
   // Optimizaciones de build
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
@@ -14,7 +11,7 @@ const nextConfig = {
     unoptimized: false,
   },
   
-  // Configuración de headers para Vercel
+  // Configuración de headers para seguridad
   async headers() {
     return [
       {
@@ -51,14 +48,6 @@ const nextConfig = {
   // Configuración de compilación
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
-  },
-  
-  // Configuración de webpack para optimizar el bundle
-  webpack: (config, { dev, isServer }) => {
-    if (!dev && !isServer) {
-      config.optimization.splitChunks.chunks = 'all'
-    }
-    return config
   },
 }
 
