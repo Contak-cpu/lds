@@ -254,14 +254,10 @@ export function CategoriasManager() {
     }
 
     try {
-      const supabase = createClient()
-      
       // Verificar si la categoría ya existe
-      const { data: existingCategoria } = await supabase
-        .from("categorias")
-        .select("id")
-        .eq("nombre", formData.nombre.trim())
-        .single()
+      const existingCategoria = categorias.find(cat => 
+        cat.nombre.toLowerCase() === formData.nombre.trim().toLowerCase()
+      )
 
       if (existingCategoria) {
         showError("Error", "Ya existe una categoría con ese nombre")
@@ -269,28 +265,29 @@ export function CategoriasManager() {
       }
 
       // Obtener el siguiente orden
-      const { data: lastCategoria } = await supabase
-        .from("categorias")
-        .select("orden")
-        .order("orden", { ascending: false })
-        .limit(1)
+      const nextOrden = Math.max(...categorias.map(cat => cat.orden), 0) + 1
 
-      const nextOrden = (lastCategoria?.[0]?.orden || 0) + 1
-
-      const { error } = await supabase.from("categorias").insert({
+      // Crear nueva categoría
+      const nuevaCategoria: Categoria = {
+        id: Date.now().toString(),
         nombre: formData.nombre.trim(),
         descripcion: formData.descripcion.trim() || null,
         icono: formData.icono,
         color: formData.color,
+        activo: true,
         orden: nextOrden,
-      })
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
 
-      if (error) throw error
+      // Guardar en localStorage
+      const categoriasActualizadas = [...categorias, nuevaCategoria]
+      localStorage.setItem('categorias-sneakers', JSON.stringify(categoriasActualizadas))
+      setCategorias(categoriasActualizadas)
 
       showSuccess("Éxito", "Categoría creada correctamente")
       setIsAddDialogOpen(false)
       resetForm()
-      cargarCategorias()
     } catch (error) {
       console.error("Error creando categoría:", error)
       showError("Error", "No se pudo crear la categoría")
@@ -307,37 +304,38 @@ export function CategoriasManager() {
     if (!editingCategoria) return
 
     try {
-      const supabase = createClient()
-      
       // Verificar si la categoría ya existe (excluyendo la actual)
-      const { data: existingCategoria } = await supabase
-        .from("categorias")
-        .select("id")
-        .eq("nombre", editFormData.nombre.trim())
-        .neq("id", editingCategoria.id)
-        .single()
+      const existingCategoria = categorias.find(cat => 
+        cat.nombre.toLowerCase() === editFormData.nombre.trim().toLowerCase() &&
+        cat.id !== editingCategoria.id
+      )
 
       if (existingCategoria) {
         showError("Error", "Ya existe una categoría con ese nombre")
         return
       }
 
-      const { error } = await supabase
-        .from("categorias")
-        .update({
-          nombre: editFormData.nombre.trim(),
-          descripcion: editFormData.descripcion.trim() || null,
-          icono: editFormData.icono,
-          color: editFormData.color,
-        })
-        .eq("id", editingCategoria.id)
+      // Actualizar categoría
+      const categoriasActualizadas = categorias.map(cat => 
+        cat.id === editingCategoria.id 
+          ? {
+              ...cat,
+              nombre: editFormData.nombre.trim(),
+              descripcion: editFormData.descripcion.trim() || null,
+              icono: editFormData.icono,
+              color: editFormData.color,
+              updated_at: new Date().toISOString(),
+            }
+          : cat
+      )
 
-      if (error) throw error
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(categoriasActualizadas))
+      setCategorias(categoriasActualizadas)
 
       showSuccess("Éxito", "Categoría actualizada correctamente")
       setIsEditDialogOpen(false)
       setEditingCategoria(null)
-      cargarCategorias()
     } catch (error) {
       console.error("Error actualizando categoría:", error)
       showError("Error", "No se pudo actualizar la categoría")
@@ -346,17 +344,12 @@ export function CategoriasManager() {
 
   const handleDelete = async (categoria: Categoria) => {
     try {
-      const supabase = createClient()
-      
       // Verificar si hay productos usando esta categoría
-      const { data: productosCount, error: productosError } = await supabase
-        .from("productos")
-        .select("id", { count: "exact" })
-        .eq("categoria", categoria.nombre)
+      const productosGuardados = localStorage.getItem('productos-sneakers')
+      const productos = productosGuardados ? JSON.parse(productosGuardados) : []
+      const productosCount = productos.filter((p: any) => p.categoria === categoria.nombre)
 
-      if (productosError) throw productosError
-
-      if (productosCount && productosCount.length > 0) {
+      if (productosCount.length > 0) {
         showError(
           "Error", 
           `No se puede eliminar la categoría porque hay ${productosCount.length} producto(s) que la utilizan`
@@ -364,15 +357,12 @@ export function CategoriasManager() {
         return
       }
 
-      const { error } = await supabase
-        .from("categorias")
-        .delete()
-        .eq("id", categoria.id)
-
-      if (error) throw error
+      // Eliminar categoría
+      const categoriasActualizadas = categorias.filter(cat => cat.id !== categoria.id)
+      localStorage.setItem('categorias-sneakers', JSON.stringify(categoriasActualizadas))
+      setCategorias(categoriasActualizadas)
 
       showSuccess("Éxito", "Categoría eliminada correctamente")
-      cargarCategorias()
     } catch (error) {
       console.error("Error eliminando categoría:", error)
       showError("Error", "No se pudo eliminar la categoría")
@@ -381,16 +371,22 @@ export function CategoriasManager() {
 
   const toggleActivo = async (categoria: Categoria) => {
     try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("categorias")
-        .update({ activo: !categoria.activo })
-        .eq("id", categoria.id)
+      // Actualizar estado activo
+      const categoriasActualizadas = categorias.map(cat => 
+        cat.id === categoria.id 
+          ? {
+              ...cat,
+              activo: !cat.activo,
+              updated_at: new Date().toISOString(),
+            }
+          : cat
+      )
 
-      if (error) throw error
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(categoriasActualizadas))
+      setCategorias(categoriasActualizadas)
 
       showSuccess("Éxito", `Categoría ${categoria.activo ? "desactivada" : "activada"} correctamente`)
-      cargarCategorias()
     } catch (error) {
       console.error("Error cambiando estado de categoría:", error)
       showError("Error", "No se pudo cambiar el estado de la categoría")
