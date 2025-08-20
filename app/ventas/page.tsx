@@ -36,23 +36,23 @@ import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-// import { createClient } from "@/lib/supabase/client" // REMOVIDO PARA MODO MOCK
 import { DateFilter } from "@/components/ui/date-filter"
 import { useDateFilter } from "@/hooks/use-date-filter"
 
 interface Cliente {
   id: string
   nombre: string
-  email: string
-  telefono: string
-  direccion: string
-  ciudad: string
-  provincia: string
-  codigo_postal: string
+  email: string | null
+  telefono: string | null
+  direccion: string | null
+  ciudad: string | null
+  provincia: string | null
+  codigo_postal: string | null
   fecha_registro: string
-  notas: string
+  notas: string | null
   created_at: string
   updated_at: string
+  estado: string
 }
 
 interface Producto {
@@ -61,6 +61,7 @@ interface Producto {
   nombre: string
   descripcion: string | null
   categoria: string
+  marca: string
   precio: number
   costo: number
   stock: number
@@ -74,7 +75,7 @@ interface Producto {
 interface VentaItem {
   id?: string
   venta_id?: string
-  producto_id?: string
+  producto_id?: string | null
   producto_nombre: string
   cantidad: number
   precio_unitario: number
@@ -98,24 +99,6 @@ interface Venta {
   notas: string
   esCasual: boolean
   productos: VentaItem[]
-}
-
-interface VentaSupabase {
-  id: string
-  cliente_id: string | null
-  cliente_nombre: string | null
-  cliente_casual: string | null
-  tipo_venta: string
-  estado: string
-  subtotal: number
-  descuento: number
-  total: number
-  metodo_pago: string
-  notas: string | null
-  fecha_venta: string
-  created_at: string
-  updated_at: string
-  venta_items: VentaItem[]
 }
 
 interface ProductoCarrito extends Producto {
@@ -163,45 +146,12 @@ const validateVentaForm = (
     }
   }
 
-  // Validar producto personalizado solo si está en el carrito Y no tiene datos válidos
-  // Los productos personalizados ya en el carrito no necesitan validación adicional
-  const productosPersonalizadosEnCarrito = carrito.filter(item => item.esPersonalizado)
-  if (productosPersonalizadosEnCarrito.length > 0) {
-    // Verificar que todos los productos personalizados en el carrito tengan datos válidos
-    for (const item of productosPersonalizadosEnCarrito) {
-      if (!item.nombre || !item.nombre.trim()) {
-        errors.productoPersonalizado = { ...errors.productoPersonalizado, nombre: "Todos los productos personalizados deben tener un nombre válido" }
-        break
-      }
-      if (item.precio <= 0) {
-        errors.productoPersonalizado = { ...errors.productoPersonalizado, precio: "Todos los productos personalizados deben tener un precio válido" }
-        break
-      }
-    }
-  }
-
   // Validar método de pago
   if (!metodoPago.trim()) {
     errors.metodoPago = "Debe seleccionar un método de pago"
   }
 
   return errors
-}
-
-interface ProductoSupabase {
-  id: string
-  sku?: string
-  nombre: string
-  descripcion: string | null
-  categoria: string
-  precio: number
-  costo: number
-  stock: number
-  stock_minimo: number
-  imagen_url: string | null
-  activo: boolean
-  created_at: string
-  updated_at: string
 }
 
 export default function VentasPage() {
@@ -223,81 +173,123 @@ export default function VentasPage() {
   const [formErrors, setFormErrors] = useState<VentaFormErrors>({})
   const dateFilter = useDateFilter("todos")
 
-  // Datos mock por defecto
-  const ventasMock: Venta[] = [
-    {
-      id: "1",
-      numeroVenta: "V-2024-001",
-      cliente: "Juan Pérez",
-      clienteEmail: "juan.perez@email.com",
-      fecha: new Date().toISOString(),
-      estado: "Completada",
-      total: 4300,
-      metodoPago: "Efectivo",
-      notas: "Venta realizada en tienda",
-      esCasual: false,
-      productos: [
-        {
-          id: "1",
-          producto_nombre: "Semillas OG Kush Feminizadas",
-          cantidad: 1,
-          precio_unitario: 2500,
-          subtotal: 2500,
-          categoria: "Semillas",
-          descripcion: "Semillas premium de cannabis OG Kush",
-          imagen_url: "/public/cannabis-seeds-pack.png",
-        },
-        {
-          id: "2",
-          producto_nombre: "Fertilizante Orgánico Premium",
-          cantidad: 1,
-          precio_unitario: 1800,
-          subtotal: 1800,
-          categoria: "Fertilizantes",
-          descripcion: "Nutriente completo para todas las etapas",
-          imagen_url: "/public/placeholder-ivbba.png",
-        },
-      ],
-    },
-  ]
-
   const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
 
   const cargarDatos = async () => {
     try {
       setLoading(true)
 
-      // En modo mock, cargar desde localStorage o usar datos por defecto
-      const ventasGuardadas = localStorage.getItem('crm-ventas')
-      const productosGuardados = localStorage.getItem('crm-productos')
-      const clientesGuardados = localStorage.getItem('crm-clientes')
+      // Cargar datos mock desde localStorage
+      const ventasMock = [
+        {
+          id: "1",
+          numeroVenta: "V-2024-001",
+          cliente: "Juan Pérez",
+          clienteEmail: "juan@email.com",
+          fecha: "2024-01-15",
+          estado: "Completada",
+          total: 89999,
+          metodoPago: "Tarjeta",
+          notas: "Entrega a domicilio",
+          esCasual: false,
+          productos: [
+            {
+              id: "1",
+              venta_id: "1",
+              producto_id: "1",
+              producto_nombre: "Nike Air Max 270",
+              cantidad: 1,
+              precio_unitario: 89999,
+              subtotal: 89999,
+              categoria: "Running",
+              descripcion: "Zapatillas deportivas con amortiguación Air Max",
+              imagen_url: null
+            }
+          ]
+        }
+      ]
 
-      if (ventasGuardadas) {
-        setVentas(JSON.parse(ventasGuardadas))
-      } else {
-        // Primera vez: guardar datos mock
-        localStorage.setItem('crm-ventas', JSON.stringify(ventasMock))
-        setVentas(ventasMock)
+      const productosMock = [
+        {
+          id: "1",
+          sku: "NK-AIR-001", 
+          nombre: "Nike Air Max 270",
+          descripcion: "Zapatillas deportivas con amortiguación Air Max",
+          categoria: "Running",
+          marca: "Nike",
+          precio: 89999,
+          costo: 45000,
+          stock: 15,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "2",
+          sku: "AD-UB-002",
+          nombre: "Adidas Ultraboost 22", 
+          descripcion: "Zapatillas para running con tecnología Boost",
+          categoria: "Running",
+          marca: "Adidas",
+          precio: 95999,
+          costo: 48000,
+          stock: 8,
+          stock_minimo: 5,
+          activo: true,
+          imagen_url: null,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        }
+      ]
+
+      const clientesMock = [
+        {
+          id: "1",
+          nombre: "Juan Pérez",
+          email: "juan@email.com",
+          telefono: "+54 11 1234-5678",
+          direccion: "Av. Corrientes 1234",
+          ciudad: "Buenos Aires",
+          provincia: "CABA",
+          codigo_postal: "C1043AAZ",
+          fecha_registro: "2024-01-15",
+          notas: "Cliente frecuente",
+          created_at: "2024-01-15T10:00:00Z",
+          updated_at: "2024-01-15T10:00:00Z"
+        }
+      ]
+
+      // Cargar desde localStorage o usar datos mock
+      const ventasGuardadas = localStorage.getItem('ventas-sneakers')
+      const productosGuardados = localStorage.getItem('productos-sneakers') 
+      const clientesGuardados = localStorage.getItem('clientes-sneakers')
+
+      const ventasData = ventasGuardadas ? JSON.parse(ventasGuardadas) : ventasMock
+      const productosData = productosGuardados ? JSON.parse(productosGuardados) : productosMock  
+      const clientesData = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
+
+      // Aplicar filtro de fechas si está configurado
+      const dateRange = dateFilter.getFilteredDateRange()
+      let ventasFiltradas = ventasData
+      
+      if (dateRange?.from && dateRange?.to) {
+        ventasFiltradas = ventasData.filter((venta: any) => {
+          const ventaDate = new Date(venta.fecha)
+          return ventaDate >= dateRange.from! && ventaDate <= dateRange.to!
+        })
       }
 
-      if (productosGuardados) {
-        setProductos(JSON.parse(productosGuardados))
-      } else {
-        // Usar productos mock si no hay en localStorage
-        setProductos([])
-      }
+      console.log("Ventas cargadas:", ventasFiltradas.length)
+      setVentas(ventasFiltradas)
 
-      if (clientesGuardados) {
-        setClientes(JSON.parse(clientesGuardados))
-      } else {
-        // Usar clientes mock si no hay en localStorage
-        setClientes([])
-      }
-            clienteEmail: venta.cliente_id
-              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.email || ""
-              : "",
-            fecha: fecha.toISOString().split("T")[0],
-      console.log("Datos mock cargados exitosamente")
+      console.log("Productos cargados:", productosData.length)
+      console.log("Productos activos:", productosData.filter((p: any) => p.activo).length)
+      setProductos(productosData)
+      
+      console.log("Clientes cargados:", clientesData.length)
+      setClientes(clientesData)
     } catch (error) {
       console.error("Error cargando datos:", error)
       toast({
@@ -342,20 +334,8 @@ export default function VentasPage() {
       actualizarCantidad(producto.id, productoExistente.cantidad + 1)
     } else {
       const nuevoItem: ProductoCarrito = {
-        id: producto.id,
-        sku: producto.sku,
-        nombre: producto.nombre,
-        precio: producto.precio,
+        ...producto,
         cantidad: 1,
-        stock: producto.stock,
-        descripcion: producto.descripcion,
-        categoria: producto.categoria,
-        costo: producto.costo,
-        stock_minimo: producto.stock_minimo,
-        imagen_url: producto.imagen_url,
-        activo: producto.activo,
-        created_at: producto.created_at,
-        updated_at: producto.updated_at,
       }
       setCarrito([...carrito, nuevoItem])
     }
@@ -414,8 +394,9 @@ export default function VentasPage() {
       nombre: nombre,
       descripcion: "Producto personalizado",
       categoria: "Personalizado",
+      marca: "Personalizado",
       precio: precio,
-      costo: precio * 0.7, // Asumir 30% de margen
+      costo: precio * 0.7,
       stock: 999,
       stock_minimo: 0,
       imagen_url: null,
@@ -433,102 +414,14 @@ export default function VentasPage() {
     setCarrito([...carrito, nuevoItemPersonalizado])
     setProductoPersonalizado({ nombre: "", precio: "" })
     
-    // Mostrar notificación de éxito
     toast({
       title: "Producto personalizado agregado",
-      description: `${nombre} ha sido agregado al carrito por $${precio.toFixed(2)}`,
+      description: `${nombre} ha sido agregado al carrito por $${precio.toLocaleString()}`,
     })
   }
 
-  const eliminarVenta = async (ventaId: string): Promise<void> => {
-    try {
-      // Primero eliminar los items de venta (se eliminan automáticamente por CASCADE)
-      const { error: itemsError } = await supabase
-        .from("venta_items")
-        .delete()
-        .eq("venta_id", ventaId)
-
-      if (itemsError) {
-        console.error("Error eliminando items de venta:", itemsError)
-        throw new Error(`Error al eliminar los items: ${itemsError.message}`)
-      }
-
-      // Luego eliminar la venta
-      const { error: ventaError } = await supabase
-        .from("ventas")
-        .delete()
-        .eq("id", ventaId)
-
-      if (ventaError) {
-        console.error("Error eliminando venta:", ventaError)
-        throw new Error(`Error al eliminar la venta: ${ventaError.message}`)
-      }
-
-      // Recargar datos
-      await cargarDatos()
-
-      toast({
-        title: "Venta eliminada exitosamente",
-        description: "La venta y todos sus items han sido eliminados",
-      })
-    } catch (error) {
-      console.error("Error eliminando venta:", error)
-      toast({
-        title: "Error al eliminar la venta",
-        description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
-        variant: "destructive",
-      })
-    }
-  }
-
-  const getEstadoBadge = (estado: "Completado" | "Procesando" | "Pendiente" | "Cancelado" | string) => {
-    const badges = {
-      Completado: (
-        <Badge className="bg-green-100 text-green-800 border-green-300">
-          <CheckCircle className="w-3 h-3 mr-1" />
-          Completado
-        </Badge>
-      ),
-      Procesando: (
-        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
-          <Clock className="w-3 h-3 mr-1" />
-          Procesando
-        </Badge>
-      ),
-      Pendiente: (
-        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
-          <AlertCircle className="w-3 h-3 mr-1" />
-          Pendiente
-        </Badge>
-      ),
-      Cancelado: (
-        <Badge variant="destructive">
-          <XCircle className="w-3 h-3 mr-1" />
-          Cancelado
-        </Badge>
-      ),
-    }
-    return badges[estado as keyof typeof badges] || badges.Pendiente
-  }
-
-  const filteredVentas = ventas.filter((venta) => {
-    const matchesSearch =
-      (venta.numeroVenta || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (venta.cliente || "").toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesEstado = filterEstado === "todos" || (venta.estado || "").toLowerCase() === filterEstado
-    return matchesSearch && matchesEstado
-  })
-
-  const productosFiltrados = productos.filter((producto) =>
-    (producto.nombre || "").toLowerCase().includes(searchProducto.toLowerCase()),
-  )
-
   const crearVenta = async () => {
     try {
-      // Debug: Mostrar información del carrito
-      console.log("Carrito actual:", carrito)
-      console.log("Productos personalizados en carrito:", carrito.filter(item => item.esPersonalizado))
-      
       // Validar formulario
       const errors = validateVentaForm(
         carrito,
@@ -538,8 +431,6 @@ export default function VentasPage() {
         metodoPago,
         tipoVenta
       )
-      
-      console.log("Errores de validación:", errors)
       
       if (Object.keys(errors).length > 0) {
         setFormErrors(errors)
@@ -578,7 +469,6 @@ export default function VentasPage() {
         }
       }
 
-      // Continuar con la creación de la venta...
       // Obtener datos del cliente
       let clienteNombre = ""
       let clienteId = null
@@ -603,55 +493,54 @@ export default function VentasPage() {
       const ventaId = Date.now().toString()
       const numeroVenta = `V-${new Date().getFullYear()}-${String(ventas.length + 1).padStart(3, "0")}`
 
+      // Crear items de venta
+      const ventaItems = carrito.map((item: ProductoCarrito) => ({
+        id: `${ventaId}_${item.id || Date.now()}`,
+        venta_id: ventaId,
+        producto_id: item.esPersonalizado ? null : item.id,
+        producto_nombre: item.nombre,
+        cantidad: item.cantidad,
+        precio_unitario: item.precio,
+        subtotal: item.precio * item.cantidad,
+        categoria: item.categoria || "Sin categoría",
+        descripcion: item.descripcion || "",
+        imagen_url: item.imagen_url || null,
+      }))
+
+      // Crear venta completa
       const nuevaVenta: Venta = {
         id: ventaId,
         numeroVenta: numeroVenta,
         cliente: clienteNombre,
-        clienteEmail: tipoVenta === "registrada" ? clientes.find(c => c.id === clienteId)?.email || "" : "",
-        fecha: new Date().toISOString(),
+        clienteEmail: tipoVenta === "registrada" ? 
+          clientes.find(c => c.id === clienteId)?.email || "" : "",
+        fecha: new Date().toISOString().split("T")[0],
         estado: "Completada",
         total: totalCarrito,
         metodoPago: metodoPago,
         notas: notasVenta.trim() || "",
         esCasual: tipoVenta === "casual",
-        productos: carrito.map(item => ({
-          id: item.id,
-          producto_nombre: item.nombre,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio,
-          subtotal: item.precio * item.cantidad,
-          categoria: item.categoria || "General",
-          descripcion: item.descripcion || "",
-          imagen_url: item.imagen_url || null,
-        })),
+        productos: ventaItems
       }
 
-      console.log("Creando venta con datos:", nuevaVenta)
-      
-      // Actualizar localStorage
-      const ventasActuales = JSON.parse(localStorage.getItem('crm-ventas') || '[]')
-      const ventasActualizadas = [nuevaVenta, ...ventasActuales]
-      localStorage.setItem('crm-ventas', JSON.stringify(ventasActualizadas))
-
-      // Actualizar el estado local
-      setVentas(ventasActualizadas)
-      console.log("Venta creada exitosamente:", nuevaVenta)
-
-      // Actualizar stock de productos (solo para productos no personalizados)
+      // Actualizar stock de productos
       for (const item of carrito) {
         if (!item.esPersonalizado) {
-          const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
-          const productoActual = productosActuales.find((p: Producto) => p.id === item.id)
-          if (productoActual) {
-            const nuevoStock = productoActual.stock - item.cantidad
-            const productosActualizados = productosActuales.map((p: Producto) => 
-              p.id === item.id ? { ...p, stock: nuevoStock, updated_at: new Date().toISOString() } : p
-            )
-            localStorage.setItem('crm-productos', JSON.stringify(productosActualizados))
+          const productoIndex = productos.findIndex((p) => p.id === item.id)
+          if (productoIndex >= 0) {
+            const productosActualizados = [...productos]
+            productosActualizados[productoIndex].stock -= item.cantidad
             setProductos(productosActualizados)
+            localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
           }
         }
       }
+
+      // Guardar venta en localStorage
+      const ventasActuales = JSON.parse(localStorage.getItem('ventas-sneakers') || '[]')
+      const ventasActualizadas = [nuevaVenta, ...ventasActuales]
+      localStorage.setItem('ventas-sneakers', JSON.stringify(ventasActualizadas))
+      setVentas(ventasActualizadas)
 
       // Limpiar formulario
       setCarrito([])
@@ -678,9 +567,70 @@ export default function VentasPage() {
     }
   }
 
+  const eliminarVenta = async (ventaId: string): Promise<void> => {
+    try {
+      const ventasActualizadas = ventas.filter(venta => venta.id !== ventaId)
+      localStorage.setItem('ventas-sneakers', JSON.stringify(ventasActualizadas))
+      setVentas(ventasActualizadas)
+
+      toast({
+        title: "Venta eliminada exitosamente",
+        description: "La venta y todos sus items han sido eliminados",
+      })
+    } catch (error) {
+      console.error("Error eliminando venta:", error)
+      toast({
+        title: "Error al eliminar la venta",
+        description: error instanceof Error ? error.message : "Ocurrió un error inesperado",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const getEstadoBadge = (estado: string) => {
+    const badges = {
+      "Completada": (
+        <Badge className="bg-green-100 text-green-800 border-green-300">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Completada
+        </Badge>
+      ),
+      "Procesando": (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+          <Clock className="w-3 h-3 mr-1" />
+          Procesando
+        </Badge>
+      ),
+      "Pendiente": (
+        <Badge className="bg-amber-100 text-amber-800 border-amber-300">
+          <AlertCircle className="w-3 h-3 mr-1" />
+          Pendiente
+        </Badge>
+      ),
+      "Cancelada": (
+        <Badge variant="destructive">
+          <XCircle className="w-3 h-3 mr-1" />
+          Cancelada
+        </Badge>
+      ),
+    }
+    return badges[estado as keyof typeof badges] || badges.Pendiente
+  }
+
+  const filteredVentas = ventas.filter((venta) => {
+    const matchesSearch =
+      (venta.numeroVenta || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (venta.cliente || "").toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesEstado = filterEstado === "todos" || (venta.estado || "").toLowerCase() === filterEstado
+    return matchesSearch && matchesEstado
+  })
+
+  const productosFiltrados = productos.filter((producto) =>
+    (producto.nombre || "").toLowerCase().includes(searchProducto.toLowerCase()),
+  )
+
   const handleClienteSeleccionadoChange = (value: string) => {
     setClienteSeleccionado(value)
-    // Limpiar error del cliente seleccionado
     if (formErrors.clienteSeleccionado) {
       setFormErrors(prev => ({ ...prev, clienteSeleccionado: undefined }))
     }
@@ -688,7 +638,6 @@ export default function VentasPage() {
 
   const handleClienteCasualChange = (value: string) => {
     setClienteCasual(value)
-    // Limpiar error del cliente casual
     if (formErrors.clienteCasual) {
       setFormErrors(prev => ({ ...prev, clienteCasual: undefined }))
     }
@@ -696,7 +645,6 @@ export default function VentasPage() {
 
   const handleProductoPersonalizadoChange = (field: 'nombre' | 'precio', value: string) => {
     setProductoPersonalizado(prev => ({ ...prev, [field]: value }))
-    // Limpiar error del producto personalizado
     if (formErrors.productoPersonalizado?.[field]) {
       setFormErrors(prev => ({
         ...prev,
@@ -710,7 +658,6 @@ export default function VentasPage() {
 
   const handleMetodoPagoChange = (value: string) => {
     setMetodoPago(value)
-    // Limpiar error del método de pago
     if (formErrors.metodoPago) {
       setFormErrors(prev => ({ ...prev, metodoPago: undefined }))
     }
@@ -718,7 +665,6 @@ export default function VentasPage() {
 
   const handleTipoVentaChange = (value: string) => {
     setTipoVenta(value)
-    // Limpiar errores relacionados con clientes
     setFormErrors(prev => ({
       ...prev,
       clienteSeleccionado: undefined,
@@ -728,11 +674,9 @@ export default function VentasPage() {
 
   const handleOpenNewSaleDialog = () => {
     setIsNewSaleDialogOpen(true)
-    // Limpiar errores previos
     setFormErrors({})
   }
 
-  // Mostrar error del carrito si existe
   const carritoError = formErrors.carrito && (
     <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
       <p className="text-sm text-red-600 flex items-center">
@@ -759,9 +703,7 @@ export default function VentasPage() {
   return (
     <div className="flex min-h-screen bg-background">
       <Navigation />
-
       <div className="flex-1">
-        {/* Header */}
         <header className="bg-card border-b border-border shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
@@ -781,61 +723,6 @@ export default function VentasPage() {
             </div>
           </div>
         </header>
-
-        {/* Filtro de fechas */}
-        <div className="bg-muted/50 border-b border-border px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtrar por período:</h3>
-                <DateFilter
-                  onDateRangeChange={dateFilter.setSelectedRange}
-                  onQuickFilterChange={dateFilter.setSelectedQuickFilter}
-                  selectedRange={dateFilter.selectedRange}
-                  selectedQuickFilter={dateFilter.selectedQuickFilter}
-                />
-              </div>
-              {(() => {
-                const range = dateFilter.getFilteredDateRange()
-                return range?.from && (
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Período seleccionado:</span>{" "}
-                    {range.from.toLocaleDateString("es-AR")}
-                    {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
-                  </div>
-                )
-              })()}
-            </div>
-          </div>
-        </div>
-
-        {/* Indicador de filtro activo */}
-        {(() => {
-          const range = dateFilter.getFilteredDateRange()
-          if (range?.from) {
-            return (
-              <div className="bg-green-50 border-b border-green-200 px-4 py-2">
-                <div className="max-w-7xl mx-auto">
-                  <p className="text-sm text-green-700">
-                    <span className="inline-block w-4 h-4 mr-1">📅</span>
-                    Mostrando datos del período: <strong>
-                      {dateFilter.selectedQuickFilter === "hoy" ? "Hoy" : 
-                       dateFilter.selectedQuickFilter === "ayer" ? "Ayer" :
-                       dateFilter.selectedQuickFilter === "semana" ? "Esta Semana" :
-                       dateFilter.selectedQuickFilter === "mes" ? "Este Mes" :
-                       dateFilter.selectedQuickFilter === "año" ? "Este Año" : 
-                       dateFilter.selectedQuickFilter}</strong>
-                    {range.from && (
-                      <> desde {range.from.toLocaleDateString("es-AR")}
-                      {range.to && <> hasta {range.to.toLocaleDateString("es-AR")}</>}</>
-                    )}
-                  </p>
-                </div>
-              </div>
-            )
-          }
-          return null
-        })()}
 
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Stats Cards */}
@@ -859,25 +746,12 @@ export default function VentasPage() {
 
             <Card className="bg-card border-border">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Pedidos Pendientes</CardTitle>
-                <Clock className="h-4 w-4 text-amber-600" />
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Ventas</CardTitle>
+                <ShoppingCart className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">
-                  {ventas.filter((v) => v.estado === "Pendiente").length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Procesando</CardTitle>
-                <AlertCircle className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">
-                  {ventas.filter((v) => v.estado === "Procesando").length}
-                </div>
+                <div className="text-2xl font-bold text-card-foreground">{ventas.length}</div>
+                <p className="text-xs text-purple-600 mt-1">Ventas registradas</p>
               </CardContent>
             </Card>
 
@@ -888,7 +762,19 @@ export default function VentasPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-card-foreground">
-                  {ventas.filter((v) => v.estado === "Completado").length}
+                  {ventas.filter((v) => v.estado === "Completada").length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-card border-border">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Ingresos Totales</CardTitle>
+                <DollarSign className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-card-foreground">
+                  ${ventas.reduce((sum, v) => sum + v.total, 0).toLocaleString()}
                 </div>
               </CardContent>
             </Card>
@@ -918,8 +804,8 @@ export default function VentasPage() {
                       <SelectItem value="todos">Todos</SelectItem>
                       <SelectItem value="pendiente">Pendiente</SelectItem>
                       <SelectItem value="procesando">Procesando</SelectItem>
-                      <SelectItem value="completado">Completado</SelectItem>
-                      <SelectItem value="cancelado">Cancelado</SelectItem>
+                      <SelectItem value="completada">Completada</SelectItem>
+                      <SelectItem value="cancelada">Cancelada</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1051,17 +937,6 @@ export default function VentasPage() {
                           </div>
                         </DialogContent>
                       </Dialog>
-                      <Select defaultValue={venta.estado.toLowerCase()}>
-                        <SelectTrigger className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pendiente">Pendiente</SelectItem>
-                          <SelectItem value="procesando">Procesando</SelectItem>
-                          <SelectItem value="completado">Completado</SelectItem>
-                          <SelectItem value="cancelado">Cancelado</SelectItem>
-                        </SelectContent>
-                      </Select>
                       <Button
                         variant="destructive"
                         size="sm"
@@ -1090,18 +965,18 @@ export default function VentasPage() {
                 <div className="flex gap-4">
                   <Card
                     className={`flex-1 cursor-pointer transition-all ${tipoVenta === "registrada" ? "ring-2 ring-green-500 bg-green-50" : "hover:bg-gray-50"}`}
-                    onClick={() => setTipoVenta("registrada")}
+                    onClick={() => handleTipoVentaChange("registrada")}
                   >
                     <CardContent className="p-4 text-center">
                       <User className="h-8 w-8 mx-auto mb-2 text-green-600" />
                       <h3 className="font-semibold">Venta Registrada</h3>
-                                              <p className="text-sm text-muted-foreground">Cliente registrado en el sistema</p>
+                      <p className="text-sm text-muted-foreground">Cliente registrado en el sistema</p>
                     </CardContent>
                   </Card>
 
                   <Card
                     className={`flex-1 cursor-pointer transition-all ${tipoVenta === "casual" ? "ring-2 ring-orange-500 bg-orange-50" : "hover:bg-gray-50"}`}
-                    onClick={() => setTipoVenta("casual")}
+                    onClick={() => handleTipoVentaChange("casual")}
                   >
                     <CardContent className="p-4 text-center">
                       <UserX className="h-8 w-8 mx-auto mb-2 text-orange-600" />
@@ -1112,7 +987,6 @@ export default function VentasPage() {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
-                  {/* Cliente y Carrito */}
                   <div className="space-y-4">
                     <div>
                       <Label htmlFor="cliente">
@@ -1146,7 +1020,6 @@ export default function VentasPage() {
                       )}
                     </div>
 
-                    {/* Carrito de Compras */}
                     <div>
                       <Label>Carrito de Compras</Label>
                       <Card className="mt-2">
@@ -1201,7 +1074,6 @@ export default function VentasPage() {
                       </Card>
                     </div>
 
-                    {/* Método de Pago */}
                     <div>
                       <Label htmlFor="metodoPago">Método de Pago *</Label>
                       <Select value={metodoPago} onValueChange={handleMetodoPagoChange}>
@@ -1220,7 +1092,6 @@ export default function VentasPage() {
                       )}
                     </div>
 
-                    {/* Notas */}
                     <div>
                       <Label htmlFor="notas">Notas (Opcional)</Label>
                       <Textarea
@@ -1232,7 +1103,6 @@ export default function VentasPage() {
                     </div>
                   </div>
 
-                  {/* Productos Disponibles */}
                   <div className="space-y-4">
                     <div>
                       <Label>Productos Disponibles</Label>
@@ -1275,7 +1145,7 @@ export default function VentasPage() {
                       <CardHeader className="pb-3">
                         <CardTitle className="text-sm flex items-center">
                           <Zap className="h-4 w-4 mr-2 text-orange-600" />
-                          Venta Rápida / Producto Personalizado
+                          Producto Personalizado
                         </CardTitle>
                         <CardDescription className="text-xs">
                           Para ventas rápidas sin registrar productos específicos
@@ -1293,9 +1163,6 @@ export default function VentasPage() {
                             onChange={(e) => handleProductoPersonalizadoChange('nombre', e.target.value)}
                             className="text-sm"
                           />
-                          {formErrors.productoPersonalizado?.nombre && (
-                            <p className="text-sm text-red-500 mt-1">{formErrors.productoPersonalizado.nombre}</p>
-                          )}
                         </div>
                         <div>
                           <Label htmlFor="precioPersonalizado" className="text-xs">
@@ -1309,9 +1176,6 @@ export default function VentasPage() {
                             onChange={(e) => handleProductoPersonalizadoChange('precio', e.target.value)}
                             className="text-sm"
                           />
-                          {formErrors.productoPersonalizado?.precio && (
-                            <p className="text-sm text-red-500 mt-1">{formErrors.productoPersonalizado.precio}</p>
-                          )}
                         </div>
                         <Button
                           onClick={agregarProductoPersonalizado}

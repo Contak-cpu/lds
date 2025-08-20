@@ -70,15 +70,47 @@ export function useCategorias() {
       setIsLoading(true)
       setError(null)
       
-      // En modo mock, cargar desde localStorage o usar datos por defecto
-      const categoriasGuardadas = localStorage.getItem('crm-categorias')
-      if (categoriasGuardadas) {
-        setCategorias(JSON.parse(categoriasGuardadas))
-      } else {
-        // Primera vez: guardar datos mock
-        localStorage.setItem('crm-categorias', JSON.stringify(categoriasMock))
-        setCategorias(categoriasMock)
-      }
+      // Cargar categorías desde localStorage (modo mock)
+      const categoriasMock: Categoria[] = [
+        {
+          id: "1",
+          nombre: "Running",
+          descripcion: "Zapatillas para correr y entrenar",
+          icono: "Zap",
+          color: "#3B82F6",
+          activo: true,
+          orden: 1,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "2",
+          nombre: "Basketball",
+          descripcion: "Zapatillas de básquet profesionales",
+          icono: "Target",
+          color: "#F59E0B",
+          activo: true,
+          orden: 2,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "3",
+          nombre: "Lifestyle",
+          descripcion: "Zapatillas casuales para el día a día",
+          icono: "Heart",
+          color: "#10B981",
+          activo: true,
+          orden: 3,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        }
+      ]
+      
+      const categoriasSaved = localStorage.getItem('categorias-sneakers')
+      const categoriasData = categoriasSaved ? JSON.parse(categoriasSaved) : categoriasMock
+      
+      setCategorias(categoriasData.filter((cat: Categoria) => cat.activo))
     } catch (err) {
       console.error("Error cargando categorías:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
@@ -91,30 +123,25 @@ export function useCategorias() {
 
   const agregarCategoria = async (categoriaData: Omit<Categoria, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      // Generar ID único
-      const id = Date.now().toString()
-      const now = new Date().toISOString()
+      // Generar nuevo ID y orden
+      const newId = Date.now().toString()
+      const nextOrden = Math.max(...categorias.map(c => c.orden), 0) + 1
       
-      // Obtener el siguiente orden
-      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
-      const lastCategoria = categoriasActuales[categoriasActuales.length - 1]
-      const nextOrden = (lastCategoria?.orden || 0) + 1
-
-      const nuevaCategoria: Categoria = {
+      const newCategoria: Categoria = {
         ...categoriaData,
-        id,
+        id: newId,
         orden: nextOrden,
-        created_at: now,
-        updated_at: now,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
 
-      // Actualizar localStorage
-      const categoriasActualizadas = [...categoriasActuales, nuevaCategoria]
-      localStorage.setItem('crm-categorias', JSON.stringify(categoriasActualizadas))
-
+      // Guardar en localStorage
+      const updatedCategorias = [...categorias, newCategoria]
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
       // Actualizar el estado local
-      setCategorias(categoriasActualizadas)
-      return nuevaCategoria
+      setCategorias(updatedCategorias)
+      return newCategoria
     } catch (err) {
       console.error("Error agregando categoría:", err)
       throw err
@@ -123,22 +150,20 @@ export function useCategorias() {
 
   const actualizarCategoria = async (id: string, categoriaData: Partial<Categoria>) => {
     try {
-      const now = new Date().toISOString()
-      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
-      
-      const categoriaActualizada = categoriasActuales.map((cat: Categoria) => 
+      // Actualizar categoria local
+      const updatedCategorias = categorias.map(cat => 
         cat.id === id 
-          ? { ...cat, ...categoriaData, updated_at: now }
+          ? { ...cat, ...categoriaData, updated_at: new Date().toISOString() }
           : cat
       )
-
-      // Actualizar localStorage
-      localStorage.setItem('crm-categorias', JSON.stringify(categoriaActualizada))
-
-      // Actualizar el estado local
-      setCategorias(categoriaActualizada)
       
-      return categoriaActualizada.find(cat => cat.id === id)
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
+      // Actualizar el estado local
+      setCategorias(updatedCategorias)
+      
+      return updatedCategorias.find(cat => cat.id === id)!
     } catch (err) {
       console.error("Error actualizando categoría:", err)
       throw err
@@ -147,14 +172,14 @@ export function useCategorias() {
 
   const eliminarCategoria = async (id: string) => {
     try {
-      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
-      const categoriasFiltradas = categoriasActuales.filter((cat: Categoria) => cat.id !== id)
-
-      // Actualizar localStorage
-      localStorage.setItem('crm-categorias', JSON.stringify(categoriasFiltradas))
-
+      // Filtrar categoria eliminada
+      const updatedCategorias = categorias.filter(cat => cat.id !== id)
+      
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
       // Actualizar el estado local
-      setCategorias(categoriasFiltradas)
+      setCategorias(updatedCategorias)
     } catch (err) {
       console.error("Error eliminando categoría:", err)
       throw err
@@ -163,22 +188,20 @@ export function useCategorias() {
 
   const toggleActivo = async (id: string, activo: boolean) => {
     try {
-      const now = new Date().toISOString()
-      const categoriasActuales = JSON.parse(localStorage.getItem('crm-categorias') || '[]')
-      
-      const categoriaActualizada = categoriasActuales.map((cat: Categoria) => 
+      // Actualizar estado activo
+      const updatedCategorias = categorias.map(cat => 
         cat.id === id 
-          ? { ...cat, activo, updated_at: now }
+          ? { ...cat, activo, updated_at: new Date().toISOString() }
           : cat
       )
-
-      // Actualizar localStorage
-      localStorage.setItem('crm-categorias', JSON.stringify(categoriaActualizada))
-
-      // Actualizar el estado local
-      setCategorias(categoriaActualizada)
       
-      return categoriaActualizada.find(cat => cat.id === id)
+      // Guardar en localStorage
+      localStorage.setItem('categorias-sneakers', JSON.stringify(updatedCategorias))
+      
+      // Actualizar el estado local
+      setCategorias(updatedCategorias.filter(cat => cat.activo))
+      
+      return updatedCategorias.find(cat => cat.id === id)!
     } catch (err) {
       console.error("Error cambiando estado de categoría:", err)
       throw err

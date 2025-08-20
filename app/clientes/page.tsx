@@ -22,14 +22,14 @@ import { useNotifications } from "@/hooks/use-notifications"
 interface Cliente {
   id: string
   nombre: string
-  email: string
-  telefono: string
-  direccion: string
-  ciudad: string
-  provincia: string
-  codigo_postal: string
+  email: string | null
+  telefono: string | null
+  direccion: string | null
+  ciudad: string | null
+  provincia: string | null
+  codigo_postal: string | null
   fecha_registro: string
-  notas: string
+  notas: string | null
   created_at: string
   updated_at: string
   estado: string
@@ -203,15 +203,45 @@ export default function ClientesPage() {
   const loadClientes = async () => {
     try {
       setLoading(true)
-      // En modo mock, cargar desde localStorage o usar datos por defecto
-      const clientesGuardados = localStorage.getItem('crm-clientes')
-      if (clientesGuardados) {
-        setClientes(JSON.parse(clientesGuardados))
-      } else {
-        // Primera vez: guardar datos mock
-        localStorage.setItem('crm-clientes', JSON.stringify(clientesMock))
-        setClientes(clientesMock)
-      }
+
+      // Cargar clientes desde localStorage (modo mock)
+      const clientesMock: Cliente[] = [
+        {
+          id: "1",
+          nombre: "Juan Pérez",
+          email: "juan@email.com",
+          telefono: "+54 11 1234-5678",
+          direccion: "Av. Corrientes 1234",
+          ciudad: "Buenos Aires",
+          provincia: "CABA",
+          codigo_postal: "C1043AAZ",
+          fecha_registro: "2024-01-15",
+          notas: "Cliente frecuente",
+          estado: "Activo",
+          created_at: "2024-01-15T10:00:00Z",
+          updated_at: "2024-01-15T10:00:00Z"
+        },
+        {
+          id: "2", 
+          nombre: "María González",
+          email: "maria@email.com",
+          telefono: "+54 11 9876-5432",
+          direccion: "Av. Santa Fe 5678",
+          ciudad: "Buenos Aires",
+          provincia: "CABA",
+          codigo_postal: "C1425FOD",
+          fecha_registro: "2024-01-10",
+          notas: "Prefiere zapatillas deportivas",
+          estado: "Activo",
+          created_at: "2024-01-10T14:30:00Z",
+          updated_at: "2024-01-10T14:30:00Z"
+        }
+      ]
+
+      const clientesGuardados = localStorage.getItem('clientes-sneakers')
+      const clientesData: Cliente[] = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
+
+      setClientes(clientesData)
     } catch (error) {
       console.error("Error loading clientes:", error)
       showError("Error al cargar clientes")
@@ -236,7 +266,7 @@ export default function ClientesPage() {
       // Limpiar errores previos
       setFormErrors({})
 
-      const clienteData = {
+      const clienteData: Cliente = {
         id: Date.now().toString(),
         nombre: newClienteForm.nombre.trim(),
         email: newClienteForm.email.trim() || null,
@@ -254,13 +284,15 @@ export default function ClientesPage() {
 
       console.log("Datos del cliente a insertar:", clienteData)
 
-      // Actualizar localStorage
-      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
-      const clientesActualizados = [clienteData, ...clientesActuales]
-      localStorage.setItem('crm-clientes', JSON.stringify(clientesActualizados))
 
-      // Actualizar el estado local
+      // Crear cliente (modo mock)
+      const nuevoCliente = clienteData
+
+      // Guardar en localStorage y actualizar estado
+      const clientesActualizados = [nuevoCliente, ...clientes]
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
       setClientes(clientesActualizados)
+      
       setNewClienteForm({
         nombre: "",
         email: "",
@@ -272,7 +304,8 @@ export default function ClientesPage() {
         notas: "",
       })
       setIsAddDialogOpen(false)
-      showSuccess("Cliente creado exitosamente", "El cliente ha sido agregado a la base de datos")
+
+      showSuccess("Cliente creado exitosamente")
     } catch (error) {
       console.error("Error adding cliente:", error)
       
@@ -290,16 +323,13 @@ export default function ClientesPage() {
 
   const handleDeleteCliente = async (clienteId: string) => {
     try {
-      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
-      const clientesFiltrados = clientesActuales.filter((cliente: Cliente) => cliente.id !== clienteId)
 
-      // Actualizar localStorage
-      localStorage.setItem('crm-clientes', JSON.stringify(clientesFiltrados))
+      // Eliminar cliente (modo mock)
+      const clientesActualizados = clientes.filter(c => c.id !== clienteId)
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
+      setClientes(clientesActualizados)
+      showSuccess("Cliente eliminado exitosamente")
 
-      // Actualizar el estado local
-      setClientes(clientesFiltrados)
-
-      showSuccess("Cliente eliminado correctamente")
     } catch (error) {
       console.error("Error deleting cliente:", error)
       showError("Error", "No se pudo eliminar el cliente")
@@ -391,20 +421,12 @@ export default function ClientesPage() {
     setIsEditDialogOpen(false)
   }
 
-  const showClienteCreated = () => {
-    showSuccess("Cliente creado exitosamente", "El cliente ha sido agregado a la base de datos")
-  }
-
   const filteredClientes = clientes.filter((cliente) =>
     cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cliente.telefono.includes(searchTerm) ||
-    cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
+    (cliente.email && cliente.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (cliente.telefono && cliente.telefono.includes(searchTerm)) ||
+    (cliente.ciudad && cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase()))
   )
-
-  useEffect(() => {
-    loadClientes()
-  }, [])
 
   if (loading) {
     return (
@@ -593,7 +615,7 @@ export default function ClientesPage() {
                     <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
                     <CardDescription className="flex items-center gap-2 mt-1">
                       <Mail className="h-4 w-4" />
-                      {cliente.email}
+                      {cliente.email || "Sin email"}
                     </CardDescription>
                   </div>
                   <Badge
@@ -611,11 +633,11 @@ export default function ClientesPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4" />
-                  {cliente.telefono}
+                  {cliente.telefono || "Sin teléfono"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  {cliente.ciudad}, {cliente.provincia}
+                  {cliente.ciudad || "Sin ciudad"}, {cliente.provincia || "Sin provincia"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShoppingBag className="h-4 w-4" />
@@ -813,13 +835,13 @@ export default function ClientesPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                    <p className="text-sm">{viewingCliente.email}</p>
+                    <p className="text-sm">{viewingCliente.email || "Sin email"}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                    <p className="text-sm">{viewingCliente.telefono}</p>
+                    <p className="text-sm">{viewingCliente.telefono || "Sin teléfono"}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
@@ -838,7 +860,7 @@ export default function ClientesPage() {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Dirección</Label>
                   <p className="text-sm">
-                    {viewingCliente.direccion}, {viewingCliente.ciudad}, {viewingCliente.provincia} {viewingCliente.codigo_postal}
+                    {viewingCliente.direccion || "Sin dirección"}, {viewingCliente.ciudad || "Sin ciudad"}, {viewingCliente.provincia || "Sin provincia"} {viewingCliente.codigo_postal || "Sin CP"}
                   </p>
                 </div>
                 <div>

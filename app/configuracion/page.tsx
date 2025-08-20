@@ -31,25 +31,20 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { CategoriasManager } from "@/components/categorias-manager"
 
-interface ConfiguracionData {
-  clave: string
-  valor: any
-}
-
 export default function ConfiguracionPage() {
   const { toast } = useToast()
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [isLoadingData, setIsLoadingData] = useState(false)
 
   const [configuracion, setConfiguracion] = useState({
     // Información del negocio
-    nombreNegocio: "",
-    direccion: "",
-    telefono: "",
-    email: "",
-    cuit: "",
-    descripcion: "",
+    nombreNegocio: "Los de Siempre Sneakers",
+    direccion: "Av. Corrientes 1234, CABA",
+    telefono: "+54 11 4567-8900",
+    email: "info@losdesimpresneakers.com",
+    cuit: "20-12345678-9",
+    descripcion: "Tienda especializada en zapatillas deportivas de última generación",
 
     // Configuración de ventas
     moneda: "ARS",
@@ -72,24 +67,43 @@ export default function ConfiguracionPage() {
   const [configuracionOriginal, setConfiguracionOriginal] = useState(configuracion)
 
   useEffect(() => {
-    const cargarConfiguracion = async () => {
+    // Cargar configuración desde localStorage (modo mock)
+    const cargarConfiguracion = () => {
       try {
-        // En modo mock, cargar desde localStorage o usar valores por defecto
-        const configGuardada = localStorage.getItem('crm-configuracion')
+
+        const configGuardada = localStorage.getItem('configuracion-negocio')
         if (configGuardada) {
-          const configCompleta = { ...configuracion, ...JSON.parse(configGuardada) }
+          const configParseada = JSON.parse(configGuardada)
+          const configCompleta = {
+            nombreNegocio: "Los de Siempre Sneakers",
+            direccion: "Av. Corrientes 1234, CABA",
+            telefono: "+54 11 4567-8900",
+            email: "info@losdesimpresneakers.com",
+            cuit: "20-12345678-9",
+            descripcion: "Tienda especializada en zapatillas deportivas de última generación",
+            moneda: "ARS",
+            iva: "21",
+            descuentoMaximo: "15",
+            stockMinimo: "5",
+            notificarStockBajo: true,
+            notificarNuevasVentas: true,
+            notificarNuevosClientes: false,
+            emailNotificaciones: true,
+            backupAutomatico: true,
+            modoMantenimiento: false,
+            registroActividad: true,
+            ...configParseada
+          }
           setConfiguracion(configCompleta)
           setConfiguracionOriginal(configCompleta)
         }
       } catch (error) {
         console.error("Error cargando configuración:", error)
         toast({
-          title: "Error al cargar configuración",
-          description: "Se usarán valores por defecto.",
-          variant: "destructive",
+          title: "Info",
+          description: "Usando configuración por defecto.",
+          variant: "default",
         })
-      } finally {
-        setIsLoadingData(false)
       }
     }
 
@@ -133,8 +147,9 @@ export default function ConfiguracionPage() {
     }
 
     try {
-      // En modo mock, guardar en localStorage
-      localStorage.setItem('crm-configuracion', JSON.stringify(configuracion))
+
+      // Guardar en localStorage (modo mock)
+      localStorage.setItem('configuracion-negocio', JSON.stringify(configuracion))
       
       setConfiguracionOriginal(configuracion)
       setHasChanges(false)
@@ -157,12 +172,13 @@ export default function ConfiguracionPage() {
 
   const resetearConfiguracion = () => {
     const configDefault = {
-      nombreNegocio: "",
-      direccion: "",
-      telefono: "",
-      email: "",
-      cuit: "",
-      descripcion: "",
+
+      nombreNegocio: "Los de Siempre Sneakers",
+      direccion: "Av. Corrientes 1234, CABA",
+      telefono: "+54 11 4567-8900",
+      email: "info@losdesimpresneakers.com",
+      cuit: "20-12345678-9",
+      descripcion: "Tienda especializada en zapatillas deportivas de última generación",
       moneda: "ARS",
       iva: "21",
       descuentoMaximo: "15",
@@ -177,7 +193,8 @@ export default function ConfiguracionPage() {
     }
 
     setConfiguracion(configDefault)
-    localStorage.removeItem('crm-configuracion')
+    localStorage.removeItem('configuracion-negocio')
+
     toast({
       title: "Configuración restablecida",
       description: "Se han restaurado los valores por defecto.",
@@ -190,7 +207,7 @@ export default function ConfiguracionPage() {
     const url = URL.createObjectURL(dataBlob)
     const link = document.createElement("a")
     link.href = url
-    link.download = "growshop-config.json"
+    link.download = "sneakers-config.json"
     link.click()
 
     toast({
@@ -250,7 +267,7 @@ export default function ConfiguracionPage() {
                 <Settings className="h-6 w-6 text-green-600" />
                 <div>
                   <h1 className="text-xl font-bold text-card-foreground">Configuración</h1>
-                  <p className="text-sm text-green-600">Personaliza tu CRM de growshop</p>
+                  <p className="text-sm text-green-600">Personaliza tu CRM de zapatillas</p>
                 </div>
                 {hasChanges && (
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700">
@@ -308,7 +325,7 @@ export default function ConfiguracionPage() {
                       <Store className="h-5 w-5 text-green-600" />
                       <span>Información del Negocio</span>
                     </CardTitle>
-                    <CardDescription>Datos básicos de tu growshop</CardDescription>
+                    <CardDescription>Datos básicos de tu tienda de zapatillas</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

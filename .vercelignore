@@ -1,40 +1,8 @@
-# Archivos de desarrollo
-.env.local
-.env.development
-.env.test
-
-# Archivos de testing
-__tests__
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
-jest.config.js
-jest.setup.js
-
-# Archivos de documentación
-*.md
-docs/
-README*
-
-# Archivos de configuración local
-start.bat
-start.sh
-*.bat
-*.sh
-
-# Archivos temporales
-.next/
-.swc/
+# Vercel Ignore
 node_modules/
-*.log
-
-# Archivos de IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Archivos de sistema
-.DS_Store
-Thumbs.db
+*.md
+__tests__/
+scripts/
+*.sql
+.env*
+tatus
