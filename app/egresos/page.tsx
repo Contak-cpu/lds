@@ -32,7 +32,7 @@ interface EgresoFormData {
   monto: string
   proveedor: string
   metodo_pago: string
-  notas: string
+  notas?: string
 }
 
 interface EgresoFormErrors {
@@ -325,7 +325,7 @@ export default function EgresosPage() {
       monto: egreso.monto.toString(),
       proveedor: egreso.proveedor,
       metodo_pago: egreso.metodo_pago,
-      notas: egreso.notas,
+      notas: egreso.notas || "",
     })
     setDialogAbierto(true)
   }
