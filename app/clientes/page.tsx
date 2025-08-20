@@ -242,7 +242,6 @@ export default function ClientesPage() {
       const clientesData = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
 
       setClientes(clientesData)
- main
     } catch (error) {
       console.error("Error loading clientes:", error)
       showError("Error al cargar clientes")
