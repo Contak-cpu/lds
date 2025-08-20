@@ -35,7 +35,6 @@ export default function ConfiguracionPage() {
   const { toast } = useToast()
   const [hasChanges, setHasChanges] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-feature/fix
   const [isLoadingData, setIsLoadingData] = useState(false)
 
   const [configuracion, setConfiguracion] = useState({
