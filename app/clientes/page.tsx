@@ -245,18 +245,19 @@ export default function ClientesPage() {
       const clientesActualizados = [nuevoCliente, ...clientes]
       localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
       setClientes(clientesActualizados)
-        setNewClienteForm({
-          nombre: "",
-          email: "",
-          telefono: "",
-          direccion: "",
-          ciudad: "",
-          provincia: "",
-          codigo_postal: "",
-          notas: "",
-        })
-        setIsAddDialogOpen(false)
-        showClienteCreated()
+      
+      setNewClienteForm({
+        nombre: "",
+        email: "",
+        telefono: "",
+        direccion: "",
+        ciudad: "",
+        provincia: "",
+        codigo_postal: "",
+        notas: "",
+      })
+      setIsAddDialogOpen(false)
+      showClienteCreated()
       }
     } catch (error) {
       console.error("Error adding cliente:", error)
