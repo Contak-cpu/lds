@@ -30,6 +30,7 @@ interface EgresoFormData {
   monto: string
   proveedor: string
   metodo_pago: string
+  fecha_egreso: string
   notas?: string
 }
 
@@ -39,6 +40,7 @@ interface EgresoFormErrors {
   monto?: string
   proveedor?: string
   metodo_pago?: string
+  fecha_egreso?: string
   notas?: string
 }
 
@@ -108,6 +110,7 @@ export default function EgresosPage() {
     monto: "",
     proveedor: "",
     metodo_pago: "",
+    fecha_egreso: new Date().toISOString().split("T")[0],
     notas: "",
   })
 
@@ -117,6 +120,7 @@ export default function EgresosPage() {
     monto: "",
     proveedor: "",
     metodo_pago: "",
+    fecha_egreso: new Date().toISOString().split("T")[0],
     notas: "",
   })
 
@@ -204,6 +208,7 @@ export default function EgresosPage() {
       monto: egreso.monto.toString(),
       proveedor: egreso.proveedor,
       metodo_pago: egreso.metodo_pago,
+      fecha_egreso: egreso.fecha_egreso,
       notas: egreso.notas || "",
     })
     setFormErrors({})
@@ -240,6 +245,7 @@ export default function EgresosPage() {
         monto: "",
         proveedor: "",
         metodo_pago: "",
+        fecha_egreso: new Date().toISOString().split("T")[0],
         notas: "",
       })
 
@@ -285,6 +291,7 @@ export default function EgresosPage() {
       monto: egreso.monto.toString(),
       proveedor: egreso.proveedor,
       metodo_pago: egreso.metodo_pago,
+      fecha_egreso: egreso.fecha_egreso,
       notas: egreso.notas || "",
     })
     setDialogAbierto(true)
