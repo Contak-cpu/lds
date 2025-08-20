@@ -22,14 +22,14 @@ import { useNotifications } from "@/hooks/use-notifications"
 interface Cliente {
   id: string
   nombre: string
-  email: string
-  telefono: string
-  direccion: string
-  ciudad: string
-  provincia: string
-  codigo_postal: string
+  email: string | null
+  telefono: string | null
+  direccion: string | null
+  ciudad: string | null
+  provincia: string | null
+  codigo_postal: string | null
   fecha_registro: string
-  notas: string
+  notas: string | null
   created_at: string
   updated_at: string
   estado: string
@@ -610,7 +610,7 @@ export default function ClientesPage() {
                     <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
                     <CardDescription className="flex items-center gap-2 mt-1">
                       <Mail className="h-4 w-4" />
-                      {cliente.email}
+                      {cliente.email || "Sin email"}
                     </CardDescription>
                   </div>
                   <Badge
@@ -628,11 +628,11 @@ export default function ClientesPage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Phone className="h-4 w-4" />
-                  {cliente.telefono}
+                  {cliente.telefono || "Sin teléfono"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
-                  {cliente.ciudad}, {cliente.provincia}
+                  {cliente.ciudad || "Sin ciudad"}, {cliente.provincia || "Sin provincia"}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <ShoppingBag className="h-4 w-4" />
@@ -830,13 +830,13 @@ export default function ClientesPage() {
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                    <p className="text-sm">{viewingCliente.email}</p>
+                    <p className="text-sm">{viewingCliente.email || "Sin email"}</p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                    <p className="text-sm">{viewingCliente.telefono}</p>
+                    <p className="text-sm">{viewingCliente.telefono || "Sin teléfono"}</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
@@ -855,7 +855,7 @@ export default function ClientesPage() {
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Dirección</Label>
                   <p className="text-sm">
-                    {viewingCliente.direccion}, {viewingCliente.ciudad}, {viewingCliente.provincia} {viewingCliente.codigo_postal}
+                    {viewingCliente.direccion || "Sin dirección"}, {viewingCliente.ciudad || "Sin ciudad"}, {viewingCliente.provincia || "Sin provincia"} {viewingCliente.codigo_postal || "Sin CP"}
                   </p>
                 </div>
                 <div>

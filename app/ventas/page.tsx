@@ -42,16 +42,17 @@ import { useDateFilter } from "@/hooks/use-date-filter"
 interface Cliente {
   id: string
   nombre: string
-  email: string
-  telefono: string
-  direccion: string
-  ciudad: string
-  provincia: string
-  codigo_postal: string
+  email: string | null
+  telefono: string | null
+  direccion: string | null
+  ciudad: string | null
+  provincia: string | null
+  codigo_postal: string | null
   fecha_registro: string
-  notas: string
+  notas: string | null
   created_at: string
   updated_at: string
+  estado: string
 }
 
 interface Producto {
