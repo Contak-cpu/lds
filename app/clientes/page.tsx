@@ -286,12 +286,7 @@ export default function ClientesPage() {
 
 
       // Crear cliente (modo mock)
-      const nuevoCliente = {
-        id: Date.now().toString(),
-        ...clienteData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
+      const nuevoCliente = clienteData
 
       // Guardar en localStorage y actualizar estado
       const clientesActualizados = [nuevoCliente, ...clientes]
