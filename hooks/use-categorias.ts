@@ -12,6 +12,54 @@ export interface Categoria {
   updated_at: string
 }
 
+// Datos mock por defecto
+const categoriasMock: Categoria[] = [
+  {
+    id: "1",
+    nombre: "Semillas",
+    descripcion: "Variedades de semillas de cannabis",
+    icono: "🌱",
+    color: "#10B981",
+    activo: true,
+    orden: 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    nombre: "Fertilizantes",
+    descripcion: "Nutrientes para el cultivo",
+    icono: "🌿",
+    color: "#059669",
+    activo: true,
+    orden: 2,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "3",
+    nombre: "Iluminación",
+    descripcion: "Sistemas de iluminación LED",
+    icono: "💡",
+    color: "#F59E0B",
+    activo: true,
+    orden: 3,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "4",
+    nombre: "Sustratos",
+    descripcion: "Tierras y mezclas especializadas",
+    icono: "🪴",
+    color: "#8B5CF6",
+    activo: true,
+    orden: 4,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
+
 export function useCategorias() {
   const [categorias, setCategorias] = useState<Categoria[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -63,9 +111,12 @@ export function useCategorias() {
       const categoriasData = categoriasSaved ? JSON.parse(categoriasSaved) : categoriasMock
       
       setCategorias(categoriasData.filter((cat: Categoria) => cat.activo))
+main
     } catch (err) {
       console.error("Error cargando categorías:", err)
       setError(err instanceof Error ? err.message : "Error desconocido")
+      // En caso de error, usar datos mock
+      setCategorias(categoriasMock)
     } finally {
       setIsLoading(false)
     }
@@ -92,6 +143,7 @@ export function useCategorias() {
       // Actualizar el estado local
       setCategorias(updatedCategorias)
       return newCategoria
+main
     } catch (err) {
       console.error("Error agregando categoría:", err)
       throw err
@@ -114,6 +166,7 @@ export function useCategorias() {
       setCategorias(updatedCategorias)
       
       return updatedCategorias.find(cat => cat.id === id)!
+main
     } catch (err) {
       console.error("Error actualizando categoría:", err)
       throw err
@@ -130,6 +183,7 @@ export function useCategorias() {
       
       // Actualizar el estado local
       setCategorias(updatedCategorias)
+main
     } catch (err) {
       console.error("Error eliminando categoría:", err)
       throw err
@@ -152,6 +206,7 @@ export function useCategorias() {
       setCategorias(updatedCategorias.filter(cat => cat.activo))
       
       return updatedCategorias.find(cat => cat.id === id)!
+main
     } catch (err) {
       console.error("Error cambiando estado de categoría:", err)
       throw err
