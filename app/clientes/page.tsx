@@ -258,7 +258,6 @@ export default function ClientesPage() {
       })
       setIsAddDialogOpen(false)
       showClienteCreated()
-      }
     } catch (error) {
       console.error("Error adding cliente:", error)
       
