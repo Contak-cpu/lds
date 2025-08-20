@@ -75,7 +75,7 @@ interface Producto {
 interface VentaItem {
   id?: string
   venta_id?: string
-  producto_id?: string
+  producto_id?: string | null
   producto_nombre: string
   cantidad: number
   precio_unitario: number
