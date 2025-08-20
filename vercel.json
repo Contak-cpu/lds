@@ -23,7 +23,9 @@
     "NEXT_PUBLIC_TOAST_DURATION": "5000",
     "NEXT_PUBLIC_DEFAULT_THEME": "system",
     "NEXT_PUBLIC_THEME_PERSISTENCE": "localStorage",
-    "NEXT_PUBLIC_DEBUG_MODE": "false"
+    "NEXT_PUBLIC_DEBUG_MODE": "false",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://placeholder.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "placeholder_key_for_build"
   },
   "functions": {
     "app/**/*.tsx": {
