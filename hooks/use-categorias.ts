@@ -142,7 +142,6 @@ export function useCategorias() {
       // Actualizar el estado local
       setCategorias(updatedCategorias)
       return newCategoria
-main
     } catch (err) {
       console.error("Error agregando categoría:", err)
       throw err
@@ -165,7 +164,6 @@ main
       setCategorias(updatedCategorias)
       
       return updatedCategorias.find(cat => cat.id === id)!
-main
     } catch (err) {
       console.error("Error actualizando categoría:", err)
       throw err
@@ -182,7 +180,6 @@ main
       
       // Actualizar el estado local
       setCategorias(updatedCategorias)
-main
     } catch (err) {
       console.error("Error eliminando categoría:", err)
       throw err
@@ -205,7 +202,6 @@ main
       setCategorias(updatedCategorias.filter(cat => cat.activo))
       
       return updatedCategorias.find(cat => cat.id === id)!
-main
     } catch (err) {
       console.error("Error cambiando estado de categoría:", err)
       throw err
