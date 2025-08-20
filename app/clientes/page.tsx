@@ -429,29 +429,6 @@ export default function ClientesPage() {
     setIsEditDialogOpen(false)
   }
 
-
-      // Actualizar cliente (modo mock)
-      const clienteActualizado = {
-        ...editingCliente,
-        ...editForm,
-        updated_at: new Date().toISOString()
-      }
-
-      // Guardar en localStorage y actualizar estado
-      const clientesActualizados = clientes.map(cliente => 
-        cliente.id === editingCliente.id ? clienteActualizado : cliente
-      )
-      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
-      setClientes(clientesActualizados)
-      setIsEditDialogOpen(false)
-      setEditingCliente(null)
-      showClienteUpdated()
-    } catch (error) {
-      console.error("Error updating cliente:", error)
-      showError("Error", "No se pudieron guardar los cambios")
-    }
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
