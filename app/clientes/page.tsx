@@ -17,7 +17,6 @@ import {
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Navigation } from "@/components/navigation"
-import { createClient } from "@/lib/supabase/client"
 import { useNotifications } from "@/hooks/use-notifications"
 
 interface Cliente {
@@ -57,6 +56,55 @@ interface ClienteFormErrors {
   codigo_postal?: string
   notas?: string
 }
+
+// Datos mock por defecto
+const clientesMock: Cliente[] = [
+  {
+    id: "1",
+    nombre: "Juan Pérez",
+    email: "juan.perez@email.com",
+    telefono: "+54 11 1234-5678",
+    direccion: "Av. Corrientes 1234",
+    ciudad: "Buenos Aires",
+    provincia: "Buenos Aires",
+    codigo_postal: "1043",
+    fecha_registro: new Date().toISOString(),
+    notas: "Cliente frecuente, prefiere productos orgánicos",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    estado: "Activo",
+  },
+  {
+    id: "2",
+    nombre: "María González",
+    email: "maria.gonzalez@email.com",
+    telefono: "+54 11 9876-5432",
+    direccion: "Calle Florida 567",
+    ciudad: "Buenos Aires",
+    provincia: "Buenos Aires",
+    codigo_postal: "1005",
+    fecha_registro: new Date().toISOString(),
+    notas: "Interesada en sistemas de iluminación LED",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    estado: "Activo",
+  },
+  {
+    id: "3",
+    nombre: "Carlos Rodríguez",
+    email: "carlos.rodriguez@email.com",
+    telefono: "+54 11 5555-1234",
+    direccion: "Rivadavia 890",
+    ciudad: "Buenos Aires",
+    provincia: "Buenos Aires",
+    codigo_postal: "1033",
+    fecha_registro: new Date().toISOString(),
+    notas: "Cultivador experto, busca semillas premium",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    estado: "Activo",
+  },
+]
 
 // Función de validación
 const validateClienteForm = (formData: ClienteFormData): ClienteFormErrors => {
@@ -111,28 +159,36 @@ const validateClienteForm = (formData: ClienteFormData): ClienteFormErrors => {
   // Validar código postal
   if (!formData.codigo_postal.trim()) {
     errors.codigo_postal = "El código postal es obligatorio"
-  } else if (!/^\d{4,5}$/.test(formData.codigo_postal.trim())) {
-    errors.codigo_postal = "El código postal debe tener 4 o 5 dígitos numéricos"
+  } else if (!/^[0-9]+$/.test(formData.codigo_postal.trim())) {
+    errors.codigo_postal = "El código postal solo puede contener números"
+  } else if (formData.codigo_postal.trim().length < 4) {
+    errors.codigo_postal = "El código postal debe tener al menos 4 dígitos"
   }
 
   return errors
 }
 
 export default function ClientesPage() {
+  const { showError, showSuccess } = useNotifications()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [filterTipo, setFilterTipo] = useState("todos")
-  const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null)
-  const [clienteToDelete, setClienteToDelete] = useState<Cliente | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [viewingCliente, setViewingCliente] = useState<Cliente | null>(null)
   const [formErrors, setFormErrors] = useState<ClienteFormErrors>({})
-  const [editFormErrors, setEditFormErrors] = useState<ClienteFormErrors>({})
-  const { showError, showClienteCreated, showClienteUpdated, showClienteDeleted } = useNotifications()
-
+  const [editForm, setEditForm] = useState<ClienteFormData>({
+    nombre: "",
+    email: "",
+    telefono: "",
+    direccion: "",
+    ciudad: "",
+    provincia: "",
+    codigo_postal: "",
+    notas: "",
+  })
   const [newClienteForm, setNewClienteForm] = useState<ClienteFormData>({
     nombre: "",
     email: "",
@@ -144,30 +200,23 @@ export default function ClientesPage() {
     notas: "",
   })
 
-  const [editForm, setEditForm] = useState<ClienteFormData>({
-    nombre: "",
-    email: "",
-    telefono: "",
-    direccion: "",
-    ciudad: "",
-    provincia: "",
-    codigo_postal: "",
-    notas: "",
-  })
-
-  const supabase = createClient()
-
   const loadClientes = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase.from("clientes").select("*").order("created_at", { ascending: false })
-
-      if (error) throw error
-
-      setClientes(data || [])
+      // En modo mock, cargar desde localStorage o usar datos por defecto
+      const clientesGuardados = localStorage.getItem('crm-clientes')
+      if (clientesGuardados) {
+        setClientes(JSON.parse(clientesGuardados))
+      } else {
+        // Primera vez: guardar datos mock
+        localStorage.setItem('crm-clientes', JSON.stringify(clientesMock))
+        setClientes(clientesMock)
+      }
     } catch (error) {
       console.error("Error loading clientes:", error)
-      showError("Error", "No se pudieron cargar los clientes")
+      showError("Error al cargar clientes")
+      // En caso de error, usar datos mock
+      setClientes(clientesMock)
     } finally {
       setLoading(false)
     }
@@ -188,6 +237,7 @@ export default function ClientesPage() {
       setFormErrors({})
 
       const clienteData = {
+        id: Date.now().toString(),
         nombre: newClienteForm.nombre.trim(),
         email: newClienteForm.email.trim() || null,
         telefono: newClienteForm.telefono.trim() || null,
@@ -198,32 +248,31 @@ export default function ClientesPage() {
         notas: newClienteForm.notas.trim() || null,
         fecha_registro: new Date().toISOString(),
         estado: "Activo",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
 
       console.log("Datos del cliente a insertar:", clienteData)
 
-      const { data, error } = await supabase
-        .from("clientes")
-        .insert([clienteData])
-        .select()
+      // Actualizar localStorage
+      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
+      const clientesActualizados = [clienteData, ...clientesActuales]
+      localStorage.setItem('crm-clientes', JSON.stringify(clientesActualizados))
 
-      if (error) throw error
-
-      if (data) {
-        setClientes((prev: Cliente[]) => [data[0], ...prev])
-        setNewClienteForm({
-          nombre: "",
-          email: "",
-          telefono: "",
-          direccion: "",
-          ciudad: "",
-          provincia: "",
-          codigo_postal: "",
-          notas: "",
-        })
-        setIsAddDialogOpen(false)
-        showClienteCreated()
-      }
+      // Actualizar el estado local
+      setClientes(clientesActualizados)
+      setNewClienteForm({
+        nombre: "",
+        email: "",
+        telefono: "",
+        direccion: "",
+        ciudad: "",
+        provincia: "",
+        codigo_postal: "",
+        notas: "",
+      })
+      setIsAddDialogOpen(false)
+      showSuccess("Cliente creado exitosamente", "El cliente ha sido agregado a la base de datos")
     } catch (error) {
       console.error("Error adding cliente:", error)
       
@@ -241,140 +290,132 @@ export default function ClientesPage() {
 
   const handleDeleteCliente = async (clienteId: string) => {
     try {
-      const { error } = await supabase
-        .from("clientes")
-        .delete()
-        .eq("id", clienteId)
+      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
+      const clientesFiltrados = clientesActuales.filter((cliente: Cliente) => cliente.id !== clienteId)
 
-      if (error) throw error
+      // Actualizar localStorage
+      localStorage.setItem('crm-clientes', JSON.stringify(clientesFiltrados))
 
-      setClientes((prev: Cliente[]) => prev.filter((c: Cliente) => c.id !== clienteId))
-      setIsDeleteDialogOpen(false)
-      setClienteToDelete(null)
-      showClienteDeleted()
+      // Actualizar el estado local
+      setClientes(clientesFiltrados)
+
+      showSuccess("Cliente eliminado correctamente")
     } catch (error) {
       console.error("Error deleting cliente:", error)
       showError("Error", "No se pudo eliminar el cliente")
     }
   }
 
-  const confirmDeleteCliente = (cliente: Cliente) => {
-    setClienteToDelete(cliente)
-    setIsDeleteDialogOpen(true)
-  }
-
-  useEffect(() => {
-    loadClientes()
-  }, [])
-
-  const filteredClientes = clientes.filter((cliente: Cliente) => {
-    const matchesSearch =
-      cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      cliente.email.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesSearch
-  })
-
-  const getEstadoBadge = (estado: string) => {
-    return estado === "Activo" ? (
-      <Badge className="bg-green-100 text-green-800 border-green-300">Activo</Badge>
-    ) : (
-      <Badge variant="secondary">Inactivo</Badge>
-    )
-  }
-
-  const handleEditFormChange = (field: string, value: string): void => {
-    setEditForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    // Limpiar error del campo cuando el usuario empiece a escribir
-    if (editFormErrors[field as keyof ClienteFormErrors]) {
-      setEditFormErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }))
-    }
-  }
-
-  const handleNewClienteFormChange = (field: string, value: string): void => {
-    setNewClienteForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }))
-    // Limpiar error del campo cuando el usuario empiece a escribir
-    if (formErrors[field as keyof ClienteFormErrors]) {
-      setFormErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }))
-    }
-  }
-
-  const handleEditCliente = (cliente: Cliente) => {
-    setEditingCliente(cliente)
-    setEditForm({
-      nombre: cliente.nombre,
-      email: cliente.email,
-      telefono: cliente.telefono,
-      direccion: cliente.direccion,
-      ciudad: cliente.ciudad,
-      provincia: cliente.provincia,
-      codigo_postal: cliente.codigo_postal,
-      notas: cliente.notas,
-    })
-    // Limpiar errores previos
-    setEditFormErrors({})
-    setIsEditDialogOpen(true)
-  }
-
-  const handleOpenAddDialog = () => {
-    setIsAddDialogOpen(true)
-    // Limpiar errores previos
-    setFormErrors({})
-  }
-
-  const handleSaveEdit = async () => {
+  const handleEditCliente = async () => {
     if (!editingCliente) return
 
     try {
-      // Validar formulario de edición
+      // Validar formulario
       const errors = validateClienteForm(editForm)
       
       if (Object.keys(errors).length > 0) {
-        setEditFormErrors(errors)
+        setFormErrors(errors)
         showError("Error de validación", "Por favor, corrige los errores en el formulario")
         return
       }
 
       // Limpiar errores previos
-      setEditFormErrors({})
+      setFormErrors({})
 
-      const { data, error } = await supabase.from("clientes").update(editForm).eq("id", editingCliente.id).select()
-
-      if (error) throw error
-
-      if (data) {
-        setClientes((prev: Cliente[]) =>
-          prev.map((cliente: Cliente) => (cliente.id === editingCliente.id ? data[0] : cliente)),
-        )
-        setIsEditDialogOpen(false)
-        setEditingCliente(null)
-        showClienteUpdated()
+      const clienteActualizado = {
+        ...editingCliente,
+        nombre: editForm.nombre.trim(),
+        email: editForm.email.trim() || null,
+        telefono: editForm.telefono.trim() || null,
+        direccion: editForm.direccion.trim() || null,
+        ciudad: editForm.ciudad.trim() || null,
+        provincia: editForm.provincia.trim() || null,
+        codigo_postal: editForm.codigo_postal.trim() || null,
+        notas: editForm.notas.trim() || null,
+        updated_at: new Date().toISOString(),
       }
+
+      // Actualizar localStorage
+      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
+      const clientesActualizados = clientesActuales.map((cliente: Cliente) => 
+        cliente.id === editingCliente.id ? clienteActualizado : cliente
+      )
+      localStorage.setItem('crm-clientes', JSON.stringify(clientesActualizados))
+
+      // Actualizar el estado local
+      setClientes(clientesActualizados)
+      setEditingCliente(null)
+      setIsEditDialogOpen(false)
+
+      showSuccess("Cliente actualizado correctamente")
     } catch (error) {
       console.error("Error updating cliente:", error)
-      showError("Error", "No se pudieron guardar los cambios")
+      showError("Error", "No se pudo actualizar el cliente")
     }
   }
 
+  const openEditDialog = (cliente: Cliente) => {
+    setEditingCliente(cliente)
+    setEditForm({
+      nombre: cliente.nombre,
+      email: cliente.email || "",
+      telefono: cliente.telefono || "",
+      direccion: cliente.direccion || "",
+      ciudad: cliente.ciudad || "",
+      provincia: cliente.provincia || "",
+      codigo_postal: cliente.codigo_postal || "",
+      notas: cliente.notas || "",
+    })
+    setFormErrors({})
+    setIsEditDialogOpen(true)
+  }
+
+  const openViewDialog = (cliente: Cliente) => {
+    setViewingCliente(cliente)
+    setIsViewDialogOpen(true)
+  }
+
+  const closeEditDialog = () => {
+    setEditingCliente(null)
+    setEditForm({
+      nombre: "",
+      email: "",
+      telefono: "",
+      direccion: "",
+      ciudad: "",
+      provincia: "",
+      codigo_postal: "",
+      notas: "",
+    })
+    setFormErrors({})
+    setIsEditDialogOpen(false)
+  }
+
+  const showClienteCreated = () => {
+    showSuccess("Cliente creado exitosamente", "El cliente ha sido agregado a la base de datos")
+  }
+
+  const filteredClientes = clientes.filter((cliente) =>
+    cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cliente.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cliente.telefono.includes(searchTerm) ||
+    cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  useEffect(() => {
+    loadClientes()
+  }, [])
+
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-green-50 to-emerald-50">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Cargando clientes...</p>
+        <div className="container mx-auto p-6">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-muted-foreground">Cargando clientes...</p>
+            </div>
           </div>
         </div>
       </div>
@@ -382,463 +423,447 @@ export default function ClientesPage() {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Navigation />
-
-      <div className="flex-1">
+      <div className="container mx-auto p-6">
         {/* Header */}
-        <header className="bg-card border-b border-border shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-card-foreground">Gestión de Clientes</h1>
-                  <p className="text-sm text-blue-600">Administra tu base de clientes</p>
-                </div>
-              </div>
-              <Button onClick={handleOpenAddDialog} className="bg-green-600 hover:bg-green-700">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
+            <p className="text-muted-foreground">
+              Gestiona tu base de datos de clientes
+            </p>
+          </div>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-green-600 hover:bg-green-700">
                 <Plus className="mr-2 h-4 w-4" />
                 Nuevo Cliente
               </Button>
-            </div>
-          </div>
-        </header>
-
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">Total Clientes</CardTitle>
-                <Users className="h-4 w-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{clientes.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">Clientes Activos</CardTitle>
-                <Users className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">
-                  {filteredClientes.filter((c: Cliente) => c.estado === "Activo").length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">Nuevos Este Mes</CardTitle>
-                <ShoppingBag className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">
-                  {
-                    clientes.filter((c: Cliente) => {
-                      const fechaRegistro = new Date(c.fecha_registro)
-                      const ahora = new Date()
-                      return (
-                        fechaRegistro.getMonth() === ahora.getMonth() &&
-                        fechaRegistro.getFullYear() === ahora.getFullYear()
-                      )
-                    }).length
-                  }
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground">Registrados Hoy</CardTitle>
-                <ShoppingBag className="h-4 w-4 text-amber-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">
-                  {
-                    clientes.filter((c: Cliente) => {
-                      const fechaRegistro = new Date(c.fecha_registro)
-                      const hoy = new Date()
-                      return fechaRegistro.toDateString() === hoy.toDateString()
-                    }).length
-                  }
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Filters and Search */}
-          <Card className="mb-6 bg-card border-border">
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Buscar por nombre o email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Clients List */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-card-foreground">
-                Lista de Clientes ({filteredClientes.length})
-              </CardTitle>
-              <CardDescription>Gestiona la información de tus clientes</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {filteredClientes.map((cliente: Cliente) => (
-                  <div
-                    key={cliente.id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-full">
-                        <Users className="h-5 w-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h3 className="font-semibold text-card-foreground">{cliente.nombre}</h3>
-                          {getEstadoBadge(cliente.estado)}
-                        </div>
-                        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Mail className="h-4 w-4 text-muted-foreground" />
-                            <span>{cliente.email}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <Phone className="h-4 w-4 text-muted-foreground" />
-                            <span>{cliente.telefono}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <span>
-                              {cliente.ciudad}, {cliente.provincia}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            Ver
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-2xl">
-                          <DialogHeader>
-                            <DialogTitle>Detalles del Cliente</DialogTitle>
-                            <DialogDescription>Información completa de {cliente.nombre}</DialogDescription>
-                          </DialogHeader>
-                          <div className="grid grid-cols-2 gap-4 py-4">
-                            <div className="space-y-4">
-                              <div>
-                                <Label className="text-sm font-medium text-muted-foreground">Información Personal</Label>
-                                <div className="mt-2 space-y-2">
-                                  <div className="flex items-center space-x-2">
-                                    <Mail className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">{cliente.email}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <Phone className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">{cliente.telefono}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                                    <span className="text-sm">{cliente.direccion}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div>
-                                <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
-                                <p className="text-sm text-card-foreground mt-1">{cliente.notas}</p>
-                              </div>
-                            </div>
-                            <div className="space-y-4">
-                              <div>
-                                <Label className="text-sm font-medium text-muted-foreground">Información Comercial</Label>
-                                <div className="mt-2 space-y-2">
-                                  <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Estado:</span>
-                                    {getEstadoBadge(cliente.estado)}
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Registro:</span>
-                                    <span className="text-sm">{cliente.fecha_registro}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Ciudad:</span>
-                                    <span className="text-sm">{cliente.ciudad}</span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span className="text-sm text-muted-foreground">Provincia:</span>
-                                    <span className="text-sm">{cliente.provincia}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                      <Button variant="outline" size="sm" onClick={() => handleEditCliente(cliente)}>
-                        <Edit className="h-4 w-4 mr-1" />
-                        Editar
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => confirmDeleteCliente(cliente)}>
-                        <Trash className="h-4 w-4 mr-1" />
-                        Eliminar
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Add Client Dialog */}
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogContent className="max-w-2xl">
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Nuevo Cliente</DialogTitle>
-                <DialogDescription>Añade un nuevo cliente a tu base de datos</DialogDescription>
+                <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
+                <DialogDescription>
+                  Completa la información del nuevo cliente
+                </DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 py-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="nombre">Nombre completo</Label>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nombre">Nombre *</Label>
                     <Input
                       id="nombre"
-                                              placeholder="Nombre completo"
                       value={newClienteForm.nombre}
-                      onChange={(e) => handleNewClienteFormChange("nombre", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, nombre: e.target.value })}
+                      className={formErrors.nombre ? "border-red-500" : ""}
+                      placeholder="Nombre completo"
                     />
-                    {formErrors.nombre && <p className="text-red-500 text-xs mt-1">{formErrors.nombre}</p>}
+                    {formErrors.nombre && (
+                      <p className="text-sm text-red-500">{formErrors.nombre}</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
                       type="email"
-                                              placeholder="Email del cliente"
                       value={newClienteForm.email}
-                      onChange={(e) => handleNewClienteFormChange("email", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, email: e.target.value })}
+                      className={formErrors.email ? "border-red-500" : ""}
+                      placeholder="email@ejemplo.com"
                     />
-                    {formErrors.email && <p className="text-red-500 text-xs mt-1">{formErrors.email}</p>}
+                    {formErrors.email && (
+                      <p className="text-sm text-red-500">{formErrors.email}</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="telefono">Teléfono</Label>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="telefono">Teléfono *</Label>
                     <Input
                       id="telefono"
-                      placeholder="+54 11 1234-5678"
                       value={newClienteForm.telefono}
-                      onChange={(e) => handleNewClienteFormChange("telefono", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, telefono: e.target.value })}
+                      className={formErrors.telefono ? "border-red-500" : ""}
+                      placeholder="+54 11 1234-5678"
                     />
-                    {formErrors.telefono && <p className="text-red-500 text-xs mt-1">{formErrors.telefono}</p>}
+                    {formErrors.telefono && (
+                      <p className="text-sm text-red-500">{formErrors.telefono}</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="ciudad">Ciudad</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="direccion">Dirección *</Label>
+                    <Input
+                      id="direccion"
+                      value={newClienteForm.direccion}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, direccion: e.target.value })}
+                      className={formErrors.direccion ? "border-red-500" : ""}
+                      placeholder="Dirección completa"
+                    />
+                    {formErrors.direccion && (
+                      <p className="text-sm text-red-500">{formErrors.direccion}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ciudad">Ciudad *</Label>
                     <Input
                       id="ciudad"
-                      placeholder="Ciudad"
                       value={newClienteForm.ciudad}
-                      onChange={(e) => handleNewClienteFormChange("ciudad", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, ciudad: e.target.value })}
+                      className={formErrors.ciudad ? "border-red-500" : ""}
+                      placeholder="Ciudad"
                     />
-                    {formErrors.ciudad && <p className="text-red-500 text-xs mt-1">{formErrors.ciudad}</p>}
+                    {formErrors.ciudad && (
+                      <p className="text-sm text-red-500">{formErrors.ciudad}</p>
+                    )}
                   </div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="direccion">Dirección</Label>
-                    <Textarea
-                      id="direccion"
-                                              placeholder="Dirección completa"
-                      value={newClienteForm.direccion}
-                      onChange={(e) => handleNewClienteFormChange("direccion", e.target.value)}
-                    />
-                    {formErrors.direccion && <p className="text-red-500 text-xs mt-1">{formErrors.direccion}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="provincia">Provincia</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="provincia">Provincia *</Label>
                     <Input
                       id="provincia"
-                      placeholder="Provincia"
                       value={newClienteForm.provincia}
-                      onChange={(e) => handleNewClienteFormChange("provincia", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, provincia: e.target.value })}
+                      className={formErrors.provincia ? "border-red-500" : ""}
+                      placeholder="Provincia"
                     />
-                    {formErrors.provincia && <p className="text-red-500 text-xs mt-1">{formErrors.provincia}</p>}
+                    {formErrors.provincia && (
+                      <p className="text-sm text-red-500">{formErrors.provincia}</p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="codigo_postal">Código Postal</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="codigo_postal">Código Postal *</Label>
                     <Input
                       id="codigo_postal"
-                      placeholder="1000"
                       value={newClienteForm.codigo_postal}
-                      onChange={(e) => handleNewClienteFormChange("codigo_postal", e.target.value)}
+                      onChange={(e) => setNewClienteForm({ ...newClienteForm, codigo_postal: e.target.value })}
+                      className={formErrors.codigo_postal ? "border-red-500" : ""}
+                      placeholder="1234"
                     />
-                    {formErrors.codigo_postal && <p className="text-red-500 text-xs mt-1">{formErrors.codigo_postal}</p>}
-                  </div>
-                  <div>
-                    <Label htmlFor="notas">Notas</Label>
-                    <Textarea
-                      id="notas"
-                      placeholder="Información adicional sobre el cliente"
-                      value={newClienteForm.notas}
-                      onChange={(e) => handleNewClienteFormChange("notas", e.target.value)}
-                    />
-                    {formErrors.notas && <p className="text-red-500 text-xs mt-1">{formErrors.notas}</p>}
+                    {formErrors.codigo_postal && (
+                      <p className="text-sm text-red-500">{formErrors.codigo_postal}</p>
+                    )}
                   </div>
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notas">Notas</Label>
+                  <Textarea
+                    id="notas"
+                    value={newClienteForm.notas}
+                    onChange={(e) => setNewClienteForm({ ...newClienteForm, notas: e.target.value })}
+                    placeholder="Información adicional del cliente"
+                    rows={3}
+                  />
+                </div>
               </div>
-              <div className="flex justify-end space-x-2">
+              <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
                   Cancelar
                 </Button>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={handleAddCliente}>
-                  Guardar Cliente
+                <Button onClick={handleAddCliente} className="bg-green-600 hover:bg-green-700">
+                  Crear Cliente
                 </Button>
               </div>
             </DialogContent>
           </Dialog>
+        </div>
 
-          {/* Edit Client Dialog */}
-          <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-            <DialogContent className="max-w-2xl">
-              <DialogHeader>
-                <DialogTitle>Editar Cliente</DialogTitle>
-                <DialogDescription>Modifica la información de {editingCliente?.nombre}</DialogDescription>
-              </DialogHeader>
-              {editingCliente && (
-                <div className="grid grid-cols-2 gap-4 py-4">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-nombre">Nombre completo</Label>
-                      <Input
-                        id="edit-nombre"
-                        value={editForm.nombre}
-                        onChange={(e) => handleEditFormChange("nombre", e.target.value)}
-                      />
-                      {editFormErrors.nombre && <p className="text-red-500 text-xs mt-1">{editFormErrors.nombre}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-email">Email</Label>
-                      <Input
-                        id="edit-email"
-                        type="email"
-                        value={editForm.email}
-                        onChange={(e) => handleEditFormChange("email", e.target.value)}
-                      />
-                      {editFormErrors.email && <p className="text-red-500 text-xs mt-1">{editFormErrors.email}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-telefono">Teléfono</Label>
-                      <Input
-                        id="edit-telefono"
-                        value={editForm.telefono}
-                        onChange={(e) => handleEditFormChange("telefono", e.target.value)}
-                      />
-                      {editFormErrors.telefono && <p className="text-red-500 text-xs mt-1">{editFormErrors.telefono}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-ciudad">Ciudad</Label>
-                      <Input
-                        id="edit-ciudad"
-                        value={editForm.ciudad}
-                        onChange={(e) => handleEditFormChange("ciudad", e.target.value)}
-                      />
-                      {editFormErrors.ciudad && <p className="text-red-500 text-xs mt-1">{editFormErrors.ciudad}</p>}
-                    </div>
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar clientes por nombre, email, teléfono o ciudad..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+
+        {/* Clientes Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredClientes.map((cliente) => (
+            <Card key={cliente.id} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
+                    <CardDescription className="flex items-center gap-2 mt-1">
+                      <Mail className="h-4 w-4" />
+                      {cliente.email}
+                    </CardDescription>
                   </div>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="edit-direccion">Dirección</Label>
-                      <Textarea
-                        id="edit-direccion"
-                        value={editForm.direccion}
-                        onChange={(e) => handleEditFormChange("direccion", e.target.value)}
-                      />
-                      {editFormErrors.direccion && <p className="text-red-500 text-xs mt-1">{editFormErrors.direccion}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-provincia">Provincia</Label>
-                      <Input
-                        id="edit-provincia"
-                        value={editForm.provincia}
-                        onChange={(e) => handleEditFormChange("provincia", e.target.value)}
-                      />
-                      {editFormErrors.provincia && <p className="text-red-500 text-xs mt-1">{editFormErrors.provincia}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-codigo_postal">Código Postal</Label>
-                      <Input
-                        id="edit-codigo_postal"
-                        value={editForm.codigo_postal}
-                        onChange={(e) => handleEditFormChange("codigo_postal", e.target.value)}
-                      />
-                      {editFormErrors.codigo_postal && <p className="text-red-500 text-xs mt-1">{editFormErrors.codigo_postal}</p>}
-                    </div>
-                    <div>
-                      <Label htmlFor="edit-notas">Notas</Label>
-                      <Textarea
-                        id="edit-notas"
-                        value={editForm.notas}
-                        onChange={(e) => handleEditFormChange("notas", e.target.value)}
-                      />
-                      {editFormErrors.notas && <p className="text-red-500 text-xs mt-1">{editFormErrors.notas}</p>}
-                    </div>
+                  <Badge
+                    variant={cliente.estado === "Activo" ? "default" : "secondary"}
+                    className={`${
+                      cliente.estado === "Activo"
+                        ? "bg-green-100 text-green-800 border-green-300"
+                        : "bg-gray-100 text-gray-800 border-gray-300"
+                    }`}
+                  >
+                    {cliente.estado}
+                  </Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Phone className="h-4 w-4" />
+                  {cliente.telefono}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  {cliente.ciudad}, {cliente.provincia}
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ShoppingBag className="h-4 w-4" />
+                  Registrado: {new Date(cliente.fecha_registro).toLocaleDateString()}
+                </div>
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openViewDialog(cliente)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openEditDialog(cliente)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCliente(cliente.id)}
+                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                  >
+                    <Trash className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Empty State */}
+        {filteredClientes.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              {searchTerm ? "No se encontraron clientes" : "No hay clientes registrados"}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchTerm
+                ? "Intenta con otros términos de búsqueda"
+                : "Comienza agregando tu primer cliente"}
+            </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar Cliente
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Editar Cliente</DialogTitle>
+              <DialogDescription>
+                Modifica la información del cliente
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-nombre">Nombre *</Label>
+                  <Input
+                    id="edit-nombre"
+                    value={editForm.nombre}
+                    onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })}
+                    className={formErrors.nombre ? "border-red-500" : ""}
+                  />
+                  {formErrors.nombre && (
+                    <p className="text-sm text-red-500">{formErrors.nombre}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email">Email *</Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className={formErrors.email ? "border-red-500" : ""}
+                  />
+                  {formErrors.email && (
+                    <p className="text-sm text-red-500">{formErrors.email}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-telefono">Teléfono *</Label>
+                  <Input
+                    id="edit-telefono"
+                    value={editForm.telefono}
+                    onChange={(e) => setEditForm({ ...editForm, telefono: e.target.value })}
+                    className={formErrors.telefono ? "border-red-500" : ""}
+                  />
+                  {formErrors.telefono && (
+                    <p className="text-sm text-red-500">{formErrors.telefono}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-direccion">Dirección *</Label>
+                  <Input
+                    id="edit-direccion"
+                    value={editForm.direccion}
+                    onChange={(e) => setEditForm({ ...editForm, direccion: e.target.value })}
+                    className={formErrors.direccion ? "border-red-500" : ""}
+                  />
+                  {formErrors.direccion && (
+                    <p className="text-sm text-red-500">{formErrors.direccion}</p>
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-ciudad">Ciudad *</Label>
+                  <Input
+                    id="edit-ciudad"
+                    value={editForm.ciudad}
+                    onChange={(e) => setEditForm({ ...editForm, ciudad: e.target.value })}
+                    className={formErrors.ciudad ? "border-red-500" : ""}
+                  />
+                  {formErrors.ciudad && (
+                    <p className="text-sm text-red-500">{formErrors.ciudad}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-provincia">Provincia *</Label>
+                  <Input
+                    id="edit-provincia"
+                    value={editForm.provincia}
+                    onChange={(e) => setEditForm({ ...editForm, provincia: e.target.value })}
+                    className={formErrors.provincia ? "border-red-500" : ""}
+                  />
+                  {formErrors.provincia && (
+                    <p className="text-sm text-red-500">{formErrors.provincia}</p>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-codigo_postal">Código Postal *</Label>
+                  <Input
+                    id="edit-codigo_postal"
+                    value={editForm.codigo_postal}
+                    onChange={(e) => setEditForm({ ...editForm, codigo_postal: e.target.value })}
+                    className={formErrors.codigo_postal ? "border-red-500" : ""}
+                  />
+                  {formErrors.codigo_postal && (
+                    <p className="text-sm text-red-500">{formErrors.codigo_postal}</p>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-notas">Notas</Label>
+                <Textarea
+                  id="edit-notas"
+                  value={editForm.notas}
+                  onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={closeEditDialog}>
+                Cancelar
+              </Button>
+              <Button onClick={handleEditCliente} className="bg-green-600 hover:bg-green-700">
+                Guardar Cambios
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* View Dialog */}
+        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Detalles del Cliente</DialogTitle>
+              <DialogDescription>
+                Información completa del cliente
+              </DialogDescription>
+            </DialogHeader>
+            {viewingCliente && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Nombre</Label>
+                    <p className="text-sm">{viewingCliente.nombre}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                    <p className="text-sm">{viewingCliente.email}</p>
                   </div>
                 </div>
-              )}
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button className="bg-green-600 hover:bg-green-700" onClick={handleSaveEdit}>
-                  Guardar Cambios
-                </Button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
+                    <p className="text-sm">{viewingCliente.telefono}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
+                    <Badge
+                      variant={viewingCliente.estado === "Activo" ? "default" : "secondary"}
+                      className={`${
+                        viewingCliente.estado === "Activo"
+                          ? "bg-green-100 text-green-800 border-green-300"
+                          : "bg-gray-100 text-gray-800 border-gray-300"
+                      }`}
+                    >
+                      {viewingCliente.estado}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Dirección</Label>
+                  <p className="text-sm">
+                    {viewingCliente.direccion}, {viewingCliente.ciudad}, {viewingCliente.provincia} {viewingCliente.codigo_postal}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
+                  <p className="text-sm">{viewingCliente.notas || "Sin notas"}</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Fecha de Registro</Label>
+                    <p className="text-sm">{new Date(viewingCliente.fecha_registro).toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Última Actualización</Label>
+                    <p className="text-sm">{new Date(viewingCliente.updated_at).toLocaleDateString()}</p>
+                  </div>
+                </div>
               </div>
-            </DialogContent>
-          </Dialog>
-
-          {/* Delete Confirmation Dialog */}
-          <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-            <DialogContent className="max-w-md">
-              <DialogHeader>
-                <DialogTitle>Confirmar Eliminación</DialogTitle>
-                <DialogDescription>
-                  ¿Estás seguro de que quieres eliminar al cliente "{clienteToDelete?.nombre}"? 
-                  Esta acción no se puede deshacer.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                  Cancelar
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={() => clienteToDelete && handleDeleteCliente(clienteToDelete.id)}
-                >
-                  Eliminar
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </main>
+            )}
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
+                Cerrar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

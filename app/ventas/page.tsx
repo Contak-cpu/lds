@@ -36,7 +36,7 @@ import { Navigation } from "@/components/navigation"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/hooks/use-toast"
-import { createClient } from "@/lib/supabase/client"
+// import { createClient } from "@/lib/supabase/client" // REMOVIDO PARA MODO MOCK
 import { DateFilter } from "@/components/ui/date-filter"
 import { useDateFilter } from "@/hooks/use-date-filter"
 
@@ -223,7 +223,43 @@ export default function VentasPage() {
   const [formErrors, setFormErrors] = useState<VentaFormErrors>({})
   const dateFilter = useDateFilter("todos")
 
-  const supabase = createClient()
+  // Datos mock por defecto
+  const ventasMock: Venta[] = [
+    {
+      id: "1",
+      numeroVenta: "V-2024-001",
+      cliente: "Juan Pérez",
+      clienteEmail: "juan.perez@email.com",
+      fecha: new Date().toISOString(),
+      estado: "Completada",
+      total: 4300,
+      metodoPago: "Efectivo",
+      notas: "Venta realizada en tienda",
+      esCasual: false,
+      productos: [
+        {
+          id: "1",
+          producto_nombre: "Semillas OG Kush Feminizadas",
+          cantidad: 1,
+          precio_unitario: 2500,
+          subtotal: 2500,
+          categoria: "Semillas",
+          descripcion: "Semillas premium de cannabis OG Kush",
+          imagen_url: "/public/cannabis-seeds-pack.png",
+        },
+        {
+          id: "2",
+          producto_nombre: "Fertilizante Orgánico Premium",
+          cantidad: 1,
+          precio_unitario: 1800,
+          subtotal: 1800,
+          categoria: "Fertilizantes",
+          descripcion: "Nutriente completo para todas las etapas",
+          imagen_url: "/public/placeholder-ivbba.png",
+        },
+      ],
+    },
+  ]
 
   const totalCarrito = carrito.reduce((sum: number, item: ProductoCarrito) => sum + item.precio * item.cantidad, 0)
 
@@ -231,128 +267,37 @@ export default function VentasPage() {
     try {
       setLoading(true)
 
-      // Obtener el rango de fechas del filtro
-      const dateRange = dateFilter.getFilteredDateRange()
-      let ventasQuery = supabase
-        .from("ventas")
-        .select(`
-          *,
-          venta_items (
-            id,
-            venta_id,
-            producto_id,
-            producto_nombre,
-            cantidad,
-            precio_unitario,
-            subtotal,
-            categoria,
-            descripcion,
-            imagen_url,
-            created_at,
-            updated_at
-          )
-        `)
-        .order("created_at", { ascending: false })
+      // En modo mock, cargar desde localStorage o usar datos por defecto
+      const ventasGuardadas = localStorage.getItem('crm-ventas')
+      const productosGuardados = localStorage.getItem('crm-productos')
+      const clientesGuardados = localStorage.getItem('crm-clientes')
 
-      // Aplicar filtro de fechas si está configurado
-      if (dateRange?.from && dateRange?.to) {
-        const fromDate = dateRange.from
-        const toDate = dateRange.to
-        ventasQuery = ventasQuery
-          .gte("created_at", fromDate.toISOString())
-          .lte("created_at", toDate.toISOString())
+      if (ventasGuardadas) {
+        setVentas(JSON.parse(ventasGuardadas))
+      } else {
+        // Primera vez: guardar datos mock
+        localStorage.setItem('crm-ventas', JSON.stringify(ventasMock))
+        setVentas(ventasMock)
       }
 
-      const [ventasResponse, productosResponse, clientesResponse] = await Promise.all([
-        ventasQuery,
-
-        supabase.from("productos").select("*").eq("activo", true).order("nombre"),
-
-        supabase.from("clientes").select("*").order("nombre"),
-      ])
-
-      if (ventasResponse.error) {
-        console.error("Error cargando ventas:", ventasResponse.error)
-        throw ventasResponse.error
-      }
-      if (productosResponse.error) {
-        console.error("Error cargando productos:", productosResponse.error)
-        throw productosResponse.error
-      }
-      if (clientesResponse.error) {
-        console.error("Error cargando clientes:", clientesResponse.error)
-        throw clientesResponse.error
+      if (productosGuardados) {
+        setProductos(JSON.parse(productosGuardados))
+      } else {
+        // Usar productos mock si no hay en localStorage
+        setProductos([])
       }
 
-      const ventasTransformadas: Venta[] =
-        ventasResponse.data?.map((venta: VentaSupabase, index: number) => {
-          const fecha = new Date(venta.created_at)
-          const numeroSecuencial = ventasResponse.data!.length - index
-          const numeroVenta = `V-${fecha.getFullYear()}-${String(numeroSecuencial).padStart(3, "0")}`
-
-          return {
-            id: venta.id,
-            numeroVenta: numeroVenta,
-            cliente: venta.cliente_id
-              ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.nombre ||
-                venta.cliente_nombre ||
-                "Cliente sin nombre"
-              : venta.cliente_casual || "Cliente sin nombre",
+      if (clientesGuardados) {
+        setClientes(JSON.parse(clientesGuardados))
+      } else {
+        // Usar clientes mock si no hay en localStorage
+        setClientes([])
+      }
             clienteEmail: venta.cliente_id
               ? clientesResponse.data?.find((c: Cliente) => c.id === venta.cliente_id)?.email || ""
               : "",
             fecha: fecha.toISOString().split("T")[0],
-            estado: venta.estado || "Pendiente",
-            total: venta.total || 0,
-            metodoPago: venta.metodo_pago || "No especificado",
-            notas: venta.notas || "",
-            esCasual: venta.cliente_id === null,
-            productos:
-              venta.venta_items?.map(
-                (item): VentaItem => ({
-                  id: item.id || undefined,
-                  venta_id: item.venta_id || undefined,
-                  producto_id: item.producto_id || undefined,
-                  producto_nombre: item.producto_nombre || "Producto sin nombre",
-                  cantidad: item.cantidad || 0,
-                  precio_unitario: item.precio_unitario || 0,
-                  subtotal: item.subtotal || (item.cantidad || 0) * (item.precio_unitario || 0),
-                  created_at: item.created_at || undefined,
-                  updated_at: item.updated_at || undefined,
-                  categoria: item.categoria || "Sin categoría",
-                  descripcion: item.descripcion || "",
-                  imagen_url: item.imagen_url || null,
-                }),
-              ) || [],
-          }
-        }) || []
-
-      console.log("Ventas cargadas:", ventasResponse.data?.length || 0)
-      setVentas(ventasTransformadas)
-
-      const productosTransformados: Producto[] =
-        productosResponse.data?.map((producto: ProductoSupabase) => ({
-          id: producto.id,
-          sku: producto.sku || `SKU-${producto.id.slice(0, 8)}`,
-          nombre: producto.nombre,
-          precio: producto.precio,
-          stock: producto.stock,
-          descripcion: producto.descripcion,
-          categoria: producto.categoria,
-          costo: producto.costo,
-          stock_minimo: producto.stock_minimo,
-          imagen_url: producto.imagen_url,
-          activo: producto.activo,
-          created_at: producto.created_at,
-          updated_at: producto.updated_at,
-        })) || []
-
-      console.log("Productos cargados:", productosResponse.data?.length || 0)
-      console.log("Productos activos:", productosTransformados.filter(p => p.activo).length)
-      setProductos(productosTransformados)
-      
-      console.log("Clientes cargados:", clientesResponse.data?.length || 0)
-      setClientes(clientesResponse.data || [])
+      console.log("Datos mock cargados exitosamente")
     } catch (error) {
       console.error("Error cargando datos:", error)
       toast({
@@ -654,92 +599,59 @@ export default function VentasPage() {
         clienteId = cliente.id
       }
 
-      const ventaData = {
-        cliente_id: clienteId,
-        cliente_casual: tipoVenta === "casual" ? clienteCasual.trim() : null,
-        cliente_nombre: tipoVenta === "registrada" ? clienteNombre : null,
+      // Generar ID único y número de venta
+      const ventaId = Date.now().toString()
+      const numeroVenta = `V-${new Date().getFullYear()}-${String(ventas.length + 1).padStart(3, "0")}`
+
+      const nuevaVenta: Venta = {
+        id: ventaId,
+        numeroVenta: numeroVenta,
+        cliente: clienteNombre,
+        clienteEmail: tipoVenta === "registrada" ? clientes.find(c => c.id === clienteId)?.email || "" : "",
+        fecha: new Date().toISOString(),
+        estado: "Completada",
         total: totalCarrito,
-        subtotal: totalCarrito,
-        descuento: 0,
-        estado: "Completado",
-        metodo_pago: metodoPago,
-        notas: notasVenta.trim() || null,
-        tipo_venta: tipoVenta,
-        fecha_venta: new Date().toISOString(),
+        metodoPago: metodoPago,
+        notas: notasVenta.trim() || "",
+        esCasual: tipoVenta === "casual",
+        productos: carrito.map(item => ({
+          id: item.id,
+          producto_nombre: item.nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio,
+          subtotal: item.precio * item.cantidad,
+          categoria: item.categoria || "General",
+          descripcion: item.descripcion || "",
+          imagen_url: item.imagen_url || null,
+        })),
       }
 
-      console.log("Creando venta con datos:", ventaData)
+      console.log("Creando venta con datos:", nuevaVenta)
       
-      const { data: ventaCreada, error: ventaError } = await supabase.from("ventas").insert(ventaData).select().single()
+      // Actualizar localStorage
+      const ventasActuales = JSON.parse(localStorage.getItem('crm-ventas') || '[]')
+      const ventasActualizadas = [nuevaVenta, ...ventasActuales]
+      localStorage.setItem('crm-ventas', JSON.stringify(ventasActualizadas))
 
-      if (ventaError) {
-        console.error("Error creando venta:", ventaError)
-        throw new Error(`Error al crear la venta: ${ventaError.message}`)
-      }
-
-      if (!ventaCreada) {
-        throw new Error("No se pudo crear la venta")
-      }
-
-      console.log("Venta creada exitosamente:", ventaCreada)
-
-      // Crear items de venta con validación
-      const ventaItems = carrito.map((item: ProductoCarrito) => ({
-        venta_id: ventaCreada.id,
-        producto_id: item.esPersonalizado ? null : item.id,
-        producto_nombre: item.nombre,
-        cantidad: item.cantidad,
-        precio_unitario: item.precio,
-        subtotal: item.precio * item.cantidad,
-        categoria: item.categoria || "Sin categoría",
-        descripcion: item.descripcion || "",
-        imagen_url: item.imagen_url || null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }))
-
-      console.log("Creando items de venta:", ventaItems)
-      
-      const { error: itemsError } = await supabase.from("venta_items").insert(ventaItems)
-
-      if (itemsError) {
-        console.error("Error creando items:", itemsError)
-        throw new Error(`Error al crear los items: ${itemsError.message}`)
-      }
-
-      console.log("Items de venta creados exitosamente")
+      // Actualizar el estado local
+      setVentas(ventasActualizadas)
+      console.log("Venta creada exitosamente:", nuevaVenta)
 
       // Actualizar stock de productos (solo para productos no personalizados)
-      const stockUpdates = []
       for (const item of carrito) {
         if (!item.esPersonalizado) {
-          const productoActual = productos.find((p) => p.id === item.id)
+          const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
+          const productoActual = productosActuales.find((p: Producto) => p.id === item.id)
           if (productoActual) {
             const nuevoStock = productoActual.stock - item.cantidad
-            stockUpdates.push(supabase.from("productos").update({ stock: nuevoStock }).eq("id", item.id))
+            const productosActualizados = productosActuales.map((p: Producto) => 
+              p.id === item.id ? { ...p, stock: nuevoStock, updated_at: new Date().toISOString() } : p
+            )
+            localStorage.setItem('crm-productos', JSON.stringify(productosActualizados))
+            setProductos(productosActualizados)
           }
         }
       }
-
-      // Ejecutar actualizaciones de stock
-      if (stockUpdates.length > 0) {
-        const stockResults = await Promise.all(stockUpdates)
-        const stockErrors = stockResults.filter((result) => result.error)
-
-        if (stockErrors.length > 0) {
-          console.error("Errores actualizando stock:", stockErrors)
-          // No fallar la venta por errores de stock, solo advertir
-          toast({
-            title: "Advertencia",
-            description: "Venta creada pero hubo problemas actualizando el stock",
-            variant: "destructive",
-          })
-        }
-      }
-
-      // Generar número de venta
-      const fecha = new Date(ventaCreada.created_at)
-      const numeroVenta = `V-${fecha.getFullYear()}-${ventaCreada.id.slice(-6).toUpperCase()}`
 
       // Limpiar formulario
       setCarrito([])
@@ -751,9 +663,6 @@ export default function VentasPage() {
       setProductoPersonalizado({ nombre: "", precio: "" })
       setSearchProducto("")
       setIsNewSaleDialogOpen(false)
-
-      // Recargar datos
-      await cargarDatos()
 
       toast({
         title: "¡Venta creada exitosamente!",

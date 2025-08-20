@@ -45,7 +45,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
 import { useNotifications } from "@/hooks/use-notifications"
-import { createClient } from "@/lib/supabase/client"
+// import { createClient } from "@/lib/supabase/client" // REMOVIDO PARA MODO MOCK
 import type { ComponentType } from "react"
 
 interface Producto {
@@ -86,6 +86,74 @@ interface ProductoFormErrors {
   descripcion?: string
   imagen_url?: string
 }
+
+// Datos mock por defecto
+const productosMock: Producto[] = [
+  {
+    id: "1",
+    sku: "SEM-001",
+    categoria_id: "1",
+    nombre: "Semillas OG Kush Feminizadas",
+    descripcion: "Semillas premium de cannabis OG Kush, variedad feminizada de alta calidad",
+    categoria: "Semillas",
+    precio: 2500,
+    costo: 1500,
+    stock: 50,
+    stock_minimo: 10,
+    imagen_url: "/public/cannabis-seeds-pack.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "2",
+    sku: "FERT-001",
+    categoria_id: "2",
+    nombre: "Fertilizante Orgánico Premium",
+    descripcion: "Nutriente completo para todas las etapas del cultivo, 100% orgánico",
+    categoria: "Fertilizantes",
+    precio: 1800,
+    costo: 900,
+    stock: 25,
+    stock_minimo: 5,
+    imagen_url: "/public/placeholder-ivbba.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "3",
+    sku: "LED-001",
+    categoria_id: "3",
+    nombre: "Panel LED 600W Full Spectrum",
+    descripcion: "Sistema de iluminación LED profesional para cultivo interior",
+    categoria: "Iluminación",
+    precio: 45000,
+    costo: 30000,
+    stock: 8,
+    stock_minimo: 2,
+    imagen_url: "/public/hydroponic-dwc-system.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "4",
+    sku: "SUST-001",
+    categoria_id: "4",
+    nombre: "Sustrato Premium Mix",
+    descripcion: "Mezcla especializada de tierras para cultivo de cannabis",
+    categoria: "Sustratos",
+    precio: 1200,
+    costo: 600,
+    stock: 30,
+    stock_minimo: 8,
+    imagen_url: "/public/placeholder-s06h6.png",
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
 
 // Función de validación para productos
 const validateProductoForm = (formData: ProductoFormData): ProductoFormErrors => {
@@ -216,16 +284,21 @@ export default function ProductosPage() {
 
   const cargarProductos = async () => {
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase.from("productos").select("*").order("created_at", { ascending: false })
-
-      if (error) throw error
-
-      console.log(`Productos cargados: ${data?.length || 0}`)
-      setProductos(data || [])
+      // En modo mock, cargar desde localStorage o usar datos por defecto
+      const productosGuardados = localStorage.getItem('crm-productos')
+      if (productosGuardados) {
+        setProductos(JSON.parse(productosGuardados))
+      } else {
+        // Primera vez: guardar datos mock
+        localStorage.setItem('crm-productos', JSON.stringify(productosMock))
+        setProductos(productosMock)
+      }
+      console.log(`Productos cargados: ${productosMock.length}`)
     } catch (error) {
       console.error("Error cargando productos:", error)
-      showError("Error", "No se pudieron cargar los productos")
+      showError("Error al cargar productos")
+      // En caso de error, usar datos mock
+      setProductos(productosMock)
     } finally {
       setIsLoading(false)
     }
@@ -445,35 +518,41 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setFormErrors({})
 
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("productos")
-        .insert([
-          {
-            nombre: formData.nombre.trim(),
-            descripcion: formData.descripcion.trim() || null,
-            categoria: formData.categoria,
-            precio: parseFloat(formData.precio),
-            costo: parseFloat(formData.costo),
-            stock: parseInt(formData.stock) || 0,
-            stock_minimo: parseInt(formData.stock_minimo) || 5,
-            imagen_url: formData.imagen_url.trim() || null,
-            activo: true,
-          },
-        ])
-        .select()
-
-      if (error) throw error
-
-      if (data) {
-        setProductos((prev) => [data[0], ...prev])
-        resetForm()
-        setIsAddDialogOpen(false)
-        showProductoCreated()
+      // Generar ID único y SKU
+      const id = Date.now().toString()
+      const sku = `PRO-${Date.now().toString().slice(-3)}`
+      const categoria_id = `${formData.categoria.toUpperCase().slice(0, 3)}-${Date.now().toString().slice(-3)}`
+      
+      const nuevoProducto: Producto = {
+        id,
+        sku,
+        categoria_id,
+        nombre: formData.nombre.trim(),
+        descripcion: formData.descripcion.trim() || null,
+        categoria: formData.categoria,
+        precio: parseFloat(formData.precio),
+        costo: parseFloat(formData.costo),
+        stock: parseInt(formData.stock) || 0,
+        stock_minimo: parseInt(formData.stock_minimo) || 5,
+        imagen_url: formData.imagen_url.trim() || null,
+        activo: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
+
+      // Actualizar localStorage
+      const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
+      const productosActualizados = [nuevoProducto, ...productosActuales]
+      localStorage.setItem('crm-productos', JSON.stringify(productosActualizados))
+
+      // Actualizar el estado local
+      setProductos(productosActualizados)
+      resetForm()
+      setIsAddDialogOpen(false)
+      showProductoCreated()
     } catch (error) {
       console.error("Error adding product:", error)
-      showError("Error", "No se pudo agregar el producto")
+      showError("Error al agregar producto")
     }
   }
 
@@ -510,32 +589,31 @@ export default function ProductosPage() {
       // Limpiar errores previos
       setEditFormErrors({})
 
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from("productos")
-        .update({
-          nombre: editFormData.nombre.trim(),
-          descripcion: editFormData.descripcion.trim() || null,
-          categoria: editFormData.categoria,
-          precio: parseFloat(editFormData.precio),
-          costo: parseFloat(editFormData.costo),
-          stock: parseInt(editFormData.stock) || 0,
-          stock_minimo: parseInt(editFormData.stock_minimo) || 5,
-          imagen_url: editFormData.imagen_url.trim() || null,
-        })
-        .eq("id", editingProduct.id)
-        .select()
+      // Actualizar localStorage
+      const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
+      const productosActualizados = productosActuales.map((product: Producto) => 
+        product.id === editingProduct.id 
+          ? { 
+              ...product,
+              nombre: editFormData.nombre.trim(),
+              descripcion: editFormData.descripcion.trim() || null,
+              categoria: editFormData.categoria,
+              precio: parseFloat(editFormData.precio),
+              costo: parseFloat(editFormData.costo),
+              stock: parseInt(editFormData.stock) || 0,
+              stock_minimo: parseInt(editFormData.stock_minimo) || 5,
+              imagen_url: editFormData.imagen_url.trim() || null,
+              updated_at: new Date().toISOString(),
+            }
+          : product
+      )
+      localStorage.setItem('crm-productos', JSON.stringify(productosActualizados))
 
-      if (error) throw error
-
-      if (data) {
-        setProductos((prev) =>
-          prev.map((product) => (product.id === editingProduct.id ? data[0] : product)),
-        )
-        setIsEditDialogOpen(false)
-        setEditingProduct(null)
-        showProductoUpdated()
-      }
+      // Actualizar el estado local
+      setProductos(productosActualizados)
+      setIsEditDialogOpen(false)
+      setEditingProduct(null)
+      showProductoUpdated()
     } catch (error) {
       console.error("Error updating product:", error)
       showError("Error", "No se pudieron guardar los cambios")
@@ -544,17 +622,17 @@ export default function ProductosPage() {
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-      const supabase = createClient()
-      const { error } = await supabase.from("productos").delete().eq("id", productId)
-
-      if (error) throw error
+      // Actualizar localStorage
+      const productosActuales = JSON.parse(localStorage.getItem('crm-productos') || '[]')
+      const productosFiltrados = productosActuales.filter((producto: Producto) => producto.id !== productId)
+      localStorage.setItem('crm-productos', JSON.stringify(productosFiltrados))
 
       // Actualizar la lista local
-      setProductos(productos.filter((producto: Producto) => producto.id !== productId))
+      setProductos(productosFiltrados)
       showProductoDeleted()
     } catch (error) {
       console.error("Error eliminando producto:", error)
-      showError("Error", "No se pudo eliminar el producto")
+      showError("Error al eliminar producto")
     }
   }
 
