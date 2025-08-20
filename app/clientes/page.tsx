@@ -172,6 +172,7 @@ export default function ClientesPage() {
   const { showError, showSuccess } = useNotifications()
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -200,16 +201,26 @@ export default function ClientesPage() {
     notas: "",
   })
 
+  // Verificar que el componente esté montado (hidratación)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const loadClientes = async () => {
     try {
       setLoading(true)
-      // En modo mock, cargar desde localStorage o usar datos por defecto
-      const clientesGuardados = localStorage.getItem('crm-clientes')
-      if (clientesGuardados) {
-        setClientes(JSON.parse(clientesGuardados))
+      // Solo cargar desde localStorage si estamos en el cliente
+      if (typeof window !== 'undefined') {
+        const clientesGuardados = localStorage.getItem('crm-clientes')
+        if (clientesGuardados) {
+          setClientes(JSON.parse(clientesGuardados))
+        } else {
+          // Primera vez: guardar datos mock
+          localStorage.setItem('crm-clientes', JSON.stringify(clientesMock))
+          setClientes(clientesMock)
+        }
       } else {
-        // Primera vez: guardar datos mock
-        localStorage.setItem('crm-clientes', JSON.stringify(clientesMock))
+        // En el servidor, usar datos mock
         setClientes(clientesMock)
       }
     } catch (error) {
@@ -221,6 +232,13 @@ export default function ClientesPage() {
       setLoading(false)
     }
   }
+
+  // Solo cargar clientes cuando el componente esté montado
+  useEffect(() => {
+    if (mounted) {
+      loadClientes()
+    }
+  }, [mounted])
 
   const handleAddCliente = async () => {
     try {
@@ -370,7 +388,7 @@ export default function ClientesPage() {
     setIsEditDialogOpen(true)
   }
 
-  const openViewDialog = (cliente: Cliente) => {
+  const handleViewCliente = (cliente: Cliente) => {
     setViewingCliente(cliente)
     setIsViewDialogOpen(true)
   }
@@ -402,10 +420,6 @@ export default function ClientesPage() {
     cliente.ciudad.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  useEffect(() => {
-    loadClientes()
-  }, [])
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -425,278 +439,312 @@ export default function ClientesPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto p-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
-            <p className="text-muted-foreground">
-              Gestiona tu base de datos de clientes
-            </p>
+      <div className="lg:ml-64">
+        <div className="container mx-auto p-4 lg:p-6">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl lg:text-3xl font-bold text-foreground mb-2">Gestión de Clientes</h1>
+            <p className="text-muted-foreground">Administra tu base de datos de clientes</p>
           </div>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Nuevo Cliente
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
-                <DialogDescription>
-                  Completa la información del nuevo cliente
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="nombre">Nombre *</Label>
-                    <Input
-                      id="nombre"
-                      value={newClienteForm.nombre}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, nombre: e.target.value })}
-                      className={formErrors.nombre ? "border-red-500" : ""}
-                      placeholder="Nombre completo"
-                    />
-                    {formErrors.nombre && (
-                      <p className="text-sm text-red-500">{formErrors.nombre}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newClienteForm.email}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, email: e.target.value })}
-                      className={formErrors.email ? "border-red-500" : ""}
-                      placeholder="email@ejemplo.com"
-                    />
-                    {formErrors.email && (
-                      <p className="text-sm text-red-500">{formErrors.email}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="telefono">Teléfono *</Label>
-                    <Input
-                      id="telefono"
-                      value={newClienteForm.telefono}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, telefono: e.target.value })}
-                      className={formErrors.telefono ? "border-red-500" : ""}
-                      placeholder="+54 11 1234-5678"
-                    />
-                    {formErrors.telefono && (
-                      <p className="text-sm text-red-500">{formErrors.telefono}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="direccion">Dirección *</Label>
-                    <Input
-                      id="direccion"
-                      value={newClienteForm.direccion}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, direccion: e.target.value })}
-                      className={formErrors.direccion ? "border-red-500" : ""}
-                      placeholder="Dirección completa"
-                    />
-                    {formErrors.direccion && (
-                      <p className="text-sm text-red-500">{formErrors.direccion}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="ciudad">Ciudad *</Label>
-                    <Input
-                      id="ciudad"
-                      value={newClienteForm.ciudad}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, ciudad: e.target.value })}
-                      className={formErrors.ciudad ? "border-red-500" : ""}
-                      placeholder="Ciudad"
-                    />
-                    {formErrors.ciudad && (
-                      <p className="text-sm text-red-500">{formErrors.ciudad}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="provincia">Provincia *</Label>
-                    <Input
-                      id="provincia"
-                      value={newClienteForm.provincia}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, provincia: e.target.value })}
-                      className={formErrors.provincia ? "border-red-500" : ""}
-                      placeholder="Provincia"
-                    />
-                    {formErrors.provincia && (
-                      <p className="text-sm text-red-500">{formErrors.provincia}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="codigo_postal">Código Postal *</Label>
-                    <Input
-                      id="codigo_postal"
-                      value={newClienteForm.codigo_postal}
-                      onChange={(e) => setNewClienteForm({ ...newClienteForm, codigo_postal: e.target.value })}
-                      className={formErrors.codigo_postal ? "border-red-500" : ""}
-                      placeholder="1234"
-                    />
-                    {formErrors.codigo_postal && (
-                      <p className="text-sm text-red-500">{formErrors.codigo_postal}</p>
-                    )}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notas">Notas</Label>
-                  <Textarea
-                    id="notas"
-                    value={newClienteForm.notas}
-                    onChange={(e) => setNewClienteForm({ ...newClienteForm, notas: e.target.value })}
-                    placeholder="Información adicional del cliente"
-                    rows={3}
-                  />
-                </div>
+
+          {/* Controles superiores */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Buscar clientes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancelar
+            </div>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="w-full sm:w-auto">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Agregar Cliente
                 </Button>
-                <Button onClick={handleAddCliente} className="bg-green-600 hover:bg-green-700">
-                  Crear Cliente
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar clientes por nombre, email, teléfono o ciudad..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Clientes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredClientes.map((cliente) => (
-            <Card key={cliente.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-1">
-                      <Mail className="h-4 w-4" />
-                      {cliente.email}
-                    </CardDescription>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
+                  <DialogDescription>
+                    Completa la información del cliente
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleAddCliente} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="nombre">Nombre *</Label>
+                      <Input
+                        id="nombre"
+                        value={newClienteForm.nombre}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, nombre: e.target.value })}
+                        className={formErrors.nombre ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.nombre && (
+                        <p className="text-sm text-red-500">{formErrors.nombre}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="email">Email *</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={newClienteForm.email}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, email: e.target.value })}
+                        className={formErrors.email ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.email && (
+                        <p className="text-sm text-red-500">{formErrors.email}</p>
+                      )}
+                    </div>
                   </div>
-                  <Badge
-                    variant={cliente.estado === "Activo" ? "default" : "secondary"}
-                    className={`${
-                      cliente.estado === "Activo"
-                        ? "bg-green-100 text-green-800 border-green-300"
-                        : "bg-gray-100 text-gray-800 border-gray-300"
-                    }`}
-                  >
-                    {cliente.estado}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  {cliente.telefono}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {cliente.ciudad}, {cliente.provincia}
-                </div>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <ShoppingBag className="h-4 w-4" />
-                  Registrado: {new Date(cliente.fecha_registro).toLocaleDateString()}
-                </div>
-                <div className="flex justify-end gap-2 pt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openViewDialog(cliente)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openEditDialog(cliente)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCliente(cliente.id)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                  >
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredClientes.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              {searchTerm ? "No se encontraron clientes" : "No hay clientes registrados"}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm
-                ? "Intenta con otros términos de búsqueda"
-                : "Comienza agregando tu primer cliente"}
-            </p>
-            {!searchTerm && (
-              <Button onClick={() => setIsAddDialogOpen(true)} className="bg-green-600 hover:bg-green-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Agregar Cliente
-              </Button>
-            )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="telefono">Teléfono *</Label>
+                      <Input
+                        id="telefono"
+                        value={newClienteForm.telefono}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, telefono: e.target.value })}
+                        className={formErrors.telefono ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.telefono && (
+                        <p className="text-sm text-red-500">{formErrors.telefono}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="direccion">Dirección *</Label>
+                      <Input
+                        id="direccion"
+                        value={newClienteForm.direccion}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, direccion: e.target.value })}
+                        className={formErrors.direccion ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.direccion && (
+                        <p className="text-sm text-red-500">{formErrors.direccion}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="ciudad">Ciudad *</Label>
+                      <Input
+                        id="ciudad"
+                        value={newClienteForm.ciudad}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, ciudad: e.target.value })}
+                        className={formErrors.ciudad ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.ciudad && (
+                        <p className="text-sm text-red-500">{formErrors.ciudad}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="provincia">Provincia *</Label>
+                      <Input
+                        id="provincia"
+                        value={newClienteForm.provincia}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, provincia: e.target.value })}
+                        className={formErrors.provincia ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.provincia && (
+                        <p className="text-sm text-red-500">{formErrors.provincia}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="codigo_postal">Código Postal *</Label>
+                      <Input
+                        id="codigo_postal"
+                        value={newClienteForm.codigo_postal}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, codigo_postal: e.target.value })}
+                        className={formErrors.codigo_postal ? "border-red-500" : ""}
+                        required
+                      />
+                      {formErrors.codigo_postal && (
+                        <p className="text-sm text-red-500">{formErrors.codigo_postal}</p>
+                      )}
+                    </div>
+                    <div>
+                      <Label htmlFor="notas">Notas</Label>
+                      <Input
+                        id="notas"
+                        value={newClienteForm.notas}
+                        onChange={(e) => setNewClienteForm({ ...newClienteForm, notas: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                      Cancelar
+                    </Button>
+                    <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                      Agregar Cliente
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
-        )}
 
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Editar Cliente</DialogTitle>
-              <DialogDescription>
-                Modifica la información del cliente
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
+          {/* Lista de clientes */}
+          <div className="grid gap-4">
+            {filteredClientes.map((cliente) => (
+              <Card key={cliente.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4 lg:p-6">
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-3">
+                        <div className="bg-primary/10 p-2 rounded-lg">
+                          <Users className="h-5 w-5 text-primary" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-lg">{cliente.nombre}</h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2 text-sm text-muted-foreground">
+                            {cliente.telefono && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4" />
+                                <span>{cliente.telefono}</span>
+                              </div>
+                            )}
+                            {cliente.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4" />
+                                <span>{cliente.email}</span>
+                              </div>
+                            )}
+                            {cliente.ciudad && (
+                              <div className="flex items-center gap-2">
+                                <MapPin className="h-4 w-4" />
+                                <span>{cliente.ciudad}, {cliente.provincia}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewCliente(cliente)}
+                        className="w-full sm:w-auto"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openEditDialog(cliente)}
+                        className="w-full sm:w-auto"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Editar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteCliente(cliente.id)}
+                        className="w-full sm:w-auto text-destructive hover:text-destructive"
+                      >
+                        <Trash className="h-4 w-4 mr-2" />
+                        Eliminar
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {filteredClientes.length === 0 && (
+            <div className="text-center py-12">
+              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">No hay clientes</h3>
+              <p className="text-muted-foreground">Comienza agregando tu primer cliente</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Diálogo de vista de cliente */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Detalles del Cliente</DialogTitle>
+          </DialogHeader>
+          {viewingCliente && (
+            <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Nombre</Label>
+                  <p className="text-sm">{viewingCliente.nombre}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                  <p className="text-sm">{viewingCliente.email}</p>
+                </div>
+              </div>
+              {viewingCliente.telefono && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
+                  <p className="text-sm">{viewingCliente.telefono}</p>
+                </div>
+              )}
+              {viewingCliente.direccion && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Dirección</Label>
+                  <p className="text-sm">{viewingCliente.direccion}</p>
+                </div>
+              )}
+              {viewingCliente.ciudad && (
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Ciudad</Label>
+                  <p className="text-sm">{viewingCliente.ciudad}, {viewingCliente.provincia} {viewingCliente.codigo_postal}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo de edición */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogDescription>
+              Modifica la información del cliente
+            </DialogDescription>
+          </DialogHeader>
+          {editingCliente && (
+            <form onSubmit={handleEditCliente} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="edit-nombre">Nombre *</Label>
                   <Input
                     id="edit-nombre"
                     value={editForm.nombre}
                     onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })}
                     className={formErrors.nombre ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.nombre && (
                     <p className="text-sm text-red-500">{formErrors.nombre}</p>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="edit-email">Email *</Label>
                   <Input
                     id="edit-email"
@@ -704,6 +752,7 @@ export default function ClientesPage() {
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                     className={formErrors.email ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.email && (
                     <p className="text-sm text-red-500">{formErrors.email}</p>
@@ -711,160 +760,96 @@ export default function ClientesPage() {
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="edit-telefono">Teléfono *</Label>
                   <Input
                     id="edit-telefono"
                     value={editForm.telefono}
                     onChange={(e) => setEditForm({ ...editForm, telefono: e.target.value })}
                     className={formErrors.telefono ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.telefono && (
                     <p className="text-sm text-red-500">{formErrors.telefono}</p>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="edit-direccion">Dirección *</Label>
                   <Input
                     id="edit-direccion"
                     value={editForm.direccion}
                     onChange={(e) => setEditForm({ ...editForm, direccion: e.target.value })}
                     className={formErrors.direccion ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.direccion && (
                     <p className="text-sm text-red-500">{formErrors.direccion}</p>
                   )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="edit-ciudad">Ciudad *</Label>
                   <Input
                     id="edit-ciudad"
                     value={editForm.ciudad}
                     onChange={(e) => setEditForm({ ...editForm, ciudad: e.target.value })}
                     className={formErrors.ciudad ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.ciudad && (
                     <p className="text-sm text-red-500">{formErrors.ciudad}</p>
                   )}
                 </div>
-                <div className="space-y-2">
+                <div>
                   <Label htmlFor="edit-provincia">Provincia *</Label>
                   <Input
                     id="edit-provincia"
                     value={editForm.provincia}
                     onChange={(e) => setEditForm({ ...editForm, provincia: e.target.value })}
                     className={formErrors.provincia ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.provincia && (
                     <p className="text-sm text-red-500">{formErrors.provincia}</p>
                   )}
                 </div>
-                <div className="space-y-2">
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
                   <Label htmlFor="edit-codigo_postal">Código Postal *</Label>
                   <Input
                     id="edit-codigo_postal"
                     value={editForm.codigo_postal}
                     onChange={(e) => setEditForm({ ...editForm, codigo_postal: e.target.value })}
                     className={formErrors.codigo_postal ? "border-red-500" : ""}
+                    required
                   />
                   {formErrors.codigo_postal && (
                     <p className="text-sm text-red-500">{formErrors.codigo_postal}</p>
                   )}
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit-notas">Notas</Label>
-                <Textarea
-                  id="edit-notas"
-                  value={editForm.notas}
-                  onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
-                  rows={3}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={closeEditDialog}>
-                Cancelar
-              </Button>
-              <Button onClick={handleEditCliente} className="bg-green-600 hover:bg-green-700">
-                Guardar Cambios
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-
-        {/* View Dialog */}
-        <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Detalles del Cliente</DialogTitle>
-              <DialogDescription>
-                Información completa del cliente
-              </DialogDescription>
-            </DialogHeader>
-            {viewingCliente && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Nombre</Label>
-                    <p className="text-sm">{viewingCliente.nombre}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Email</Label>
-                    <p className="text-sm">{viewingCliente.email}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Teléfono</Label>
-                    <p className="text-sm">{viewingCliente.telefono}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Estado</Label>
-                    <Badge
-                      variant={viewingCliente.estado === "Activo" ? "default" : "secondary"}
-                      className={`${
-                        viewingCliente.estado === "Activo"
-                          ? "bg-green-100 text-green-800 border-green-300"
-                          : "bg-gray-100 text-gray-800 border-gray-300"
-                      }`}
-                    >
-                      {viewingCliente.estado}
-                    </Badge>
-                  </div>
-                </div>
                 <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Dirección</Label>
-                  <p className="text-sm">
-                    {viewingCliente.direccion}, {viewingCliente.ciudad}, {viewingCliente.provincia} {viewingCliente.codigo_postal}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-muted-foreground">Notas</Label>
-                  <p className="text-sm">{viewingCliente.notas || "Sin notas"}</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Fecha de Registro</Label>
-                    <p className="text-sm">{new Date(viewingCliente.fecha_registro).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <Label className="text-sm font-medium text-muted-foreground">Última Actualización</Label>
-                    <p className="text-sm">{new Date(viewingCliente.updated_at).toLocaleDateString()}</p>
-                  </div>
+                  <Label htmlFor="edit-notas">Notas</Label>
+                  <Input
+                    id="edit-notas"
+                    value={editForm.notas}
+                    onChange={(e) => setEditForm({ ...editForm, notas: e.target.value })}
+                  />
                 </div>
               </div>
-            )}
-            <div className="flex justify-end">
-              <Button variant="outline" onClick={() => setIsViewDialogOpen(false)}>
-                Cerrar
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancelar
+                </Button>
+                <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                  Guardar Cambios
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

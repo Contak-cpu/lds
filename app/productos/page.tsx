@@ -21,6 +21,8 @@ import {
 } from "lucide-react"
 import { useCategorias } from "@/hooks/use-categorias"
 import { CategoriaQuickAdd } from "@/components/categoria-quick-add"
+import { ProductoImage } from "@/components/producto-image"
+import { CategoriaIcon } from "@/components/categoria-icon"
 import {
   Dialog,
   DialogContent,
@@ -662,16 +664,7 @@ export default function ProductosPage() {
   }, [searchTerm, productos, filteredProductos])
 
   const getCategoriaIcon = (categoria: string) => {
-    const iconMap: Record<string, ComponentType<{ className?: string }>> = {
-      Kits: Package,
-      Semillas: Leaf,
-      Fertilizantes: Droplets,
-      Iluminación: Lightbulb,
-      Hidroponía: Thermometer,
-      Herramientas: Scissors,
-    }
-    const IconComponent = iconMap[categoria] || Package
-    return <IconComponent className="h-4 w-4" />
+    return <CategoriaIcon categoria={categoria} size={16} />
   }
 
   const calcularGanancia = (precio: number, costo: number): number => {
@@ -824,10 +817,12 @@ export default function ProductosPage() {
             {filteredProductos.map((producto: Producto) => (
               <Card key={producto.id} className="bg-card border-border hover:shadow-lg transition-shadow">
                 <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={producto.imagen_url || "/professional-pruning-scissors.png"}
-                    alt={producto.nombre}
-                    className="w-full h-full object-cover"
+                  <ProductoImage
+                    imagenUrl={producto.imagen_url}
+                    categoria={producto.categoria}
+                    nombre={producto.nombre}
+                    size={200}
+                    className="w-full h-full"
                   />
                   <div className="absolute top-2 right-2">{getStockBadge(producto)}</div>
                 </div>
@@ -870,10 +865,12 @@ export default function ProductosPage() {
                         </DialogHeader>
                         <div className="grid grid-cols-2 gap-6 py-4">
                           <div className="space-y-4">
-                            <img
-                              src={producto.imagen_url || "/professional-pruning-scissors.png"}
-                              alt={producto.nombre}
-                              className="w-full aspect-square object-cover rounded-lg"
+                            <ProductoImage
+                              imagenUrl={producto.imagen_url}
+                              categoria={producto.categoria}
+                              nombre={producto.nombre}
+                              size={300}
+                              className="w-full aspect-square"
                             />
                           </div>
                           <div className="space-y-4">

@@ -39,6 +39,8 @@ import { toast } from "@/hooks/use-toast"
 // import { createClient } from "@/lib/supabase/client" // REMOVIDO PARA MODO MOCK
 import { DateFilter } from "@/components/ui/date-filter"
 import { useDateFilter } from "@/hooks/use-date-filter"
+import { ProductoImage } from "@/components/producto-image"
+import { CategoriaIcon } from "@/components/categoria-icon"
 
 interface Cliente {
   id: string
@@ -1157,16 +1159,23 @@ export default function VentasPage() {
                             <div className="space-y-2">
                               {carrito.map((item: ProductoCarrito) => (
                                 <div key={item.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                  <div className="flex-1">
-                                    <div className="text-sm font-medium">
-                                      {item.nombre}
-                                      {item.esPersonalizado && (
-                                        <Badge variant="secondary" className="ml-2 text-xs">
-                                          Personalizado
-                                        </Badge>
-                                      )}
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <ProductoIcon
+                                      categoria={item.categoria}
+                                      nombre={item.nombre}
+                                      size={32}
+                                    />
+                                    <div>
+                                      <div className="text-sm font-medium">
+                                        {item.nombre}
+                                        {item.esPersonalizado && (
+                                          <Badge variant="secondary" className="ml-2 text-xs">
+                                            Personalizado
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="text-xs text-gray-600">${item.precio.toLocaleString()} c/u</div>
                                     </div>
-                                    <div className="text-xs text-gray-600">${item.precio.toLocaleString()} c/u</div>
                                   </div>
                                   <div className="flex items-center space-x-2">
                                     <Button
@@ -1253,10 +1262,17 @@ export default function VentasPage() {
                           key={producto.id}
                           className="flex items-center justify-between p-3 border border-border rounded-lg bg-card"
                         >
-                          <div className="flex-1">
-                            <div className="text-sm font-medium text-card-foreground">{producto.nombre}</div>
-                            <div className="text-xs text-muted-foreground">
-                              ${producto.precio.toLocaleString()} - Stock: {producto.stock}
+                          <div className="flex items-center gap-3 flex-1">
+                            <ProductoIcon
+                              categoria={producto.categoria}
+                              nombre={producto.nombre}
+                              size={32}
+                            />
+                            <div>
+                              <div className="text-sm font-medium text-card-foreground">{producto.nombre}</div>
+                              <div className="text-xs text-muted-foreground">
+                                ${producto.precio.toLocaleString()} - Stock: {producto.stock}
+                              </div>
                             </div>
                           </div>
                           <Button
