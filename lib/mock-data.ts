@@ -414,5 +414,4 @@ class MockDataService {
 // Exportar instancia única del servicio
 export const mockDataService = new MockDataService()
 
-// Exportar tipos para uso en otros archivos
-export type { Categoria, Producto, Cliente, Venta, VentaDetalle, Egreso, MetricasDashboard, ProductoMasVendido }
+// Los tipos ya están exportados individualmente arriba

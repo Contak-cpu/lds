@@ -262,7 +262,7 @@ export default function EgresosPage() {
         monto: Number.parseFloat(formData.monto),
         proveedor: formData.proveedor.trim(),
         metodo_pago: formData.metodo_pago,
-        notas: formData.notas.trim() || undefined,
+        notas: formData.notas?.trim() || undefined,
       })
 
       // Actualizar la lista local
