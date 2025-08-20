@@ -1,0 +1,5 @@
+[33m79599c8[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Merge: Resolver conflicto en README.md y unificar documentación del proyecto
+[33m449df6f[m feat: Transformar proyecto a Los de Siempre Sneakers CRM con datos mockeados locales - Cambio de identidad de Growshop a tienda de zapatillas - Implementación de sistema de datos mockeados sin Supabase - Corrección de errores de colores en modo oscuro - Datos de prueba completos para zapatillas deportivas - Scripts de inicio rápido para Windows y Linux - Documentación completa para versión local
+[33m63d1a4f[m Initial commit
+[33m33c4335[m Fix: Corregir discrepancia en conteo de productos del dashboard - ahora muestra Total Productos en lugar de suma de stock
+[33m8123691[m Fix: Agregar verificaciones de seguridad para campos null en la búsqueda de productos

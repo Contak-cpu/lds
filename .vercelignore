@@ -1,0 +1,52 @@
+# Archivos de desarrollo
+.env.local
+.env.development
+.env.test
+
+# Archivos de testing
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+jest.config.js
+jest.setup.js
+
+# Archivos de desarrollo local
+start.bat
+start.sh
+test-*.js
+test-*.ts
+
+# Archivos de configuración local
+project.config.json
+env.local.example
+
+# Scripts SQL (no necesarios en producción)
+scripts/*.sql
+
+# Archivos de documentación adicional
+README_LOCAL.md
+README_SNEAKERS.md
+SOLUCION_*.md
+TEMA_IMPLEMENTACION.md
+NOTIFICACIONES_IMPLEMENTACION.md
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencias de desarrollo
+node_modules/
+.next/
+out/
+
+# Archivos temporales
+*.tmp
+*.temp
