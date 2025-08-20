@@ -205,7 +205,7 @@ export default function ClientesPage() {
       setLoading(true)
 
       // Cargar clientes desde localStorage (modo mock)
-      const clientesMock = [
+      const clientesMock: Cliente[] = [
         {
           id: "1",
           nombre: "Juan Pérez",
@@ -217,7 +217,7 @@ export default function ClientesPage() {
           codigo_postal: "C1043AAZ",
           fecha_registro: "2024-01-15",
           notas: "Cliente frecuente",
-          estado: "activo",
+          estado: "Activo",
           created_at: "2024-01-15T10:00:00Z",
           updated_at: "2024-01-15T10:00:00Z"
         },
@@ -232,14 +232,14 @@ export default function ClientesPage() {
           codigo_postal: "C1425FOD",
           fecha_registro: "2024-01-10",
           notas: "Prefiere zapatillas deportivas",
-          estado: "activo",
+          estado: "Activo",
           created_at: "2024-01-10T14:30:00Z",
           updated_at: "2024-01-10T14:30:00Z"
         }
       ]
 
       const clientesGuardados = localStorage.getItem('clientes-sneakers')
-      const clientesData = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
+      const clientesData: Cliente[] = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
 
       setClientes(clientesData)
     } catch (error) {
@@ -266,7 +266,7 @@ export default function ClientesPage() {
       // Limpiar errores previos
       setFormErrors({})
 
-      const clienteData = {
+      const clienteData: Cliente = {
         id: Date.now().toString(),
         nombre: newClienteForm.nombre.trim(),
         email: newClienteForm.email.trim() || null,
