@@ -394,6 +394,7 @@ export default function VentasPage() {
       nombre: nombre,
       descripcion: "Producto personalizado",
       categoria: "Personalizado",
+      marca: "Personalizado",
       precio: precio,
       costo: precio * 0.7,
       stock: 999,
