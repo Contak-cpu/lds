@@ -224,7 +224,7 @@ interface CategoriaInfo {
 }
 
 export default function ProductosPage() {
-  const { showError, showProductoCreated, showProductoUpdated, showProductoDeleted } = useNotifications()
+  const { showError, showSuccess } = useNotifications()
   const { categorias: categoriasDB, cargarCategorias: recargarCategorias } = useCategorias()
   const [searchTerm, setSearchTerm] = useState("")
   const [filterCategoria, setFilterCategoria] = useState("todas")
@@ -525,7 +525,7 @@ export default function ProductosPage() {
       setProductos(productosActualizados)
       resetForm()
       setIsAddDialogOpen(false)
-      showProductoCreated()
+      showSuccess("Producto creado exitosamente")
     } catch (error) {
       console.error("Error adding product:", error)
       showError("Error al agregar producto")
@@ -590,7 +590,7 @@ export default function ProductosPage() {
 
       setIsEditDialogOpen(false)
       setEditingProduct(null)
-      showProductoUpdated()
+      showSuccess("Producto actualizado exitosamente")
     } catch (error) {
       console.error("Error updating product:", error)
       showError("Error", "No se pudieron guardar los cambios")
@@ -603,7 +603,7 @@ export default function ProductosPage() {
       const productosActualizados = productos.filter(producto => producto.id !== productId)
       localStorage.setItem('productos-sneakers', JSON.stringify(productosActualizados))
       setProductos(productosActualizados)
-      showProductoDeleted()
+      showSuccess("Producto eliminado exitosamente")
     } catch (error) {
       console.error("Error eliminando producto:", error)
       showError("Error al eliminar producto")

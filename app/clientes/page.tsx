@@ -305,7 +305,7 @@ export default function ClientesPage() {
       })
       setIsAddDialogOpen(false)
 
-      showClienteCreated()
+      showSuccess("Cliente creado exitosamente")
     } catch (error) {
       console.error("Error adding cliente:", error)
       
@@ -328,9 +328,7 @@ export default function ClientesPage() {
       const clientesActualizados = clientes.filter(c => c.id !== clienteId)
       localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
       setClientes(clientesActualizados)
-      setIsDeleteDialogOpen(false)
-      setClienteToDelete(null)
-      showClienteDeleted()
+      showSuccess("Cliente eliminado exitosamente")
 
     } catch (error) {
       console.error("Error deleting cliente:", error)
