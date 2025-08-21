@@ -80,10 +80,58 @@ export class FinancialMetricsService {
         precioVenta: 89999,
         margenGanancia: 44999,
         porcentajeMargen: 100.0,
-        ventas: 1,
-        ingresos: 89999,
-        costos: 45000,
-        gananciaNeta: 44999
+        ventas: 3,
+        ingresos: 269997,
+        costos: 135000,
+        gananciaNeta: 134997
+      },
+      {
+        id: "2",
+        nombre: "Nike LeBron 20",
+        precioCosto: 80000,
+        precioVenta: 159999,
+        margenGanancia: 79999,
+        porcentajeMargen: 100.0,
+        ventas: 3,
+        ingresos: 479997,
+        costos: 240000,
+        gananciaNeta: 239997
+      },
+      {
+        id: "3",
+        nombre: "Nike React Infinity Run 3",
+        precioCosto: 55000,
+        precioVenta: 109999,
+        margenGanancia: 54999,
+        porcentajeMargen: 100.0,
+        ventas: 3,
+        ingresos: 329997,
+        costos: 165000,
+        gananciaNeta: 164997
+      },
+      {
+        id: "4",
+        nombre: "Nike Air Jordan 38",
+        precioCosto: 90000,
+        precioVenta: 179999,
+        margenGanancia: 89999,
+        porcentajeMargen: 100.0,
+        ventas: 3,
+        ingresos: 539997,
+        costos: 270000,
+        gananciaNeta: 269997
+      },
+      {
+        id: "5",
+        nombre: "Adidas Ultraboost 22",
+        precioCosto: 65000,
+        precioVenta: 129999,
+        margenGanancia: 64999,
+        porcentajeMargen: 100.0,
+        ventas: 3,
+        ingresos: 389997,
+        costos: 195000,
+        gananciaNeta: 194997
       }
     ]
   }
@@ -237,11 +285,27 @@ export class FinancialMetricsService {
     return [
       {
         categoria: "Running",
-        ingresos: 89999,
-        costos: 45000,
+        ingresos: 989994,
+        costos: 495000,
         egresos: 600000,
-        ganancia: -555001,
-        margen: -616.7
+        ganancia: -105006,
+        margen: -10.6
+      },
+      {
+        categoria: "Basketball",
+        ingresos: 959994,
+        costos: 480000,
+        egresos: 300000,
+        ganancia: 179994,
+        margen: 18.8
+      },
+      {
+        categoria: "Lifestyle",
+        ingresos: 599994,
+        costos: 300000,
+        egresos: 200000,
+        ganancia: 99994,
+        margen: 16.7
       }
     ]
   }

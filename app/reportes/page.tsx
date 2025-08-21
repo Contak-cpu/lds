@@ -143,34 +143,35 @@ export default function ReportesPage() {
         
         // Generar datos mock para las métricas faltantes
         const ventasPeriodo: VentaPorPeriodo[] = [
-          { periodo: 'Lunes', ventas: 1, ingresos: 89999 },
-          { periodo: 'Martes', ventas: 0, ingresos: 0 },
-          { periodo: 'Miércoles', ventas: 0, ingresos: 0 },
-          { periodo: 'Jueves', ventas: 0, ingresos: 0 },
-          { periodo: 'Viernes', ventas: 0, ingresos: 0 },
-          { periodo: 'Sábado', ventas: 0, ingresos: 0 },
-          { periodo: 'Domingo', ventas: 0, ingresos: 0 }
+          { periodo: 'Lunes', ventas: 4, ingresos: 439996 },
+          { periodo: 'Martes', ventas: 5, ingresos: 519995 },
+          { periodo: 'Miércoles', ventas: 4, ingresos: 399996 },
+          { periodo: 'Jueves', ventas: 5, ingresos: 519995 },
+          { periodo: 'Viernes', ventas: 6, ingresos: 629994 },
+          { periodo: 'Sábado', ventas: 3, ingresos: 299997 },
+          { periodo: 'Domingo', ventas: 3, ingresos: 299997 }
         ]
         
         const ventasMes: VentaPorMes[] = [
-          { mes: 'Enero', ventas: 1, ingresos: 89999 },
-          { mes: 'Febrero', ventas: 0, ingresos: 0 },
-          { mes: 'Marzo', ventas: 0, ingresos: 0 }
+          { mes: 'Enero', ventas: 16, ingresos: 1599994 },
+          { mes: 'Febrero', ventas: 14, ingresos: 1399994 }
         ]
         
         const categorias: CategoriaVenta[] = [
-          { categoria: 'Running', ventas: 1, ingresos: 89999 },
-          { categoria: 'Basketball', ventas: 0, ingresos: 0 },
-          { categoria: 'Lifestyle', ventas: 0, ingresos: 0 },
-          { categoria: 'Training', ventas: 0, ingresos: 0 }
+          { categoria: 'Running', ventas: 8, ingresos: 799992 },
+          { categoria: 'Basketball', ventas: 6, ingresos: 599994 },
+          { categoria: 'Lifestyle', ventas: 6, ingresos: 599994 },
+          { categoria: 'Training', ventas: 4, ingresos: 399996 },
+          { categoria: 'Skate', ventas: 3, ingresos: 299997 },
+          { categoria: 'Tennis', ventas: 3, ingresos: 299997 }
         ]
         
         const metricasData: MetricasReporte = {
-          ventasTotales: { valor: 89999, cambio: 0, tipo: "aumento" },
-          pedidos: { valor: 1, cambio: 0, tipo: "aumento" },
-          clientesNuevos: { valor: 1, cambio: 0, tipo: "aumento" },
-          ticketPromedio: { valor: 89999, cambio: 0, tipo: "aumento" },
-          tasaConversion: { valor: 100, cambio: 0, tipo: "aumento" }
+          ventasTotales: { valor: 2999988, cambio: 15, tipo: "aumento" },
+          pedidos: { valor: 30, cambio: 12, tipo: "aumento" },
+          clientesNuevos: { valor: 10, cambio: 8, tipo: "aumento" },
+          ticketPromedio: { valor: 99999, cambio: 5, tipo: "aumento" },
+          tasaConversion: { valor: 78, cambio: 3, tipo: "aumento" }
         }
 
         setVentasPorPeriodo(ventasPeriodo)
@@ -775,7 +776,7 @@ export default function ReportesPage() {
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="text-lg font-bold truncate">Juan Pérez</div>
-                    <div className="text-sm text-purple-100">$89,999 en compras</div>
+                    <div className="text-sm text-purple-100">$269,997 en compras</div>
                   </div>
                   <Users className="h-12 w-12 text-purple-200 flex-shrink-0 ml-4" />
                 </div>

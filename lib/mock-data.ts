@@ -153,11 +153,69 @@ const clientesMock: Cliente[] = [
 ]
 
 const ventasMock: Venta[] = [
-  { id: 1, cliente_id: 1, fecha_venta: '2024-01-15', total: 89999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Air Max 270' }
+  { id: 1, cliente_id: 1, fecha_venta: '2024-01-15', total: 89999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Air Max 270' },
+  { id: 2, cliente_id: 2, fecha_venta: '2024-01-16', total: 159999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike LeBron 20' },
+  { id: 3, cliente_id: 3, fecha_venta: '2024-01-17', total: 129999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Adidas Ultraboost 22' },
+  { id: 4, cliente_id: 4, fecha_venta: '2024-01-18', total: 79999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Blazer Mid' },
+  { id: 5, cliente_id: 5, fecha_venta: '2024-01-19', total: 109999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike React Infinity Run 3' },
+  { id: 6, cliente_id: 6, fecha_venta: '2024-01-20', total: 69999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Stan Smith' },
+  { id: 7, cliente_id: 7, fecha_venta: '2024-01-21', total: 179999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Nike Air Jordan 38' },
+  { id: 8, cliente_id: 8, fecha_venta: '2024-01-22', total: 89999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Dunk Low' },
+  { id: 9, cliente_id: 9, fecha_venta: '2024-01-23', total: 149999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Harden Vol. 7' },
+  { id: 10, cliente_id: 10, fecha_venta: '2024-01-24', total: 69999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Converse Chuck Taylor' },
+  { id: 11, cliente_id: 1, fecha_venta: '2024-01-25', total: 119999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike ZoomX Vaporfly 3' },
+  { id: 12, cliente_id: 2, fecha_venta: '2024-01-26', total: 89999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Air Force 1' },
+  { id: 13, cliente_id: 3, fecha_venta: '2024-01-27', total: 139999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Adidas Dame 8' },
+  { id: 14, cliente_id: 4, fecha_venta: '2024-01-28', total: 99999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Blazer Mid' },
+  { id: 15, cliente_id: 5, fecha_venta: '2024-01-29', total: 169999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Air Jordan 38' },
+  { id: 16, cliente_id: 6, fecha_venta: '2024-01-30', total: 79999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Stan Smith' },
+  { id: 17, cliente_id: 7, fecha_venta: '2024-02-01', total: 129999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Nike React Infinity Run 3' },
+  { id: 18, cliente_id: 8, fecha_venta: '2024-02-02', total: 89999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Dunk Low' },
+  { id: 19, cliente_id: 9, fecha_venta: '2024-02-03', total: 159999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike LeBron 20' },
+  { id: 20, cliente_id: 10, fecha_venta: '2024-02-04', total: 109999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Adidas Ultraboost 22' },
+  { id: 21, cliente_id: 1, fecha_venta: '2024-02-05', total: 89999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Air Max 270' },
+  { id: 22, cliente_id: 2, fecha_venta: '2024-02-06', total: 179999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Air Jordan 38' },
+  { id: 23, cliente_id: 3, fecha_venta: '2024-02-07', total: 69999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Converse Chuck Taylor' },
+  { id: 24, cliente_id: 4, fecha_venta: '2024-02-08', total: 139999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Harden Vol. 7' },
+  { id: 25, cliente_id: 5, fecha_venta: '2024-02-09', total: 89999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Blazer Mid' },
+  { id: 26, cliente_id: 6, fecha_venta: '2024-02-10', total: 119999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike ZoomX Vaporfly 3' },
+  { id: 27, cliente_id: 7, fecha_venta: '2024-02-11', total: 99999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Nike Air Force 1' },
+  { id: 28, cliente_id: 8, fecha_venta: '2024-02-12', total: 169999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Air Jordan 38' },
+  { id: 29, cliente_id: 9, fecha_venta: '2024-02-13', total: 79999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Stan Smith' },
+  { id: 30, cliente_id: 10, fecha_venta: '2024-02-14', total: 129999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike React Infinity Run 3' }
 ]
 
 const ventasDetalleMock: VentaDetalle[] = [
-  { id: 1, venta_id: 1, producto_id: 1, cantidad: 1, precio_unitario: 89999, subtotal: 89999 }
+  { id: 1, venta_id: 1, producto_id: 1, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 2, venta_id: 2, producto_id: 4, cantidad: 1, precio_unitario: 159999, subtotal: 159999 },
+  { id: 3, venta_id: 3, producto_id: 10, cantidad: 1, precio_unitario: 129999, subtotal: 129999 },
+  { id: 4, venta_id: 4, producto_id: 9, cantidad: 1, precio_unitario: 79999, subtotal: 79999 },
+  { id: 5, venta_id: 5, producto_id: 2, cantidad: 1, precio_unitario: 109999, subtotal: 109999 },
+  { id: 6, venta_id: 6, producto_id: 16, cantidad: 1, precio_unitario: 69999, subtotal: 69999 },
+  { id: 7, venta_id: 7, producto_id: 6, cantidad: 1, precio_unitario: 179999, subtotal: 179999 },
+  { id: 8, venta_id: 8, producto_id: 8, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 9, venta_id: 9, producto_id: 13, cantidad: 1, precio_unitario: 149999, subtotal: 149999 },
+  { id: 10, venta_id: 10, producto_id: 21, cantidad: 1, precio_unitario: 59999, subtotal: 59999 },
+  { id: 11, venta_id: 11, producto_id: 3, cantidad: 1, precio_unitario: 119999, subtotal: 119999 },
+  { id: 12, venta_id: 12, producto_id: 7, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 13, venta_id: 13, producto_id: 14, cantidad: 1, precio_unitario: 139999, subtotal: 139999 },
+  { id: 14, venta_id: 14, producto_id: 9, cantidad: 1, precio_unitario: 99999, subtotal: 99999 },
+  { id: 15, venta_id: 15, producto_id: 6, cantidad: 1, precio_unitario: 169999, subtotal: 169999 },
+  { id: 16, venta_id: 16, producto_id: 16, cantidad: 1, precio_unitario: 79999, subtotal: 79999 },
+  { id: 17, venta_id: 17, producto_id: 2, cantidad: 1, precio_unitario: 129999, subtotal: 129999 },
+  { id: 18, venta_id: 18, producto_id: 8, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 19, venta_id: 19, producto_id: 4, cantidad: 1, precio_unitario: 159999, subtotal: 159999 },
+  { id: 20, venta_id: 20, producto_id: 10, cantidad: 1, precio_unitario: 109999, subtotal: 109999 },
+  { id: 21, venta_id: 21, producto_id: 1, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 22, venta_id: 22, producto_id: 6, cantidad: 1, precio_unitario: 179999, subtotal: 179999 },
+  { id: 23, venta_id: 23, producto_id: 21, cantidad: 1, precio_unitario: 69999, subtotal: 69999 },
+  { id: 24, venta_id: 24, producto_id: 13, cantidad: 1, precio_unitario: 139999, subtotal: 139999 },
+  { id: 25, venta_id: 25, producto_id: 9, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
+  { id: 26, venta_id: 26, producto_id: 3, cantidad: 1, precio_unitario: 119999, subtotal: 119999 },
+  { id: 27, venta_id: 27, producto_id: 7, cantidad: 1, precio_unitario: 99999, subtotal: 99999 },
+  { id: 28, venta_id: 28, producto_id: 6, cantidad: 1, precio_unitario: 169999, subtotal: 169999 },
+  { id: 29, venta_id: 29, producto_id: 16, cantidad: 1, precio_unitario: 79999, subtotal: 79999 },
+  { id: 30, venta_id: 30, producto_id: 2, cantidad: 1, precio_unitario: 129999, subtotal: 129999 }
 ]
 
 const egresosMock: Egreso[] = [
