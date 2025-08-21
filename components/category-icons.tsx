@@ -49,7 +49,6 @@ const categoryColorMap: Record<string, { bg: string; icon: string; border: strin
   "Herramientas": { bg: "bg-gray-50", icon: "text-gray-600", border: "border-gray-200" },
   "Control Climático": { bg: "bg-cyan-50", icon: "text-cyan-600", border: "border-cyan-200" },
   "Hidroponía": { bg: "bg-blue-50", icon: "text-blue-600", border: "border-blue-200" },
-  "Accesorios": { bg: "bg-indigo-50", icon: "text-indigo-600", border: "border-indigo-200" },
   
   // Categorías generales
   "Ropa": { bg: "bg-pink-50", icon: "text-pink-600", border: "border-pink-200" },
