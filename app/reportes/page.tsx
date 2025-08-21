@@ -16,6 +16,7 @@ import {
   FileSpreadsheet,
   FileImage,
   ShoppingCart,
+  AlertTriangle,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Navigation } from "@/components/navigation"
@@ -29,6 +30,13 @@ import { es } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
 import type { JSX } from "react/jsx-runtime"
 import { metricsService, type ProductoMasVendido } from "@/lib/metrics"
+import { financialMetricsService, type ProductoFinanciero, type BalanceFinanciero, type MetricasFinancieras } from "@/lib/financial-metrics"
+import { FinancialBalance } from "@/components/financial-balance"
+import { ProductProfitability } from "@/components/product-profitability"
+import { ExpensesBreakdown } from "@/components/expenses-breakdown"
+import { MarginAlerts } from "@/components/margin-alerts"
+import { useMarginAlerts } from "@/hooks/use-margin-alerts"
+import { AlertsPanel } from "@/components/alerts-panel"
 import { DateFilter } from "@/components/ui/date-filter"
 
 interface MetricaData {
@@ -94,8 +102,20 @@ export default function ReportesPage() {
     ticketPromedio: { valor: 0, cambio: 0, tipo: "aumento" },
     tasaConversion: { valor: 0, cambio: 0, tipo: "aumento" },
   })
+  
+  // Nuevas métricas financieras
+  const [productosFinancieros, setProductosFinancieros] = useState<ProductoFinanciero[]>([])
+  const [balanceFinanciero, setBalanceFinanciero] = useState<BalanceFinanciero | null>(null)
+  const [metricasFinancieras, setMetricasFinancieras] = useState<MetricasFinancieras | null>(null)
+  const [egresos, setEgresos] = useState<Egreso[]>([])
 
   const { toast } = useToast()
+  
+  // Hook para alertas de márgenes
+  const { generarAlertas, obtenerEstadisticas } = useMarginAlerts()
+  
+  // Estado para el panel de alertas
+  const [alertsPanelOpen, setAlertsPanelOpen] = useState(false)
 
   useEffect(() => {
     const cargarDatos = async () => {
@@ -114,8 +134,14 @@ export default function ReportesPage() {
           fechaFin = fechaFiltroRapido.to
         }
         
-        // Solo usar métodos disponibles
+        // Obtener datos de métricas básicas
         const productos = await metricsService.getProductosMasVendidos(fechaInicio, fechaFin)
+        
+        // Obtener datos financieros
+        const productosFin = await financialMetricsService.getProductosFinancieros(fechaInicio, fechaFin)
+        const balance = await financialMetricsService.getBalanceFinanciero(fechaInicio, fechaFin)
+        const metricasFin = await financialMetricsService.getMetricasFinancieras(fechaInicio, fechaFin)
+        const egresosData = await financialMetricsService.getEgresos(fechaInicio, fechaFin)
         
         // Generar datos mock para las métricas faltantes
         const ventasPeriodo: VentaPorPeriodo[] = [
@@ -154,6 +180,26 @@ export default function ReportesPage() {
         setProductosMasVendidos(productos)
         setCategoriaVentas(categorias)
         setMetricas(metricasData)
+        
+        // Establecer datos financieros
+        setProductosFinancieros(productosFin)
+        setBalanceFinanciero(balance)
+        setMetricasFinancieras(metricasFin)
+        setEgresos(egresosData)
+        
+        // Generar alertas automáticas para productos con márgenes bajos
+        if (productosFin.length > 0) {
+          const productosParaAlertas = productosFin.map(p => ({
+            id: p.id,
+            nombre: p.nombre,
+            precio: p.precioVenta,
+            costo: p.precioCosto,
+            porcentajeMargen: p.porcentajeMargen,
+            categoria: "General"
+          }))
+          
+          generarAlertas(productosParaAlertas)
+        }
       } catch (error) {
         console.error("Error cargando datos:", error)
         toast({
@@ -277,6 +323,23 @@ export default function ReportesPage() {
                 <div>
                   <h1 className="text-xl font-bold text-card-foreground">Reportes y Métricas</h1>
                   <p className="text-sm text-indigo-600">Analiza el rendimiento de tu negocio</p>
+                  {/* Indicador de alertas */}
+                  {obtenerEstadisticas().tieneAlertas && (
+                    <div className="flex items-center space-x-2 mt-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <span className="text-xs text-red-600 font-medium">
+                        {obtenerEstadisticas().noLeidas} alerta{obtenerEstadisticas().noLeidas !== 1 ? 's' : ''} pendiente{obtenerEstadisticas().noLeidas !== 1 ? 's' : ''}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAlertsPanelOpen(true)}
+                        className="text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                      >
+                        Ver Alertas
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
@@ -473,6 +536,27 @@ export default function ReportesPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Nueva métrica financiera */}
+            {metricasFinancieras && (
+              <Card className="bg-card border-border">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Ganancia Neta</CardTitle>
+                  <DollarSign className="h-4 w-4 text-emerald-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-card-foreground">
+                    ${metricasFinancieras.gananciaNeta.valor.toLocaleString()}
+                  </div>
+                  <div
+                    className={`flex items-center text-xs mt-1 ${getTrendColor(metricasFinancieras.gananciaNeta.tipo)}`}
+                  >
+                    {getTrendIcon(metricasFinancieras.gananciaNeta.tipo)}
+                    <span className="ml-1">{metricasFinancieras.gananciaNeta.cambio >= 0 ? '+' : ''}{metricasFinancieras.gananciaNeta.cambio}% vs anterior</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -701,8 +785,71 @@ export default function ReportesPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Nuevas secciones financieras */}
+          {balanceFinanciero && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <DollarSign className="h-6 w-6 text-emerald-600" />
+                <span>Balance Financiero</span>
+              </h2>
+              <FinancialBalance balance={balanceFinanciero} />
+            </div>
+          )}
+
+          {productosFinancieros.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <Target className="h-6 w-6 text-blue-600" />
+                <span>Análisis de Rentabilidad</span>
+              </h2>
+              <ProductProfitability productos={productosFinancieros} />
+            </div>
+          )}
+
+          {/* Alertas de Márgenes */}
+          {productosFinancieros.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <AlertTriangle className="h-6 w-6 text-red-600" />
+                <span>Alertas de Márgenes</span>
+              </h2>
+              <MarginAlerts 
+                productos={productosFinancieros.map(p => ({
+                  id: p.id,
+                  nombre: p.nombre,
+                  precio: p.precioVenta,
+                  costo: p.precioCosto,
+                  margenGanancia: p.margenGanancia,
+                  porcentajeMargen: p.porcentajeMargen,
+                  stock: p.ventas, // Usar ventas como stock para demo
+                  categoria: "General"
+                }))}
+                onProductClick={(producto) => {
+                  // Aquí podrías navegar al producto o abrir un modal
+                  console.log("Producto seleccionado:", producto)
+                }}
+              />
+            </div>
+          )}
+
+          {egresos.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <FileText className="h-6 w-6 text-red-600" />
+                <span>Análisis de Egresos</span>
+              </h2>
+              <ExpensesBreakdown egresos={egresos} />
+            </div>
+          )}
         </main>
       </div>
+      
+      {/* Panel de Alertas */}
+      <AlertsPanel 
+        isOpen={alertsPanelOpen}
+        onClose={() => setAlertsPanelOpen(false)}
+      />
     </div>
   )
 }
