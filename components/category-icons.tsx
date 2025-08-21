@@ -69,8 +69,6 @@ const categoryColorMap: Record<string, { bg: string; icon: string; border: strin
   "default": { bg: "bg-gray-50", icon: "text-gray-600", border: "border-gray-200" }
 }
 
-
-
 const categoryIconMap: Record<string, React.ComponentType<any>> = {
   // Categorías de Sneakers
   "Running": Zap,
@@ -112,7 +110,11 @@ const categoryIconMap: Record<string, React.ComponentType<any>> = {
   "default": Package
 }
 
-export function CategoryIcon({ categoria, size = 24, className = "" }: CategoryIconProps) {
+export function CategoryIcon({ 
+  categoria, 
+  size = 24, 
+  className = "" 
+}: CategoryIconProps) {
   // Normalizar el nombre de la categoría
   const normalizedCategoria = categoria.trim()
   
@@ -157,7 +159,13 @@ export function ProductImagePlaceholder({
 }
 
 // Componente para mostrar el icono de la categoría en listas
-export function CategoryIconSmall({ categoria, className?: string }: { categoria: string, className?: string }) {
+export function CategoryIconSmall({ 
+  categoria, 
+  className = "" 
+}: { 
+  categoria: string
+  className?: string 
+}) {
   // Normalizar el nombre de la categoría
   const normalizedCategoria = categoria.trim()
   
@@ -173,7 +181,13 @@ export function CategoryIconSmall({ categoria, className?: string }: { categoria
 }
 
 // Componente para mostrar el icono de la categoría con etiqueta
-export function CategoryIconWithLabel({ categoria, className?: string }: { categoria: string, className?: string }) {
+export function CategoryIconWithLabel({ 
+  categoria, 
+  className = "" 
+}: { 
+  categoria: string
+  className?: string 
+}) {
   // Normalizar el nombre de la categoría
   const normalizedCategoria = categoria.trim()
   
