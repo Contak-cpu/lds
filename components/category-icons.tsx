@@ -114,7 +114,7 @@ const categoryIconMap: Record<string, React.ComponentType<any>> = {
 
 export function CategoryIcon({ categoria, size = 24, className = "" }: CategoryIconProps) {
   // Normalizar el nombre de la categoría
-  const normalizedCategoria = categoria?.trim() || ""
+  const normalizedCategoria = categoria.trim()
   
   // Buscar el icono y colores correspondientes
   const IconComponent = categoryIconMap[normalizedCategoria] || Package
@@ -138,7 +138,7 @@ export function ProductImagePlaceholder({
   className?: string 
 }) {
   // Normalizar el nombre de la categoría
-  const normalizedCategoria = categoria?.trim() || ""
+  const normalizedCategoria = categoria.trim()
   
   // Buscar el icono y colores correspondientes
   const IconComponent = categoryIconMap[normalizedCategoria] || Package
@@ -159,7 +159,7 @@ export function ProductImagePlaceholder({
 // Componente para mostrar el icono de la categoría en listas
 export function CategoryIconSmall({ categoria, className?: string }: { categoria: string, className?: string }) {
   // Normalizar el nombre de la categoría
-  const normalizedCategoria = categoria?.trim() || ""
+  const normalizedCategoria = categoria.trim()
   
   // Buscar el icono y colores correspondientes
   const IconComponent = categoryIconMap[normalizedCategoria] || Package
@@ -175,7 +175,7 @@ export function CategoryIconSmall({ categoria, className?: string }: { categoria
 // Componente para mostrar el icono de la categoría con etiqueta
 export function CategoryIconWithLabel({ categoria, className?: string }: { categoria: string, className?: string }) {
   // Normalizar el nombre de la categoría
-  const normalizedCategoria = categoria?.trim() || ""
+  const normalizedCategoria = categoria.trim()
   
   // Buscar el icono y colores correspondientes
   const IconComponent = categoryIconMap[normalizedCategoria] || Package

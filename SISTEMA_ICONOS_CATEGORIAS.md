@@ -271,3 +271,4 @@ El nuevo sistema de iconos de categorías transforma la experiencia visual de la
 🚀 **Sistema extensible**: Fácil agregar nuevas categorías e iconos
 
 La aplicación ahora se ve más profesional y es más fácil de usar, con una identidad visual clara para cada tipo de producto.
+
