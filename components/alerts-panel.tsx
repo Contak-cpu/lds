@@ -205,3 +205,4 @@ export function AlertsPanel({ isOpen, onClose }: AlertsPanelProps) {
   )
 }
 
+

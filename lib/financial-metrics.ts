@@ -77,37 +77,13 @@ export class FinancialMetricsService {
         id: "1",
         nombre: "Nike Air Max 270",
         precioCosto: 45000,
-        precioVenta: 75000,
-        margenGanancia: 30000,
-        porcentajeMargen: 66.67,
-        ventas: 25,
-        ingresos: 1875000,
-        costos: 1125000,
-        gananciaNeta: 750000
-      },
-      {
-        id: "2",
-        nombre: "Adidas Ultraboost 22",
-        precioCosto: 52000,
-        precioVenta: 89000,
-        margenGanancia: 37000,
-        porcentajeMargen: 71.15,
-        ventas: 18,
-        ingresos: 1602000,
-        costos: 936000,
-        gananciaNeta: 666000
-      },
-      {
-        id: "3",
-        nombre: "Jordan Air 1 Retro",
-        precioCosto: 68000,
-        precioVenta: 120000,
-        margenGanancia: 52000,
-        porcentajeMargen: 76.47,
-        ventas: 12,
-        ingresos: 1440000,
-        costos: 816000,
-        gananciaNeta: 624000
+        precioVenta: 89999,
+        margenGanancia: 44999,
+        porcentajeMargen: 100.0,
+        ventas: 1,
+        ingresos: 89999,
+        costos: 45000,
+        gananciaNeta: 44999
       }
     ]
   }
@@ -261,27 +237,11 @@ export class FinancialMetricsService {
     return [
       {
         categoria: "Running",
-        ingresos: 1500000,
-        costos: 900000,
-        egresos: 200000,
-        ganancia: 400000,
-        margen: 26.67
-      },
-      {
-        categoria: "Basketball",
-        ingresos: 1800000,
-        costos: 1080000,
-        egresos: 180000,
-        ganancia: 540000,
-        margen: 30.00
-      },
-      {
-        categoria: "Lifestyle",
-        ingresos: 1600000,
-        costos: 960000,
-        egresos: 160000,
-        ganancia: 480000,
-        margen: 30.00
+        ingresos: 89999,
+        costos: 45000,
+        egresos: 600000,
+        ganancia: -555001,
+        margen: -616.7
       }
     ]
   }

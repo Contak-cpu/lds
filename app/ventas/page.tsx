@@ -21,6 +21,7 @@ import {
   UserX,
   Zap,
   Trash2,
+  TrendingUp,
 } from "lucide-react"
 import {
   Dialog,
@@ -1205,6 +1206,126 @@ export default function VentasPage() {
               </div>
             </DialogContent>
           </Dialog>
+
+          {/* Análisis de Ingresos */}
+          {ventas.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <TrendingUp className="h-6 w-6 text-green-600" />
+                <span>Análisis de Ingresos</span>
+              </h2>
+              
+              {/* Métricas de Ingresos */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Ingresos</CardTitle>
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      ${ventas.reduce((sum, v) => sum + v.total, 0).toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {ventas.length} venta{ventas.length !== 1 ? 's' : ''} registrada{ventas.length !== 1 ? 's' : ''}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Ticket Promedio</CardTitle>
+                    <DollarSign className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      ${(ventas.reduce((sum, v) => sum + v.total, 0) / ventas.length).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Promedio por venta
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Método de Pago Principal</CardTitle>
+                    <ShoppingCart className="h-4 w-4 text-purple-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      {(() => {
+                        const metodos = ventas.reduce((acc, v) => {
+                          acc[v.metodoPago] = (acc[v.metodoPago] || 0) + 1
+                          return acc
+                        }, {} as Record<string, number>)
+                        const metodoPrincipal = Object.entries(metodos).sort(([,a], [,b]) => b - a)[0]
+                        return metodoPrincipal ? metodoPrincipal[0] : 'N/A'
+                      })()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Método más utilizado
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráfico de Ingresos por Categoría */}
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-card-foreground">
+                    Ingresos por Categoría
+                  </CardTitle>
+                  <CardDescription>
+                    Distribución de ingresos por tipo de producto
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {(() => {
+                      const categorias = ventas.reduce((acc, v) => {
+                        v.productos.forEach(p => {
+                          acc[p.categoria] = (acc[p.categoria] || 0) + (p.subtotal || 0)
+                        })
+                        return acc
+                      }, {} as Record<string, number>)
+                      
+                      const total = Object.values(categorias).reduce((sum, monto) => sum + monto, 0)
+                      
+                      return Object.entries(categorias).map(([categoria, monto]) => (
+                        <div key={categoria} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-100 flex-shrink-0">
+                              <Package className="h-4 w-4 text-green-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium text-gray-900 truncate">{categoria}</div>
+                              <div className="text-xs text-gray-500">
+                                {((monto / total) * 100).toFixed(1)}% del total
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <div className="text-sm font-semibold text-green-600">
+                              ${monto.toLocaleString()}
+                            </div>
+                            <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                              <div
+                                className="h-2 rounded-full bg-green-500"
+                                style={{
+                                  width: `${(monto / total) * 100}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </main>
       </div>
     </div>

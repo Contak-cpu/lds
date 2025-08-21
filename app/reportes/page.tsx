@@ -31,10 +31,9 @@ import { es } from "date-fns/locale"
 import type { DateRange } from "react-day-picker"
 import type { JSX } from "react/jsx-runtime"
 import { metricsService, type ProductoMasVendido } from "@/lib/metrics"
-import { financialMetricsService, type ProductoFinanciero, type BalanceFinanciero, type MetricasFinancieras, type Egreso } from "@/lib/financial-metrics"
+import { financialMetricsService, type ProductoFinanciero, type BalanceFinanciero, type MetricasFinancieras } from "@/lib/financial-metrics"
 import { FinancialBalance } from "@/components/financial-balance"
 import { ProductProfitability } from "@/components/product-profitability"
-import { ExpensesBreakdown } from "@/components/expenses-breakdown"
 import { MarginAlerts } from "@/components/margin-alerts"
 import { useMarginAlerts } from "@/hooks/use-margin-alerts"
 import { AlertsPanel } from "@/components/alerts-panel"
@@ -108,7 +107,6 @@ export default function ReportesPage() {
   const [productosFinancieros, setProductosFinancieros] = useState<ProductoFinanciero[]>([])
   const [balanceFinanciero, setBalanceFinanciero] = useState<BalanceFinanciero | null>(null)
   const [metricasFinancieras, setMetricasFinancieras] = useState<MetricasFinancieras | null>(null)
-  const [egresos, setEgresos] = useState<Egreso[]>([])
 
   const { toast } = useToast()
   
@@ -142,38 +140,37 @@ export default function ReportesPage() {
         const productosFin = await financialMetricsService.getProductosFinancieros(fechaInicio, fechaFin)
         const balance = await financialMetricsService.getBalanceFinanciero(fechaInicio, fechaFin)
         const metricasFin = await financialMetricsService.getMetricasFinancieras(fechaInicio, fechaFin)
-        const egresosData = await financialMetricsService.getEgresos(fechaInicio, fechaFin)
         
         // Generar datos mock para las métricas faltantes
         const ventasPeriodo: VentaPorPeriodo[] = [
-          { periodo: 'Lunes', ventas: 15, ingresos: 1250000 },
-          { periodo: 'Martes', ventas: 22, ingresos: 1850000 },
-          { periodo: 'Miércoles', ventas: 18, ingresos: 1500000 },
-          { periodo: 'Jueves', ventas: 25, ingresos: 2100000 },
-          { periodo: 'Viernes', ventas: 30, ingresos: 2500000 },
-          { periodo: 'Sábado', ventas: 35, ingresos: 3000000 },
-          { periodo: 'Domingo', ventas: 20, ingresos: 1700000 }
+          { periodo: 'Lunes', ventas: 1, ingresos: 89999 },
+          { periodo: 'Martes', ventas: 0, ingresos: 0 },
+          { periodo: 'Miércoles', ventas: 0, ingresos: 0 },
+          { periodo: 'Jueves', ventas: 0, ingresos: 0 },
+          { periodo: 'Viernes', ventas: 0, ingresos: 0 },
+          { periodo: 'Sábado', ventas: 0, ingresos: 0 },
+          { periodo: 'Domingo', ventas: 0, ingresos: 0 }
         ]
         
         const ventasMes: VentaPorMes[] = [
-          { mes: 'Enero', ventas: 450, ingresos: 38000000 },
-          { mes: 'Febrero', ventas: 520, ingresos: 44000000 },
-          { mes: 'Marzo', ventas: 480, ingresos: 41000000 }
+          { mes: 'Enero', ventas: 1, ingresos: 89999 },
+          { mes: 'Febrero', ventas: 0, ingresos: 0 },
+          { mes: 'Marzo', ventas: 0, ingresos: 0 }
         ]
         
         const categorias: CategoriaVenta[] = [
-          { categoria: 'Running', ventas: 180, ingresos: 15000000 },
-          { categoria: 'Basketball', ventas: 120, ingresos: 18000000 },
-          { categoria: 'Lifestyle', ventas: 200, ingresos: 16000000 },
-          { categoria: 'Training', ventas: 80, ingresos: 8000000 }
+          { categoria: 'Running', ventas: 1, ingresos: 89999 },
+          { categoria: 'Basketball', ventas: 0, ingresos: 0 },
+          { categoria: 'Lifestyle', ventas: 0, ingresos: 0 },
+          { categoria: 'Training', ventas: 0, ingresos: 0 }
         ]
         
         const metricasData: MetricasReporte = {
-          ventasTotales: { valor: 450, cambio: 15, tipo: "aumento" },
-          pedidos: { valor: 450, cambio: 12, tipo: "aumento" },
-          clientesNuevos: { valor: 45, cambio: 8, tipo: "aumento" },
-          ticketPromedio: { valor: 85000, cambio: 5, tipo: "aumento" },
-          tasaConversion: { valor: 78, cambio: 3, tipo: "aumento" }
+          ventasTotales: { valor: 89999, cambio: 0, tipo: "aumento" },
+          pedidos: { valor: 1, cambio: 0, tipo: "aumento" },
+          clientesNuevos: { valor: 1, cambio: 0, tipo: "aumento" },
+          ticketPromedio: { valor: 89999, cambio: 0, tipo: "aumento" },
+          tasaConversion: { valor: 100, cambio: 0, tipo: "aumento" }
         }
 
         setVentasPorPeriodo(ventasPeriodo)
@@ -186,7 +183,6 @@ export default function ReportesPage() {
         setProductosFinancieros(productosFin)
         setBalanceFinanciero(balance)
         setMetricasFinancieras(metricasFin)
-        setEgresos(egresosData)
         
         // Generar alertas automáticas para productos con márgenes bajos
         if (productosFin.length > 0) {
@@ -251,7 +247,7 @@ export default function ReportesPage() {
         extension = "json"
         break
       case "csv":
-        const csvHeaders = "Período,Ventas,Ingresos\n"
+        const csvHeaders = "Período,Ventas,Ingresos ($)\n"
         const csvData = ventasPorPeriodo
           .map((item: VentaPorPeriodo) => `${item.periodo},${item.ventas},${item.ingresos}`)
           .join("\n")
@@ -269,7 +265,7 @@ export default function ReportesPage() {
         dataStr += `Clientes Nuevos: ${metricas.clientesNuevos.valor}\n\n`
         dataStr += `VENTAS POR PERÍODO:\n`
         ventasPorPeriodo.forEach((item: VentaPorPeriodo) => {
-          dataStr += `${item.periodo}: $${item.ventas.toLocaleString()} ($${item.ingresos.toLocaleString()})\n`
+          dataStr += `${item.periodo}: ${item.ventas} ventas ($${item.ingresos.toLocaleString()})\n`
         })
         mimeType = "text/plain"
         extension = "txt"
@@ -564,7 +560,7 @@ export default function ReportesPage() {
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-card-foreground">
-                  Ventas por{" "}
+                  Ingresos y Ventas por{" "}
                   {periodoSeleccionado === "hoy"
                     ? "Hora"
                     : periodoSeleccionado === "semana"
@@ -574,7 +570,7 @@ export default function ReportesPage() {
                         : "Mes"}
                 </CardTitle>
                 <CardDescription>
-                  Rendimiento de ventas en el{" "}
+                  Rendimiento de ingresos y ventas en el{" "}
                   {periodoSeleccionado === "hoy" ? "día actual" : `último ${periodoSeleccionado}`}
                 </CardDescription>
               </CardHeader>
@@ -593,16 +589,16 @@ export default function ReportesPage() {
                             return (
                               <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
                                 <p className="font-medium text-card-foreground">{`${label}`}</p>
-                                <p className="text-green-600">{`Ventas: $${payload[0]?.value?.toLocaleString()}`}</p>
-                                <p className="text-blue-600">{`Pedidos: ${payload[1]?.value}`}</p>
+                                <p className="text-green-600">{`Ingresos: $${payload[0]?.value?.toLocaleString()}`}</p>
+                                <p className="text-blue-600">{`Ventas: ${payload[1]?.value}`}</p>
                               </div>
                             )
                           }
                           return null
                         }}
                       />
-                      <Bar dataKey="ventas" fill="#10b981" name="Ventas ($)" />
-                      <Bar dataKey="pedidos" fill="#3b82f6" name="Pedidos" />
+                      <Bar dataKey="ingresos" fill="#10b981" name="Ingresos ($)" />
+                      <Bar dataKey="ventas" fill="#3b82f6" name="Ventas" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -612,30 +608,30 @@ export default function ReportesPage() {
             <Card className="bg-card border-border">
               <CardHeader>
                 <CardTitle className="text-lg font-semibold text-card-foreground">Tendencia Mensual</CardTitle>
-                <CardDescription>Evolución de ventas y clientes por mes</CardDescription>
+                <CardDescription>Evolución de ingresos y ventas por mes</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-80">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={[...ventasPorMes]} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                       <XAxis dataKey="mes" fontSize={12} tickMargin={10} />
-                      <YAxis fontSize={12} tickFormatter={(value) => `$${(value / 1000000).toFixed(1)}M`} />
+                      <YAxis fontSize={12} tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`} />
                       <ChartTooltip
                         content={({ active, payload, label }) => {
                           if (active && payload && payload.length) {
                             return (
                               <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
                                 <p className="font-medium text-card-foreground">{`${label}`}</p>
-                                <p className="text-purple-600">{`Ventas: $${payload[0]?.value?.toLocaleString()}`}</p>
-                                <p className="text-orange-600">{`Clientes: ${payload[1]?.value}`}</p>
+                                <p className="text-purple-600">{`Ingresos: $${payload[0]?.value?.toLocaleString()}`}</p>
+                                <p className="text-orange-600">{`Ventas: ${payload[1]?.value}`}</p>
                               </div>
                             )
                           }
                           return null
                         }}
                       />
-                      <Line type="monotone" dataKey="ventas" stroke="#8b5cf6" strokeWidth={3} name="Ventas ($)" />
-                      <Line type="monotone" dataKey="clientes" stroke="#f59e0b" strokeWidth={3} name="Clientes" />
+                      <Line type="monotone" dataKey="ingresos" stroke="#8b5cf6" strokeWidth={3} name="Ingresos ($)" />
+                      <Line type="monotone" dataKey="ventas" stroke="#f59e0b" strokeWidth={3} name="Ventas" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -660,7 +656,7 @@ export default function ReportesPage() {
                           </div>
                           <div className="min-w-0 flex-1">
                             <div className="text-sm font-medium text-gray-900 truncate">{producto.nombre}</div>
-                            <div className="text-xs text-gray-500">{producto.ventas} unidades vendidas</div>
+                            <div className="text-xs text-gray-500">{producto.ventas} unidad{producto.ventas !== 1 ? 'es' : ''} vendida{producto.ventas !== 1 ? 's' : ''}</div>
                           </div>
                         </div>
                         <div className="text-right flex-shrink-0 ml-4">
@@ -705,7 +701,7 @@ export default function ReportesPage() {
                           cx="50%"
                           cy="50%"
                           outerRadius={100}
-                          label={({ categoria, ventas }) => `${categoria}: ${ventas}`}
+                          label={({ categoria, ventas }) => `${categoria}: ${ventas} venta${ventas !== 1 ? 's' : ''}`}
                           fontSize={12}
                         >
                         {categoriaVentas.map((entry: CategoriaVenta, index: number) => {
@@ -719,7 +715,7 @@ export default function ReportesPage() {
                               return (
                                 <div className="bg-card p-3 border border-border rounded-lg shadow-lg">
                                   <p className="font-medium text-card-foreground">{payload[0]?.name}</p>
-                                  <p className="text-gray-600">{`${payload[0]?.value} ventas`}</p>
+                                  <p className="text-gray-600">{`${payload[0]?.value} venta${payload[0]?.value !== 1 ? 's' : ''}`}</p>
                                 </div>
                               )
                             }
@@ -762,7 +758,7 @@ export default function ReportesPage() {
                       {productosMasVendidos[0]?.nombre || "Sin datos"}
                     </div>
                     <div className="text-sm text-blue-100">
-                      {productosMasVendidos[0]?.ventas || 0} unidades vendidas
+                      {productosMasVendidos[0]?.ventas || 0} unidad{(productosMasVendidos[0]?.ventas || 0) !== 1 ? 'es' : ''} vendida{(productosMasVendidos[0]?.ventas || 0) !== 1 ? 's' : ''}
                     </div>
                   </div>
                   <Package className="h-12 w-12 text-blue-200 flex-shrink-0 ml-4" />
@@ -778,8 +774,8 @@ export default function ReportesPage() {
               <CardContent>
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <div className="text-lg font-bold truncate">Cliente</div>
-                    <div className="text-sm text-purple-100">$0 en compras</div>
+                    <div className="text-lg font-bold truncate">Juan Pérez</div>
+                    <div className="text-sm text-purple-100">$89,999 en compras</div>
                   </div>
                   <Users className="h-12 w-12 text-purple-200 flex-shrink-0 ml-4" />
                 </div>
@@ -834,15 +830,7 @@ export default function ReportesPage() {
             </div>
           )}
 
-          {egresos.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
-                <FileText className="h-6 w-6 text-red-600" />
-                <span>Análisis de Egresos</span>
-              </h2>
-              <ExpensesBreakdown egresos={egresos} />
-            </div>
-          )}
+
         </main>
       </div>
       

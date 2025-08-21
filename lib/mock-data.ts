@@ -153,29 +153,11 @@ const clientesMock: Cliente[] = [
 ]
 
 const ventasMock: Venta[] = [
-  { id: 1, cliente_id: 1, fecha_venta: '2024-01-15', total: 89999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Air Force 1' },
-  { id: 2, cliente_id: 2, fecha_venta: '2024-01-16', total: 159999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike LeBron 20' },
-  { id: 3, cliente_id: 3, fecha_venta: '2024-01-17', total: 129999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Adidas Ultraboost 22' },
-  { id: 4, cliente_id: 4, fecha_venta: '2024-01-18', total: 79999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Blazer Mid' },
-  { id: 5, cliente_id: 5, fecha_venta: '2024-01-19', total: 109999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike React Infinity Run 3' },
-  { id: 6, cliente_id: 6, fecha_venta: '2024-01-20', total: 69999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Stan Smith' },
-  { id: 7, cliente_id: 7, fecha_venta: '2024-01-21', total: 179999, metodo_pago: 'transferencia', estado: 'completada', notas: 'Venta de Nike Air Jordan 38' },
-  { id: 8, cliente_id: 8, fecha_venta: '2024-01-22', total: 89999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Nike Dunk Low' },
-  { id: 9, cliente_id: 9, fecha_venta: '2024-01-23', total: 149999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Adidas Harden Vol. 7' },
-  { id: 10, cliente_id: 10, fecha_venta: '2024-01-24', total: 69999, metodo_pago: 'efectivo', estado: 'completada', notas: 'Venta de Converse Chuck Taylor' }
+  { id: 1, cliente_id: 1, fecha_venta: '2024-01-15', total: 89999, metodo_pago: 'tarjeta', estado: 'completada', notas: 'Venta de Nike Air Max 270' }
 ]
 
 const ventasDetalleMock: VentaDetalle[] = [
-  { id: 1, venta_id: 1, producto_id: 7, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
-  { id: 2, venta_id: 2, producto_id: 4, cantidad: 1, precio_unitario: 159999, subtotal: 159999 },
-  { id: 3, venta_id: 3, producto_id: 10, cantidad: 1, precio_unitario: 129999, subtotal: 129999 },
-  { id: 4, venta_id: 4, producto_id: 9, cantidad: 1, precio_unitario: 79999, subtotal: 79999 },
-  { id: 5, venta_id: 5, producto_id: 2, cantidad: 1, precio_unitario: 109999, subtotal: 109999 },
-  { id: 6, venta_id: 6, producto_id: 16, cantidad: 1, precio_unitario: 69999, subtotal: 69999 },
-  { id: 7, venta_id: 7, producto_id: 6, cantidad: 1, precio_unitario: 179999, subtotal: 179999 },
-  { id: 8, venta_id: 8, producto_id: 8, cantidad: 1, precio_unitario: 89999, subtotal: 89999 },
-  { id: 9, venta_id: 9, producto_id: 13, cantidad: 1, precio_unitario: 149999, subtotal: 149999 },
-  { id: 10, venta_id: 10, producto_id: 21, cantidad: 1, precio_unitario: 59999, subtotal: 59999 }
+  { id: 1, venta_id: 1, producto_id: 1, cantidad: 1, precio_unitario: 89999, subtotal: 89999 }
 ]
 
 const egresosMock: Egreso[] = [

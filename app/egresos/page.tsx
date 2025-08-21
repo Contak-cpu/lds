@@ -789,6 +789,124 @@ export default function EgresosPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Análisis de Egresos */}
+          {egresos.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-card-foreground mb-6 flex items-center space-x-2">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+                <span>Análisis de Egresos</span>
+              </h2>
+              
+              {/* Métricas de Egresos */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Egresos</CardTitle>
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      -${egresos.reduce((sum, e) => sum + e.monto, 0).toLocaleString()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {egresos.length} egreso{egresos.length !== 1 ? 's' : ''} registrado{egresos.length !== 1 ? 's' : ''}
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Promedio por Egreso</CardTitle>
+                    <DollarSign className="h-4 w-4 text-blue-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      ${(egresos.reduce((sum, e) => sum + e.monto, 0) / egresos.length).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Promedio mensual
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Categoría Principal</CardTitle>
+                    <Receipt className="h-4 w-4 text-green-600" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-card-foreground">
+                      {(() => {
+                        const categorias = egresos.reduce((acc, e) => {
+                          acc[e.categoria] = (acc[e.categoria] || 0) + e.monto
+                          return acc
+                        }, {} as Record<string, number>)
+                        const categoriaPrincipal = Object.entries(categorias).sort(([,a], [,b]) => b - a)[0]
+                        return categoriaPrincipal ? categoriaPrincipal[0] : 'N/A'
+                      })()}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Mayor gasto por categoría
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráfico de Egresos por Categoría */}
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold text-card-foreground">
+                    Egresos por Categoría
+                  </CardTitle>
+                  <CardDescription>
+                    Distribución de gastos por tipo de egreso
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {(() => {
+                      const categorias = egresos.reduce((acc, e) => {
+                        acc[e.categoria] = (acc[e.categoria] || 0) + e.monto
+                        return acc
+                      }, {} as Record<string, number>)
+                      
+                      const total = Object.values(categorias).reduce((sum, monto) => sum + monto, 0)
+                      
+                      return Object.entries(categorias).map(([categoria, monto]) => (
+                        <div key={categoria} className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3 flex-1 min-w-0">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-red-100 flex-shrink-0">
+                              <Receipt className="h-4 w-4 text-red-600" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="text-sm font-medium text-gray-900 truncate">{categoria}</div>
+                              <div className="text-xs text-gray-500">
+                                {((monto / total) * 100).toFixed(1)}% del total
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <div className="text-sm font-semibold text-red-600">
+                              -${monto.toLocaleString()}
+                            </div>
+                            <div className="w-20 bg-gray-200 rounded-full h-2 mt-1">
+                              <div
+                                className="h-2 rounded-full bg-red-500"
+                                style={{
+                                  width: `${(monto / total) * 100}%`,
+                                }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </main>
       </div>
     </div>
