@@ -89,7 +89,6 @@ const categoryIconMap: Record<string, React.ComponentType<any>> = {
   "Herramientas": Scissors,
   "Control Climático": Thermometer,
   "Hidroponía": Droplets,
-  "Accesorios": Package,
   
   // Categorías generales
   "Ropa": Shirt,
