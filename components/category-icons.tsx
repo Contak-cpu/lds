@@ -69,6 +69,8 @@ const categoryColorMap: Record<string, { bg: string; icon: string; border: strin
   "default": { bg: "bg-gray-50", icon: "text-gray-600", border: "border-gray-200" }
 }
 
+
+
 const categoryIconMap: Record<string, React.ComponentType<any>> = {
   // Categorías de Sneakers
   "Running": Zap,
@@ -115,8 +117,8 @@ export function CategoryIcon({ categoria, size = 24, className = "" }: CategoryI
   const normalizedCategoria = categoria?.trim() || ""
   
   // Buscar el icono y colores correspondientes
-  const IconComponent = categoryIconMap[normalizedCategoria] || categoryIconMap.default
-  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap.default
+  const IconComponent = categoryIconMap[normalizedCategoria] || Package
+  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap["default"]
   
   return (
     <div className={`flex items-center justify-center rounded-lg p-3 border ${colors.bg} ${colors.border} ${className}`}>
@@ -139,8 +141,8 @@ export function ProductImagePlaceholder({
   const normalizedCategoria = categoria?.trim() || ""
   
   // Buscar el icono y colores correspondientes
-  const IconComponent = categoryIconMap[normalizedCategoria] || categoryIconMap.default
-  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap.default
+  const IconComponent = categoryIconMap[normalizedCategoria] || Package
+  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap["default"]
   
   return (
     <div className={`${size} bg-gradient-to-br ${colors.bg} to-white dark:to-gray-800 rounded-lg border ${colors.border} flex items-center justify-center ${className}`}>
@@ -155,13 +157,13 @@ export function ProductImagePlaceholder({
 }
 
 // Componente para mostrar el icono de la categoría en listas
-export function CategoryIconSmall({ categoria, className = "" }: { categoria: string, className?: string }) {
+export function CategoryIconSmall({ categoria, className?: string }: { categoria: string, className?: string }) {
   // Normalizar el nombre de la categoría
   const normalizedCategoria = categoria?.trim() || ""
   
   // Buscar el icono y colores correspondientes
-  const IconComponent = categoryIconMap[normalizedCategoria] || categoryIconMap.default
-  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap.default
+  const IconComponent = categoryIconMap[normalizedCategoria] || Package
+  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap["default"]
   
   return (
     <div className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${colors.bg} ${colors.border} ${className}`}>
@@ -171,13 +173,13 @@ export function CategoryIconSmall({ categoria, className = "" }: { categoria: st
 }
 
 // Componente para mostrar el icono de la categoría con etiqueta
-export function CategoryIconWithLabel({ categoria, className = "" }: { categoria: string, className?: string }) {
+export function CategoryIconWithLabel({ categoria, className?: string }: { categoria: string, className?: string }) {
   // Normalizar el nombre de la categoría
   const normalizedCategoria = categoria?.trim() || ""
   
   // Buscar el icono y colores correspondientes
-  const IconComponent = categoryIconMap[normalizedCategoria] || categoryIconMap.default
-  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap.default
+  const IconComponent = categoryIconMap[normalizedCategoria] || Package
+  const colors = categoryColorMap[normalizedCategoria] || categoryColorMap["default"]
   
   return (
     <div className={`inline-flex items-center space-x-2 px-3 py-1 rounded-full ${colors.bg} ${colors.border} ${className}`}>
