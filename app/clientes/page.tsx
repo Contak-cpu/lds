@@ -200,57 +200,32 @@ export default function ClientesPage() {
     notas: "",
   })
 
-  const loadClientes = async () => {
-    try {
-      setLoading(true)
+  // Cargar clientes solo una vez al montar el componente
+  useEffect(() => {
+    const loadClientes = async () => {
+      try {
+        setLoading(true)
+        
+        // Simular delay de carga
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // Cargar clientes desde localStorage (modo mock)
+        const clientesGuardados = localStorage.getItem('clientes-sneakers')
+        const clientesData: Cliente[] = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
 
-      // Cargar clientes desde localStorage (modo mock)
-      const clientesMock: Cliente[] = [
-        {
-          id: "1",
-          nombre: "Juan Pérez",
-          email: "juan@email.com",
-          telefono: "+54 11 1234-5678",
-          direccion: "Av. Corrientes 1234",
-          ciudad: "Buenos Aires",
-          provincia: "CABA",
-          codigo_postal: "C1043AAZ",
-          fecha_registro: "2024-01-15",
-          notas: "Cliente frecuente",
-          estado: "Activo",
-          created_at: "2024-01-15T10:00:00Z",
-          updated_at: "2024-01-15T10:00:00Z"
-        },
-        {
-          id: "2", 
-          nombre: "María González",
-          email: "maria@email.com",
-          telefono: "+54 11 9876-5432",
-          direccion: "Av. Santa Fe 5678",
-          ciudad: "Buenos Aires",
-          provincia: "CABA",
-          codigo_postal: "C1425FOD",
-          fecha_registro: "2024-01-10",
-          notas: "Prefiere zapatillas deportivas",
-          estado: "Activo",
-          created_at: "2024-01-10T14:30:00Z",
-          updated_at: "2024-01-10T14:30:00Z"
-        }
-      ]
-
-      const clientesGuardados = localStorage.getItem('clientes-sneakers')
-      const clientesData: Cliente[] = clientesGuardados ? JSON.parse(clientesGuardados) : clientesMock
-
-      setClientes(clientesData)
-    } catch (error) {
-      console.error("Error loading clientes:", error)
-      showError("Error al cargar clientes")
-      // En caso de error, usar datos mock
-      setClientes(clientesMock)
-    } finally {
-      setLoading(false)
+        setClientes(clientesData)
+      } catch (error) {
+        console.error("Error loading clientes:", error)
+        showError("Error al cargar clientes")
+        // En caso de error, usar datos mock
+        setClientes(clientesMock)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    loadClientes()
+  }, []) // Solo se ejecuta una vez al montar
 
   const handleAddCliente = async () => {
     try {
@@ -282,9 +257,6 @@ export default function ClientesPage() {
         updated_at: new Date().toISOString(),
       }
 
-      console.log("Datos del cliente a insertar:", clienteData)
-
-
       // Crear cliente (modo mock)
       const nuevoCliente = clienteData
 
@@ -309,7 +281,6 @@ export default function ClientesPage() {
     } catch (error) {
       console.error("Error adding cliente:", error)
       
-      // Mostrar error más específico
       let errorMessage = "No se pudo agregar el cliente"
       if (error instanceof Error) {
         errorMessage = error.message
@@ -323,7 +294,6 @@ export default function ClientesPage() {
 
   const handleDeleteCliente = async (clienteId: string) => {
     try {
-
       // Eliminar cliente (modo mock)
       const clientesActualizados = clientes.filter(c => c.id !== clienteId)
       localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
@@ -366,11 +336,11 @@ export default function ClientesPage() {
       }
 
       // Actualizar localStorage
-      const clientesActuales = JSON.parse(localStorage.getItem('crm-clientes') || '[]')
+      const clientesActuales = JSON.parse(localStorage.getItem('clientes-sneakers') || '[]')
       const clientesActualizados = clientesActuales.map((cliente: Cliente) => 
         cliente.id === editingCliente.id ? clienteActualizado : cliente
       )
-      localStorage.setItem('crm-clientes', JSON.stringify(clientesActualizados))
+      localStorage.setItem('clientes-sneakers', JSON.stringify(clientesActualizados))
 
       // Actualizar el estado local
       setClientes(clientesActualizados)
@@ -432,7 +402,7 @@ export default function ClientesPage() {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="container mx-auto p-6">
+        <div className="lg:ml-64 p-4 sm:p-6">
           <div className="flex items-center justify-center p-8">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
@@ -447,23 +417,23 @@ export default function ClientesPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
-      <div className="container mx-auto p-6">
+      <div className="lg:ml-64 p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Clientes</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Clientes</h1>
             <p className="text-muted-foreground">
               Gestiona tu base de datos de clientes
             </p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-green-600 hover:bg-green-700">
+              <Button className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
                 <Plus className="mr-2 h-4 w-4" />
                 Nuevo Cliente
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Agregar Nuevo Cliente</DialogTitle>
                 <DialogDescription>
@@ -580,11 +550,11 @@ export default function ClientesPage() {
                   />
                 </div>
               </div>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              <div className="flex flex-col sm:flex-row justify-end gap-2">
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="w-full sm:w-auto">
                   Cancelar
                 </Button>
-                <Button onClick={handleAddCliente} className="bg-green-600 hover:bg-green-700">
+                <Button onClick={handleAddCliente} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
                   Crear Cliente
                 </Button>
               </div>
@@ -611,16 +581,16 @@ export default function ClientesPage() {
             <Card key={cliente.id} className="hover:shadow-lg transition-shadow">
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
+                  <div className="flex-1 min-w-0">
+                    <CardTitle className="text-lg truncate">{cliente.nombre}</CardTitle>
                     <CardDescription className="flex items-center gap-2 mt-1">
-                      <Mail className="h-4 w-4" />
-                      {cliente.email || "Sin email"}
+                      <Mail className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{cliente.email || "Sin email"}</span>
                     </CardDescription>
                   </div>
                   <Badge
                     variant={cliente.estado === "Activo" ? "default" : "secondary"}
-                    className={`${
+                    className={`ml-2 flex-shrink-0 ${
                       cliente.estado === "Activo"
                         ? "bg-green-100 text-green-800 border-green-300"
                         : "bg-gray-100 text-gray-800 border-gray-300"
@@ -632,16 +602,16 @@ export default function ClientesPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  {cliente.telefono || "Sin teléfono"}
+                  <Phone className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{cliente.telefono || "Sin teléfono"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  {cliente.ciudad || "Sin ciudad"}, {cliente.provincia || "Sin provincia"}
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{cliente.ciudad || "Sin ciudad"}, {cliente.provincia || "Sin provincia"}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <ShoppingBag className="h-4 w-4" />
-                  Registrado: {new Date(cliente.fecha_registro).toLocaleDateString()}
+                  <ShoppingBag className="h-4 w-4 flex-shrink-0" />
+                  <span>Registrado: {new Date(cliente.fecha_registro).toLocaleDateString()}</span>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
                   <Button
@@ -697,7 +667,7 @@ export default function ClientesPage() {
 
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Editar Cliente</DialogTitle>
               <DialogDescription>
@@ -806,11 +776,11 @@ export default function ClientesPage() {
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={closeEditDialog}>
+            <div className="flex flex-col sm:flex-row justify-end gap-2">
+              <Button variant="outline" onClick={closeEditDialog} className="w-full sm:w-auto">
                 Cancelar
               </Button>
-              <Button onClick={handleEditCliente} className="bg-green-600 hover:bg-green-700">
+              <Button onClick={handleEditCliente} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto">
                 Guardar Cambios
               </Button>
             </div>
@@ -819,7 +789,7 @@ export default function ClientesPage() {
 
         {/* View Dialog */}
         <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Detalles del Cliente</DialogTitle>
               <DialogDescription>

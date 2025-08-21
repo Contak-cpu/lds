@@ -91,26 +91,31 @@ export default function Dashboard() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
+      <div className="min-h-screen bg-background">
         <Navigation />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-lg text-muted-foreground">Cargando métricas...</div>
+        <div className="lg:ml-64 p-4 sm:p-6">
+          <div className="flex items-center justify-center p-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-muted-foreground">Cargando métricas...</p>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="min-h-screen bg-background">
       <Navigation />
 
-      <div className="flex-1">
+      <div className="lg:ml-64">
         {/* Header */}
         <header className="bg-card border-b border-border shadow-sm">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center py-4 gap-4 sm:gap-0">
               <div>
-                <h1 className="text-xl font-bold text-card-foreground">Dashboard de Ventas</h1>
+                <h1 className="text-xl sm:text-2xl font-bold text-card-foreground">Dashboard de Ventas</h1>
                 <p className="text-sm text-green-600">Gestiona tu tienda de zapatillas deportivas de manera eficiente</p>
                 <CurrentDateTime />
               </div>
@@ -119,7 +124,7 @@ export default function Dashboard() {
                   Activo
                 </Badge>
                 <Link href="/configuracion">
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" className="w-full sm:w-auto">
                     Configuración
                   </Button>
                 </Link>
@@ -129,29 +134,27 @@ export default function Dashboard() {
         </header>
 
         {/* Filtro de fechas */}
-        <div className="bg-muted/50 border-b border-border px-4 py-3">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtrar por período:</h3>
-                <DateFilter
-                  onDateRangeChange={dateFilter.setSelectedRange}
-                  onQuickFilterChange={dateFilter.setSelectedQuickFilter}
-                  selectedRange={dateFilter.selectedRange}
-                  selectedQuickFilter={dateFilter.selectedQuickFilter}
-                />
-              </div>
-              {(() => {
-                const range = dateFilter.getFilteredDateRange()
-                return range?.from && (
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Período seleccionado:</span>{" "}
-                    {range.from.toLocaleDateString("es-AR")}
-                    {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
-                  </div>
-                )
-              })()}
+        <div className="bg-muted/50 border-b border-border px-4 sm:px-6 py-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground mb-2">Filtrar por período:</h3>
+              <DateFilter
+                onDateRangeChange={dateFilter.setSelectedRange}
+                onQuickFilterChange={dateFilter.setSelectedQuickFilter}
+                selectedRange={dateFilter.selectedRange}
+                selectedQuickFilter={dateFilter.selectedQuickFilter}
+              />
             </div>
+            {(() => {
+              const range = dateFilter.getFilteredDateRange()
+              return range?.from && (
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">Período seleccionado:</span>{" "}
+                  {range.from.toLocaleDateString("es-AR")}
+                  {range.to && ` - ${range.to.toLocaleDateString("es-AR")}`}
+                </div>
+              )
+            })()}
           </div>
         </div>
 
@@ -160,7 +163,7 @@ export default function Dashboard() {
           const range = dateFilter.getFilteredDateRange()
           if (range?.from) {
             return (
-              <div className="bg-green-50 border-b border-green-200 px-4 py-2">
+              <div className="bg-green-50 border-b border-green-200 px-4 sm:px-6 py-2">
                 <div className="max-w-7xl mx-auto">
                   <p className="text-sm text-green-700">
                     <span className="inline-block w-4 h-4 mr-1">📅</span>
@@ -184,16 +187,16 @@ export default function Dashboard() {
         })()}
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           {/* Metrics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <Card className="bg-card border-border hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">Ventas Hoy</CardTitle>
                 <TrendingUp className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">${metricas.ventasHoy.toLocaleString()} ARS</div>
+                <div className="text-xl sm:text-2xl font-bold text-card-foreground">${metricas.ventasHoy.toLocaleString()} ARS</div>
                 <p className={`text-xs mt-1 ${metricas.cambioVentasHoy >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {metricas.cambioVentasHoy >= 0 ? '+' : ''}{metricas.cambioVentasHoy.toFixed(1)}% desde ayer
                 </p>
@@ -206,7 +209,7 @@ export default function Dashboard() {
                 <Users className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{metricas.clientesActivos}</div>
+                <div className="text-xl sm:text-2xl font-bold text-card-foreground">{metricas.clientesActivos}</div>
                 <p className="text-xs text-blue-600 mt-1">+{metricas.nuevosClientesSemana} nuevos esta semana</p>
               </CardContent>
             </Card>
@@ -217,7 +220,7 @@ export default function Dashboard() {
                 <Package className="h-4 w-4 text-amber-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{metricas.totalProductos}</div>
+                <div className="text-xl sm:text-2xl font-bold text-card-foreground">{metricas.totalProductos}</div>
                 <p className="text-xs text-amber-600 mt-1">Stock total: {metricas.stockTotal} unidades</p>
               </CardContent>
             </Card>
@@ -228,14 +231,14 @@ export default function Dashboard() {
                 <ShoppingCart className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-card-foreground">{metricas.pedidosPendientes}</div>
+                <div className="text-xl sm:text-2xl font-bold text-card-foreground">{metricas.pedidosPendientes}</div>
                 <p className="text-xs text-purple-600 mt-1">{metricas.pedidosRequierenAtencion} requieren atención</p>
               </CardContent>
             </Card>
           </div>
 
           {/* Quick Actions & Recent Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             {/* Quick Actions */}
             <Card className="lg:col-span-1 bg-card border-border">
               <CardHeader>
@@ -280,40 +283,40 @@ export default function Dashboard() {
                 <div className="space-y-4">
                   {metricas.ventasHoy > 0 && (
                     <div className="flex items-center space-x-3 p-3 bg-green-50 dark:bg-green-950 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="bg-green-600 p-2 rounded-full">
+                      <div className="bg-green-600 p-2 rounded-full flex-shrink-0">
                         <ShoppingCart className="h-4 w-4 text-white" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-card-foreground">Ventas del día</p>
                         <p className="text-xs text-muted-foreground">Total: ${metricas.ventasHoy.toLocaleString()} ARS</p>
                       </div>
-                      <span className="text-xs text-muted-foreground">Hoy</span>
+                      <span className="text-xs text-muted-foreground flex-shrink-0">Hoy</span>
                     </div>
                   )}
 
                   {metricas.nuevosClientesSemana > 0 && (
                     <div className="flex items-center space-x-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg">
-                      <div className="bg-blue-600 p-2 rounded-full">
+                      <div className="bg-blue-600 p-2 rounded-full flex-shrink-0">
                         <Users className="h-4 w-4 text-white" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-card-foreground">Nuevos clientes</p>
                         <p className="text-xs text-muted-foreground">{metricas.nuevosClientesSemana} registrados esta semana</p>
                       </div>
-                      <span className="text-xs text-muted-foreground">Esta semana</span>
+                      <span className="text-xs text-muted-foreground flex-shrink-0">Esta semana</span>
                     </div>
                   )}
 
                   {metricas.productosStockBajo > 0 && (
                     <div className="flex items-center space-x-3 p-3 bg-amber-50 dark:bg-amber-950 rounded-lg">
-                      <div className="bg-amber-600 p-2 rounded-full">
+                      <div className="bg-amber-600 p-2 rounded-full flex-shrink-0">
                         <Package className="h-4 w-4 text-white" />
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-card-foreground">Stock bajo</p>
                         <p className="text-xs text-muted-foreground">{metricas.productosStockBajo} productos requieren reposición</p>
                       </div>
-                      <span className="text-xs text-muted-foreground">Reciente</span>
+                      <span className="text-xs text-muted-foreground flex-shrink-0">Reciente</span>
                     </div>
                   )}
 
@@ -330,7 +333,7 @@ export default function Dashboard() {
           </div>
 
           {/* Top Products */}
-          <Card className="mt-6 bg-card border-border">
+          <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-card-foreground">Productos Más Vendidos</CardTitle>
               <CardDescription>Los favoritos de tus clientes este mes</CardDescription>
@@ -340,17 +343,17 @@ export default function Dashboard() {
                 {productosMasVendidos.length > 0 ? (
                   productosMasVendidos.slice(0, 3).map((producto, index) => (
                     <div key={index} className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
-                      <div className="bg-green-600 p-3 rounded-lg">
+                      <div className="bg-green-600 p-3 rounded-lg flex-shrink-0">
                         <Zap className="h-6 w-6 text-white" />
                       </div>
-                      <div>
-                        <h4 className="font-semibold text-card-foreground">{producto.nombre}</h4>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-card-foreground truncate">{producto.nombre}</h4>
                         <p className="text-sm text-muted-foreground">{producto.ventas} ventas - ${producto.ingresos.toLocaleString()} ARS</p>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="col-span-3 text-center py-8 text-muted-foreground">
+                  <div className="col-span-1 md:col-span-3 text-center py-8 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                     <p className="text-sm">No hay productos vendidos aún</p>
                     <p className="text-xs">Las ventas aparecerán aquí</p>

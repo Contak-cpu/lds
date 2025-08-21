@@ -104,6 +104,61 @@ export function useCategorias() {
           orden: 3,
           created_at: "2024-01-01T00:00:00Z",
           updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "4",
+          nombre: "Training",
+          descripcion: "Zapatillas para entrenamiento y gimnasio",
+          icono: "Package",
+          color: "#8B5CF6",
+          activo: true,
+          orden: 4,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "5",
+          nombre: "Soccer",
+          descripcion: "Botines de fútbol profesionales",
+          icono: "Target",
+          color: "#059669",
+          activo: true,
+          orden: 5,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "6",
+          nombre: "Tennis",
+          descripcion: "Zapatillas de tenis",
+          icono: "Target",
+          color: "#DC2626",
+          activo: true,
+          orden: 6,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "7",
+          nombre: "Skateboarding",
+          descripcion: "Zapatillas para skate",
+          icono: "Package",
+          color: "#7C3AED",
+          activo: true,
+          orden: 7,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
+        },
+        {
+          id: "8",
+          nombre: "Hiking",
+          descripcion: "Botas de senderismo",
+          icono: "Package",
+          color: "#92400E",
+          activo: true,
+          orden: 8,
+          created_at: "2024-01-01T00:00:00Z",
+          updated_at: "2024-01-01T00:00:00Z"
         }
       ]
       

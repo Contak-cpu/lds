@@ -121,3 +121,194 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Estilos adicionales para responsividad móvil */
+@layer utilities {
+  /* Ocultar scrollbar en dispositivos móviles */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Mejorar el touch en dispositivos móviles */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  /* Asegurar que los botones tengan el tamaño mínimo recomendado para móviles */
+  .min-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Mejorar la legibilidad del texto en móviles */
+  .mobile-text {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  
+  /* Asegurar que los inputs sean legibles en móviles */
+  .mobile-input {
+    font-size: 16px; /* Evita zoom en iOS */
+  }
+  
+  /* Mejorar el espaciado en dispositivos móviles */
+  .mobile-spacing {
+    @apply space-y-4 sm:space-y-6;
+  }
+  
+  /* Grid responsivo para móviles */
+  .mobile-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+  
+  /* Flexbox responsivo para móviles */
+  .mobile-flex {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  /* Padding responsivo para móviles */
+  .mobile-padding {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  /* Margen responsivo para móviles */
+  .mobile-margin {
+    @apply m-4 sm:m-6 lg:m-8;
+  }
+  
+  /* Tamaño de texto responsivo */
+  .mobile-text-size {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+  
+  /* Tamaño de título responsivo */
+  .mobile-title {
+    @apply text-lg sm:text-xl lg:text-2xl xl:text-3xl;
+  }
+  
+  /* Botones responsivos */
+  .mobile-button {
+    @apply w-full sm:w-auto;
+  }
+  
+  /* Formularios responsivos */
+  .mobile-form {
+    @apply space-y-4 sm:space-y-6;
+  }
+  
+  /* Campos de formulario responsivos */
+  .mobile-form-field {
+    @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
+  }
+  
+  /* Diálogos responsivos */
+  .mobile-dialog {
+    @apply max-h-[90vh] overflow-y-auto;
+  }
+  
+  /* Navegación responsiva */
+  .mobile-nav {
+    @apply hidden lg:block;
+  }
+  
+  .mobile-nav-toggle {
+    @apply lg:hidden;
+  }
+  
+  /* Contenido principal responsivo */
+  .mobile-main {
+    @apply lg:ml-64;
+  }
+  
+  /* Header móvil */
+  .mobile-header {
+    @apply lg:hidden;
+  }
+  
+  /* Sidebar de escritorio */
+  .desktop-sidebar {
+    @apply hidden lg:block;
+  }
+}
+
+/* Media queries específicos para dispositivos móviles */
+@media (max-width: 640px) {
+  .mobile-container {
+    @apply px-4;
+  }
+  
+  .mobile-card {
+    @apply p-4;
+  }
+  
+  .mobile-button-group {
+    @apply flex flex-col space-y-2;
+  }
+  
+  .mobile-input-group {
+    @apply space-y-3;
+  }
+}
+
+@media (max-width: 768px) {
+  .tablet-container {
+    @apply px-6;
+  }
+  
+  .tablet-grid {
+    @apply grid-cols-1 md:grid-cols-2;
+  }
+}
+
+@media (max-width: 1024px) {
+  .laptop-container {
+    @apply px-8;
+  }
+  
+  .laptop-sidebar {
+    @apply hidden;
+  }
+  
+  .laptop-main {
+    @apply ml-0;
+  }
+}
+
+/* Mejoras específicas para dispositivos táctiles */
+@media (hover: none) and (pointer: coarse) {
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  .touch-spacing {
+    @apply space-y-3;
+  }
+  
+  .touch-button {
+    @apply py-3 px-4;
+  }
+}
+
+/* Mejoras para dispositivos con pantallas pequeñas */
+@media (max-width: 480px) {
+  .xs-container {
+    @apply px-3;
+  }
+  
+  .xs-text {
+    @apply text-sm;
+  }
+  
+  .xs-title {
+    @apply text-lg;
+  }
+  
+  .xs-button {
+    @apply py-2 px-3 text-sm;
+  }
+}

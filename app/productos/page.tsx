@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import { useCategorias } from "@/hooks/use-categorias"
 import { CategoriaQuickAdd } from "@/components/categoria-quick-add"
+import { ProductImagePlaceholder, CategoryIconWithLabel } from "@/components/category-icons"
 import {
   Dialog,
   DialogContent,
@@ -94,72 +95,140 @@ interface ProductoFormErrors {
 const productosMock: Producto[] = [
   {
     id: "1",
-    sku: "SEM-001",
+    sku: "RUN-001",
     categoria_id: "1",
-    nombre: "Semillas OG Kush Feminizadas",
-    descripcion: "Semillas premium de cannabis OG Kush, variedad feminizada de alta calidad",
-    categoria: "Semillas",
-    marca: "Premium Seeds",
-    precio: 2500,
-    costo: 1500,
-    stock: 50,
-    stock_minimo: 10,
-    imagen_url: "/public/cannabis-seeds-pack.png",
+    nombre: "Nike Air Max 270",
+    descripcion: "Zapatillas de running con tecnología Air Max, perfectas para correr largas distancias",
+    categoria: "Running",
+    marca: "Nike",
+    precio: 45000,
+    costo: 28000,
+    stock: 25,
+    stock_minimo: 5,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
     activo: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: "2",
-    sku: "FERT-001",
+    sku: "BASK-001",
     categoria_id: "2",
-    nombre: "Fertilizante Orgánico Premium",
-    descripcion: "Nutriente completo para todas las etapas del cultivo, 100% orgánico",
-    categoria: "Fertilizantes",
-    marca: "EcoGrow",
-    precio: 1800,
-    costo: 900,
-    stock: 25,
-    stock_minimo: 5,
-    imagen_url: "/public/placeholder-ivbba.png",
+    nombre: "Jordan 1 Retro High OG",
+    descripcion: "Zapatillas de básquet icónicas, edición limitada con materiales premium",
+    categoria: "Basketball",
+    marca: "Jordan",
+    precio: 65000,
+    costo: 40000,
+    stock: 15,
+    stock_minimo: 3,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
     activo: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: "3",
-    sku: "LED-001",
+    sku: "LIFE-001",
     categoria_id: "3",
-    nombre: "Panel LED 600W Full Spectrum",
-    descripcion: "Sistema de iluminación LED profesional para cultivo interior",
-    categoria: "Iluminación",
-    marca: "GrowLight Pro",
-    precio: 45000,
-    costo: 30000,
-    stock: 8,
-    stock_minimo: 2,
-    imagen_url: "/public/hydroponic-dwc-system.png",
+    nombre: "Adidas Ultraboost 22",
+    descripcion: "Zapatillas lifestyle con tecnología Boost, máxima comodidad para el día a día",
+    categoria: "Lifestyle",
+    marca: "Adidas",
+    precio: 52000,
+    costo: 32000,
+    stock: 30,
+    stock_minimo: 8,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
     activo: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
     id: "4",
-    sku: "SUST-001",
+    sku: "TRAIN-001",
     categoria_id: "4",
-    nombre: "Sustrato Premium Mix",
-    descripcion: "Mezcla especializada de tierras para cultivo de cannabis",
-    categoria: "Sustratos",
-    marca: "TerraMax",
-    precio: 1200,
-    costo: 600,
-    stock: 30,
-    stock_minimo: 8,
-    imagen_url: "/public/placeholder-s06h6.png",
+    nombre: "Under Armour HOVR",
+    descripcion: "Zapatillas de entrenamiento con tecnología HOVR, ideales para gimnasio",
+    categoria: "Training",
+    marca: "Under Armour",
+    precio: 38000,
+    costo: 24000,
+    stock: 20,
+    stock_minimo: 4,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
     activo: true,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
+  {
+    id: "5",
+    sku: "SOCCER-001",
+    categoria_id: "5",
+    nombre: "Nike Mercurial Vapor 15",
+    descripcion: "Botines de fútbol profesionales, máxima velocidad y control",
+    categoria: "Soccer",
+    marca: "Nike",
+    precio: 48000,
+    costo: 30000,
+    stock: 18,
+    stock_minimo: 3,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "6",
+    sku: "TENNIS-001",
+    categoria_id: "6",
+    nombre: "Adidas Barricade",
+    descripcion: "Zapatillas de tenis profesionales, excelente estabilidad y durabilidad",
+    categoria: "Tennis",
+    marca: "Adidas",
+    precio: 42000,
+    costo: 26000,
+    stock: 22,
+    stock_minimo: 5,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "7",
+    sku: "SKATE-001",
+    categoria_id: "7",
+    nombre: "Vans Old Skool",
+    descripcion: "Zapatillas clásicas para skate, diseño atemporal y durabilidad",
+    categoria: "Skateboarding",
+    marca: "Vans",
+    precio: 35000,
+    costo: 22000,
+    stock: 35,
+    stock_minimo: 8,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: "8",
+    sku: "HIKE-001",
+    categoria_id: "8",
+    nombre: "Salomon X Ultra 3",
+    descripcion: "Botas de senderismo ligeras, perfectas para trekking y montaña",
+    categoria: "Hiking",
+    marca: "Salomon",
+    precio: 58000,
+    costo: 36000,
+    stock: 12,
+    stock_minimo: 2,
+    imagen_url: null, // Sin imagen para mostrar el placeholder
+    activo: true,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }
 ]
 
 // Función de validación para productos
@@ -648,16 +717,7 @@ export default function ProductosPage() {
   }, [searchTerm, productos, filteredProductos])
 
   const getCategoriaIcon = (categoria: string) => {
-    const iconMap: Record<string, ComponentType<{ className?: string }>> = {
-      Kits: Package,
-      Semillas: Leaf,
-      Fertilizantes: Droplets,
-      Iluminación: Lightbulb,
-      Hidroponía: Thermometer,
-      Herramientas: Scissors,
-    }
-    const IconComponent = iconMap[categoria] || Package
-    return <IconComponent className="h-4 w-4" />
+    return <CategoryIconWithLabel categoria={categoria} />
   }
 
   const calcularGanancia = (precio: number, costo: number): number => {
@@ -810,11 +870,19 @@ export default function ProductosPage() {
             {filteredProductos.map((producto: Producto) => (
               <Card key={producto.id} className="bg-card border-border hover:shadow-lg transition-shadow">
                 <div className="aspect-square relative overflow-hidden rounded-t-lg">
-                  <img
-                    src={producto.imagen_url || "/professional-pruning-scissors.png"}
-                    alt={producto.nombre}
-                    className="w-full h-full object-cover"
-                  />
+                  {producto.imagen_url ? (
+                    <img
+                      src={producto.imagen_url}
+                      alt={producto.nombre}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ProductImagePlaceholder 
+                      categoria={producto.categoria} 
+                      size="w-full h-full" 
+                      className="rounded-t-lg"
+                    />
+                  )}
                   <div className="absolute top-2 right-2">{getStockBadge(producto)}</div>
                 </div>
                 <CardHeader className="pb-2">
@@ -856,11 +924,19 @@ export default function ProductosPage() {
                         </DialogHeader>
                         <div className="grid grid-cols-2 gap-6 py-4">
                           <div className="space-y-4">
-                            <img
-                              src={producto.imagen_url || "/professional-pruning-scissors.png"}
-                              alt={producto.nombre}
-                              className="w-full aspect-square object-cover rounded-lg"
-                            />
+                            {producto.imagen_url ? (
+                              <img
+                                src={producto.imagen_url}
+                                alt={producto.nombre}
+                                className="w-full aspect-square object-cover rounded-lg"
+                              />
+                            ) : (
+                              <ProductImagePlaceholder 
+                                categoria={producto.categoria} 
+                                size="w-full aspect-square" 
+                                className="rounded-lg"
+                              />
+                            )}
                           </div>
                           <div className="space-y-4">
                             <div>
